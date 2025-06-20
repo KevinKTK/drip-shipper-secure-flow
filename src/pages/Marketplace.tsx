@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Ship, Package, Shield, Calendar, MapPin, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
+import { SkeletonOrderCard } from '@/components/ui/maritime-skeleton';
 
 const Marketplace = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const Marketplace = () => {
   const vesselOrders = orders?.filter(order => order.order_type === 'vessel') || [];
 
   const OrderCard = ({ order }: { order: any }) => (
-    <Card className="maritime-card">
+    <Card className="maritime-card maritime-card-glow">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
@@ -79,7 +80,7 @@ const Marketplace = () => {
         </div>
 
         <Button 
-          className="w-full bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] transition-all duration-300 text-[#CCD6F6] font-serif border border-[#CCD6F6]/30"
+          className="w-full maritime-button bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] font-serif border border-[#CCD6F6]/30"
           onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}
         >
           Create Insurance Policy
@@ -88,65 +89,82 @@ const Marketplace = () => {
     </Card>
   );
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0A192F] maritime-background">
-        <Navigation />
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
-        </div>
-      </div>
-    );
-  }
+  const SkeletonGrid = ({ count }: { count: number }) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: count }).map((_, index) => (
+        <SkeletonOrderCard key={index} />
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#0A192F] maritime-background">
       <Navigation />
       
       <div className="container mx-auto px-6 py-8 relative z-10">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 page-enter">
           <h1 className="text-4xl font-serif font-medium text-[#FFFFFF] mb-2">Maritime Marketplace</h1>
           <p className="text-[#CCD6F6] font-serif font-light">Discover shipping opportunities and secure your cargo with parametric insurance</p>
         </div>
 
-        <Tabs defaultValue="cargo" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-[#1E3A5F] border border-[#D4AF37]/30">
-            <TabsTrigger value="cargo" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
-              Available Shipments ({cargoOrders.length})
-            </TabsTrigger>
-            <TabsTrigger value="vessel" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
-              Available Vessels ({vesselOrders.length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="cargo" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cargoOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-              {cargoOrders.length === 0 && (
-                <div className="col-span-full text-center py-12">
-                  <Package className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
-                  <p className="text-[#CCD6F6] font-serif">No cargo shipments available</p>
+        <div className="page-enter" style={{ animationDelay: '0.2s' }}>
+          <Tabs defaultValue="cargo" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-[#1E3A5F] border border-[#D4AF37]/30">
+              <TabsTrigger 
+                value="cargo" 
+                className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif"
+              >
+                Available Shipments ({isLoading ? '...' : cargoOrders.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="vessel" 
+                className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif"
+              >
+                Available Vessels ({isLoading ? '...' : vesselOrders.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="cargo" className="mt-6">
+              {isLoading ? (
+                <SkeletonGrid count={6} />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {cargoOrders.map((order, index) => (
+                    <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
+                      <OrderCard order={order} />
+                    </div>
+                  ))}
+                  {cargoOrders.length === 0 && (
+                    <div className="col-span-full text-center py-12">
+                      <Package className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+                      <p className="text-[#CCD6F6] font-serif">No cargo shipments available</p>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="vessel" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {vesselOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-              {vesselOrders.length === 0 && (
-                <div className="col-span-full text-center py-12">
-                  <Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
-                  <p className="text-[#CCD6F6] font-serif">No vessels available</p>
+            </TabsContent>
+            
+            <TabsContent value="vessel" className="mt-6">
+              {isLoading ? (
+                <SkeletonGrid count={6} />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {vesselOrders.map((order, index) => (
+                    <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
+                      <OrderCard order={order} />
+                    </div>
+                  ))}
+                  {vesselOrders.length === 0 && (
+                    <div className="col-span-full text-center py-12">
+                      <Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+                      <p className="text-[#CCD6F6] font-serif">No vessels available</p>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

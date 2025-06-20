@@ -21,7 +21,7 @@ const Navigation = () => {
           {/* Logo */}
           <button
             onClick={() => navigate('/')}
-            className="flex items-center space-x-2 text-[#FFFFFF] hover:text-[#D4AF37] transition-colors"
+            className="maritime-nav-glow flex items-center space-x-2 text-[#FFFFFF] hover:text-[#D4AF37] transition-colors rounded-lg px-2 py-1"
           >
             <div className="w-8 h-8 bg-gradient-to-br from-[#D4AF37] to-[#B8860B] rounded-full flex items-center justify-center">
               <Anchor className="w-5 h-5 text-[#0A192F]" />
@@ -37,7 +37,7 @@ const Navigation = () => {
                 variant={location.pathname === path ? "default" : "ghost"}
                 onClick={() => navigate(path)}
                 className={`
-                  font-serif font-normal
+                  maritime-nav-glow font-serif font-normal
                   ${location.pathname === path 
                     ? 'bg-[#D4AF37] text-[#0A192F] hover:bg-[#B8860B]' 
                     : 'text-[#CCD6F6] hover:text-[#D4AF37] hover:bg-[#1E3A5F]'

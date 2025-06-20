@@ -97,7 +97,180 @@
   }
 }
 
-/* Deep Ocean Maritime Background */
+/* === SIGNATURE GLOW EFFECT SYSTEM === */
+
+/* Base glow effect for interactive elements */
+.maritime-glow {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.maritime-glow:hover {
+  box-shadow: 0 0 15px 5px hsla(45, 74%, 55%, 0.2);
+  transform: translateY(-2px);
+}
+
+.maritime-glow:active,
+.maritime-glow[data-state="active"] {
+  box-shadow: 0 0 25px 8px hsla(45, 74%, 55%, 0.3);
+  border: 1px solid var(--color-gold);
+}
+
+/* Button specific glow effects */
+.maritime-button {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.maritime-button:hover {
+  box-shadow: 0 0 15px 5px hsla(45, 74%, 55%, 0.2);
+  transform: translateY(-2px);
+}
+
+.maritime-button:active {
+  box-shadow: 0 0 25px 8px hsla(45, 74%, 55%, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Card glow effects */
+.maritime-card-glow {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.maritime-card-glow:hover {
+  box-shadow: 0 0 15px 5px hsla(45, 74%, 55%, 0.15);
+  transform: translateY(-3px);
+}
+
+/* Navigation glow effects */
+.maritime-nav-glow {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.maritime-nav-glow:hover {
+  box-shadow: 0 0 10px 3px hsla(45, 74%, 55%, 0.15);
+}
+
+/* === PAGE TRANSITION ANIMATIONS === */
+
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: page-fade-in 0.6s ease-out forwards;
+}
+
+.page-enter-stagger {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: page-fade-in 0.6s ease-out forwards;
+}
+
+.page-enter-stagger:nth-child(1) { animation-delay: 0.1s; }
+.page-enter-stagger:nth-child(2) { animation-delay: 0.2s; }
+.page-enter-stagger:nth-child(3) { animation-delay: 0.3s; }
+.page-enter-stagger:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes page-fade-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === MARITIME LOADING ANIMATIONS === */
+
+/* Sonar pulse animation for logo loader */
+.sonar-pulse {
+  position: relative;
+}
+
+.sonar-pulse::before,
+.sonar-pulse::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--color-gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: sonar-pulse-wave 2s infinite;
+}
+
+.sonar-pulse::after {
+  animation-delay: 1s;
+}
+
+@keyframes sonar-pulse-wave {
+  0% {
+    width: 40px;
+    height: 40px;
+    opacity: 1;
+  }
+  100% {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+  }
+}
+
+/* Maritime shimmer effect for skeleton loading */
+.maritime-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-slate) 25%,
+    rgba(212, 175, 55, 0.1) 50%,
+    var(--color-slate) 75%
+  );
+  background-size: 200% 100%;
+  animation: maritime-shimmer-wave 2s infinite;
+}
+
+@keyframes maritime-shimmer-wave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Skeleton card specific styling */
+.skeleton-card {
+  background: var(--color-slate);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(212, 175, 55, 0.2),
+    transparent
+  );
+  animation: skeleton-sweep 2s infinite;
+}
+
+@keyframes skeleton-sweep {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* === DEEP OCEAN MARITIME BACKGROUND === */
 .maritime-background {
   position: relative;
   overflow: hidden;
@@ -111,7 +284,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='1400' height='800' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E.continent{fill:none;stroke:%23CCD6F6;stroke-width:0.8;opacity:0.3}.shipping-route{fill:none;stroke:%23CCD6F6;stroke-width:0.6;opacity:0.2;stroke-dasharray:4,8}.port{fill:%23CCD6F6;opacity:0.4}%3C/style%3E%3C/defs%3E%3C!-- North America --%3E%3Cpath class='continent' d='M100,150 Q120,140 140,145 L160,140 Q180,135 200,140 L220,145 Q240,150 260,155 L280,160 Q300,165 320,170 L340,175 Q360,180 380,185 L400,190 Q420,195 440,200 L460,205 Q480,210 500,215 L520,220 Q540,225 560,230 L580,235 Q600,240 620,245 L640,250 Q660,255 680,260 L700,265 Q720,270 740,275 L760,280 Q780,285 800,290 L820,295 Q840,300 860,305 L880,310 Q900,315 920,320 L940,325 Q960,330 980,335 L1000,340 Q1020,345 1040,350 L1060,355 Q1080,360 1100,365 L1120,370 Q1140,375 1160,380 L1180,385 Q1200,390 1220,395 L1240,400 Q1260,405 1280,410 L1300,415'/%3E%3C!-- Europe --%3E%3Cpath class='continent' d='M600,120 Q620,115 640,120 L660,125 Q680,130 700,135 L720,140 Q740,145 760,150 L780,155 Q800,160 820,165 L840,170 Q860,175 880,180 L900,185'/%3E%3C!-- Asia --%3E%3Cpath class='continent' d='M900,100 Q920,95 940,100 L960,105 Q980,110 1000,115 L1020,120 Q1040,125 1060,130 L1080,135 Q1100,140 1120,145 L1140,150 Q1160,155 1180,160 L1200,165 Q1220,170 1240,175 L1260,180'/%3E%3C!-- Africa --%3E%3Cpath class='continent' d='M600,200 Q620,195 640,200 L660,205 Q680,210 700,215 L720,220 Q740,225 760,230 L780,235 Q800,240 820,245 L840,250 Q860,255 880,260 L900,265 Q920,270 940,275 L960,280'/%3E%3C!-- South America --%3E%3Cpath class='continent' d='M300,300 Q320,295 340,300 L360,305 Q380,310 400,315 L420,320 Q440,325 460,330 L480,335 Q500,340 520,345 L540,350 Q560,355 580,360 L600,365'/%3E%3C!-- Australia --%3E%3Cpath class='continent' d='M1000,400 Q1020,395 1040,400 L1060,405 Q1080,410 1100,415 L1120,420 Q1140,425 1160,430 L1180,435'/%3E%3C!-- Major Shipping Routes --%3E%3Cpath class='shipping-route' d='M200,180 Q400,160 600,140 Q800,120 1000,140 Q1200,160 1300,180'/%3E%3Cpath class='shipping-route' d='M300,200 Q500,180 700,200 Q900,220 1100,200'/%3E%3Cpath class='shipping-route' d='M400,250 Q600,230 800,250 Q1000,270 1200,250'/%3E%3Cpath class='shipping-route' d='M200,300 Q400,280 600,300 Q800,320 1000,300'/%3E%3C!-- Port Markers --%3E%3Ccircle class='port' cx='200' cy='180' r='2'/%3E%3Ccircle class='port' cx='400' cy='160' r='2'/%3E%3Ccircle class='port' cx='600' cy='140' r='2'/%3E%3Ccircle class='port' cx='800' cy='120' r='2'/%3E%3Ccircle class='port' cx='1000' cy='140' r='2'/%3E%3Ccircle class='port' cx='300' cy='200' r='2'/%3E%3Ccircle class='port' cx='700' cy='200' r='2'/%3E%3Ccircle class='port' cx='1100' cy='200' r='2'/%3E%3Ccircle class='port' cx='400' cy='250' r='2'/%3E%3Ccircle class='port' cx='800' cy='250' r='2'/%3E%3Ccircle class='port' cx='1200' cy='250' r='2'/%3E%3Ccircle class='port' cx='350' cy='320' r='2'/%3E%3Ccircle class='port' cx='550' cy='340' r='2'/%3E%3Ccircle class='port' cx='1050' cy='410' r='2'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='1400' height='800' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E.continent{fill:none;stroke:%23CCD6F6;stroke-width:0.8;opacity:0.15}.shipping-route{fill:none;stroke:%23CCD6F6;stroke-width:0.6;opacity:0.1;stroke-dasharray:4,8}.port{fill:%23CCD6F6;opacity:0.2}%3C/style%3E%3C/defs%3E%3C!-- North America --%3E%3Cpath class='continent' d='M100,150 Q120,140 140,145 L160,140 Q180,135 200,140 L220,145 Q240,150 260,155 L280,160 Q300,165 320,170 L340,175 Q360,180 380,185 L400,190 Q420,195 440,200 L460,205 Q480,210 500,215 L520,220 Q540,225 560,230 L580,235 Q600,240 620,245 L640,250 Q660,255 680,260 L700,265 Q720,270 740,275 L760,280 Q780,285 800,290 L820,295 Q840,300 860,305 L880,310 Q900,315 920,320 L940,325 Q960,330 980,335 L1000,340 Q1020,345 1040,350 L1060,355 Q1080,360 1100,365 L1120,370 Q1140,375 1160,380 L1180,385 Q1200,390 1220,395 L1240,400 Q1260,405 1280,410 L1300,415'/%3E%3C!-- Europe --%3E%3Cpath class='continent' d='M600,120 Q620,115 640,120 L660,125 Q680,130 700,135 L720,140 Q740,145 760,150 L780,155 Q800,160 820,165 L840,170 Q860,175 880,180 L900,185'/%3E%3C!-- Asia --%3E%3Cpath class='continent' d='M900,100 Q920,95 940,100 L960,105 Q980,110 1000,115 L1020,120 Q1040,125 1060,130 L1080,135 Q1100,140 1120,145 L1140,150 Q1160,155 1180,160 L1200,165 Q1220,170 1240,175 L1260,180'/%3E%3C!-- Africa --%3E%3Cpath class='continent' d='M600,200 Q620,195 640,200 L660,205 Q680,210 700,215 L720,220 Q740,225 760,230 L780,235 Q800,240 820,245 L840,250 Q860,255 880,260 L900,265 Q920,270 940,275 L960,280'/%3E%3C!-- South America --%3E%3Cpath class='continent' d='M300,300 Q320,295 340,300 L360,305 Q380,310 400,315 L420,320 Q440,325 460,330 L480,335 Q500,340 520,345 L540,350 Q560,355 580,360 L600,365'/%3E%3C!-- Australia --%3E%3Cpath class='continent' d='M1000,400 Q1020,395 1040,400 L1060,405 Q1080,410 1100,415 L1120,420 Q1140,425 1160,430 L1180,435'/%3E%3C!-- Major Shipping Routes --%3E%3Cpath class='shipping-route' d='M200,180 Q400,160 600,140 Q800,120 1000,140 Q1200,160 1300,180'/%3E%3Cpath class='shipping-route' d='M300,200 Q500,180 700,200 Q900,220 1100,200'/%3E%3Cpath class='shipping-route' d='M400,250 Q600,230 800,250 Q1000,270 1200,250'/%3E%3Cpath class='shipping-route' d='M200,300 Q400,280 600,300 Q800,320 1000,300'/%3E%3C!-- Port Markers --%3E%3Ccircle class='port' cx='200' cy='180' r='2'/%3E%3Ccircle class='port' cx='400' cy='160' r='2'/%3E%3Ccircle class='port' cx='600' cy='140' r='2'/%3E%3Ccircle class='port' cx='800' cy='120' r='2'/%3E%3Ccircle class='port' cx='1000' cy='140' r='2'/%3E%3Ccircle class='port' cx='300' cy='200' r='2'/%3E%3Ccircle class='port' cx='700' cy='200' r='2'/%3E%3Ccircle class='port' cx='1100' cy='200' r='2'/%3E%3Ccircle class='port' cx='400' cy='250' r='2'/%3E%3Ccircle class='port' cx='800' cy='250' r='2'/%3E%3Ccircle class='port' cx='1200' cy='250' r='2'/%3E%3Ccircle class='port' cx='350' cy='320' r='2'/%3E%3Ccircle class='port' cx='550' cy='340' r='2'/%3E%3Ccircle class='port' cx='1050' cy='410' r='2'/%3E%3C/svg%3E");
   background-size: 2800px 1600px;
   animation: world-map-drift 40s ease-in-out infinite alternate;
   z-index: 0;
@@ -124,7 +297,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='1400' height='800' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E.trade-route{fill:none;stroke:%23D4AF37;stroke-width:1;opacity:0.8;stroke-dasharray:6,12}.port-pulse{fill:%23D4AF37;opacity:0.9}%3C/style%3E%3C/defs%3E%3C!-- Animated Trade Routes --%3E%3Cpath class='trade-route' d='M200,180 Q400,160 600,140 Q800,120 1000,140 Q1200,160 1300,180'/%3E%3Cpath class='trade-route' d='M300,200 Q500,180 700,200 Q900,220 1100,200'/%3E%3Cpath class='trade-route' d='M400,250 Q600,230 800,250 Q1000,270 1200,250'/%3E%3Cpath class='trade-route' d='M200,300 Q400,280 600,300 Q800,320 1000,300'/%3E%3Cpath class='trade-route' d='M150,220 Q350,200 550,220 Q750,240 950,220'/%3E%3C!-- Pulsing Port Activity --%3E%3Ccircle class='port-pulse' cx='200' cy='180' r='1.5'/%3E%3Ccircle class='port-pulse' cx='600' cy='140' r='1.5'/%3E%3Ccircle class='port-pulse' cx='1000' cy='140' r='1.5'/%3E%3Ccircle class='port-pulse' cx='700' cy='200' r='1.5'/%3E%3Ccircle class='port-pulse' cx='800' cy='250' r='1.5'/%3E%3Ccircle class='port-pulse' cx='350' cy='320' r='1.5'/%3E%3Ccircle class='port-pulse' cx='1050' cy='410' r='1.5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='1400' height='800' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E.trade-route{fill:none;stroke:%23D4AF37;stroke-width:1;opacity:0.6;stroke-dasharray:6,12}.port-pulse{fill:%23D4AF37;opacity:0.7}%3C/style%3E%3C/defs%3E%3C!-- Animated Trade Routes --%3E%3Cpath class='trade-route' d='M200,180 Q400,160 600,140 Q800,120 1000,140 Q1200,160 1300,180'/%3E%3Cpath class='trade-route' d='M300,200 Q500,180 700,200 Q900,220 1100,200'/%3E%3Cpath class='trade-route' d='M400,250 Q600,230 800,250 Q1000,270 1200,250'/%3E%3Cpath class='trade-route' d='M200,300 Q400,280 600,300 Q800,320 1000,300'/%3E%3Cpath class='trade-route' d='M150,220 Q350,200 550,220 Q750,240 950,220'/%3E%3C!-- Pulsing Port Activity --%3E%3Ccircle class='port-pulse' cx='200' cy='180' r='1.5'/%3E%3Ccircle class='port-pulse' cx='600' cy='140' r='1.5'/%3E%3Ccircle class='port-pulse' cx='1000' cy='140' r='1.5'/%3E%3Ccircle class='port-pulse' cx='700' cy='200' r='1.5'/%3E%3Ccircle class='port-pulse' cx='800' cy='250' r='1.5'/%3E%3Ccircle class='port-pulse' cx='350' cy='320' r='1.5'/%3E%3Ccircle class='port-pulse' cx='1050' cy='410' r='1.5'/%3E%3C/svg%3E");
   background-size: 2800px 1600px;
   animation: trade-routes-flow 25s linear infinite, port-activity 3s ease-in-out infinite alternate;
   z-index: 0;
@@ -163,38 +336,9 @@
   }
 }
 
-/* Ocean Theme Card Styling */
-.navy-card {
-  background: #1E3A5F;
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
-}
+/* === ENHANCED COMPONENT STYLES === */
 
-.navy-card:hover {
-  box-shadow: 
-    0 0 30px rgba(212, 175, 55, 0.4),
-    0 0 60px rgba(212, 175, 55, 0.15),
-    inset 0 0 0 1px rgba(212, 175, 55, 0.4);
-  transform: translateY(-3px);
-}
-
-/* Golden Button Styling */
-.golden-button {
-  background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
-  color: #0A192F;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.golden-button:hover {
-  background: linear-gradient(135deg, #B8860B 0%, #D4AF37 100%);
-  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
-  transform: translateY(-2px);
-}
-
-/* Enhanced Maritime Card Styles */
+/* Ocean Theme Card Styling with Glow */
 .maritime-card {
   background: #1E3A5F;
   border: 1px solid rgba(212, 175, 55, 0.2);
@@ -205,28 +349,54 @@
 
 .maritime-card:hover {
   box-shadow: 
-    0 0 35px rgba(212, 175, 55, 0.3),
-    0 0 70px rgba(212, 175, 55, 0.1),
+    0 0 15px 5px rgba(212, 175, 55, 0.15),
+    0 0 30px rgba(212, 175, 55, 0.1),
     inset 0 0 0 1px rgba(212, 175, 55, 0.3);
+  transform: translateY(-3px);
+}
+
+/* Golden Button with Glow */
+.golden-button {
+  background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+  color: #0A192F;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.golden-button:hover {
+  background: linear-gradient(135deg, #B8860B 0%, #D4AF37 100%);
+  box-shadow: 0 0 15px 5px hsla(45, 74%, 55%, 0.3);
   transform: translateY(-2px);
 }
 
-/* Cartographic Grid Lines */
-.maritime-background .grid-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    linear-gradient(rgba(204, 214, 246, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(204, 214, 246, 0.05) 1px, transparent 1px);
-  background-size: 60px 60px;
-  animation: grid-float 35s ease-in-out infinite alternate;
-  z-index: 0;
+.golden-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 0 25px 8px hsla(45, 74%, 55%, 0.4);
 }
 
-@keyframes grid-float {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(5px, 3px); }
+/* === ACCESSIBILITY & PERFORMANCE === */
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .maritime-glow,
+  .maritime-button,
+  .maritime-card-glow,
+  .maritime-nav-glow {
+    transition: none;
+  }
+  
+  .maritime-shimmer,
+  .sonar-pulse::before,
+  .sonar-pulse::after,
+  .skeleton-card::before {
+    animation: none;
+  }
+  
+  .page-enter,
+  .page-enter-stagger {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
+

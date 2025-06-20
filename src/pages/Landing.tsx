@@ -20,7 +20,7 @@ const Landing = () => {
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-6">
         {/* Animated Logo Section */}
-        <div className="relative mb-12">
+        <div className="relative mb-12 page-enter">
           {/* Rotating Sonar Rings */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-64 h-64 border-2 border-dashed border-[#CCD6F6]/20 rounded-full animate-spin opacity-40" style={{animationDuration: '20s'}}></div>
@@ -28,8 +28,8 @@ const Landing = () => {
             <div className="absolute w-32 h-32 border border-dashed border-[#64FFDA]/40 rounded-full animate-spin opacity-30" style={{animationDuration: '10s'}}></div>
           </div>
           
-          {/* Central Ship's Wheel */}
-          <div className="relative w-32 h-32 bg-gradient-to-br from-[#D4AF37] to-[#B8860B] rounded-full flex items-center justify-center shadow-lg animate-pulse border-4 border-[#0A192F]">
+          {/* Central Ship's Wheel with Sonar Effect */}
+          <div className="sonar-pulse w-32 h-32 bg-gradient-to-br from-[#D4AF37] to-[#B8860B] rounded-full flex items-center justify-center shadow-lg animate-pulse border-4 border-[#0A192F]">
             <div className="w-20 h-20 border-4 border-[#0A192F] rounded-full flex items-center justify-center">
               <Anchor className="w-8 h-8 text-[#0A192F]" />
             </div>
@@ -48,27 +48,29 @@ const Landing = () => {
         </div>
 
         {/* Brand Name */}
-        <h1 className="text-6xl font-serif font-medium text-[#FFFFFF] mb-4 tracking-wider">
-          Drip<span className="text-[#D4AF37]">Shippa</span>
-        </h1>
+        <div className="page-enter" style={{ animationDelay: '0.2s' }}>
+          <h1 className="text-6xl font-serif font-medium text-[#FFFFFF] mb-4 tracking-wider">
+            Drip<span className="text-[#D4AF37]">Shippa</span>
+          </h1>
+        </div>
 
         {/* Animated Tagline */}
-        <div className="h-16 mb-12">
+        <div className="h-16 mb-12 page-enter" style={{ animationDelay: '0.4s' }}>
           <p className="text-xl text-[#CCD6F6] font-serif animate-pulse font-light">
             Decentralized Shipping. Parametric Protection.
           </p>
         </div>
 
         {/* Feature Icons */}
-        <div className="flex space-x-8 mb-12">
+        <div className="flex space-x-8 mb-12 page-enter" style={{ animationDelay: '0.6s' }}>
           <div className="flex flex-col items-center text-[#CCD6F6]">
-            <div className="w-16 h-16 bg-[#1E3A5F] rounded-full flex items-center justify-center mb-2 hover:bg-[#D4AF37] hover:text-[#0A192F] transition-all duration-300 border border-[#D4AF37]/30">
+            <div className="maritime-glow w-16 h-16 bg-[#1E3A5F] rounded-full flex items-center justify-center mb-2 border border-[#D4AF37]/30">
               <Waves className="w-8 h-8" />
             </div>
             <span className="text-sm font-serif">NFT Orders</span>
           </div>
           <div className="flex flex-col items-center text-[#CCD6F6]">
-            <div className="w-16 h-16 bg-[#1E3A5F] rounded-full flex items-center justify-center mb-2 hover:bg-[#D4AF37] hover:text-[#0A192F] transition-all duration-300 border border-[#D4AF37]/30">
+            <div className="maritime-glow w-16 h-16 bg-[#1E3A5F] rounded-full flex items-center justify-center mb-2 border border-[#D4AF37]/30">
               <Shield className="w-8 h-8" />
             </div>
             <span className="text-sm font-serif">Smart Insurance</span>
@@ -76,17 +78,21 @@ const Landing = () => {
         </div>
 
         {/* CTA Button */}
-        <Button
-          onClick={() => navigate('/marketplace')}
-          className="golden-button font-serif font-medium py-4 px-8 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-        >
-          Enter Marketplace
-        </Button>
+        <div className="page-enter" style={{ animationDelay: '0.8s' }}>
+          <Button
+            onClick={() => navigate('/marketplace')}
+            className="golden-button maritime-button font-serif font-medium py-4 px-8 text-lg rounded-lg shadow-lg"
+          >
+            Enter Marketplace
+          </Button>
+        </div>
 
         {/* Subtle footer text */}
-        <p className="text-[#CCD6F6] text-sm mt-12 font-serif font-light opacity-70">
-          Built on ink! blockchain • Powered by parametric smart contracts
-        </p>
+        <div className="page-enter" style={{ animationDelay: '1.0s' }}>
+          <p className="text-[#CCD6F6] text-sm mt-12 font-serif font-light opacity-70">
+            Built on ink! blockchain • Powered by parametric smart contracts
+          </p>
+        </div>
       </div>
     </div>
   );
