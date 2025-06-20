@@ -9,6 +9,11 @@ import { Calendar, Shield, Coins, Package } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import InsurancePolicyModal from './InsurancePolicyModal';
+import type { Database } from '@/integrations/supabase/types';
+
+type OrderType = Database['public']['Enums']['order_type'];
+type CargoType = Database['public']['Enums']['cargo_type'];
+type OrderStatus = Database['public']['Enums']['order_status'];
 
 interface ShipmentForm {
   origin: string;
@@ -64,13 +69,13 @@ const ShipperView = () => {
         destination_port: form.destination,
         departure_date: form.pickupDate,
         arrival_date: form.deliveryDate,
-        order_type: 'cargo',
-        cargo_type: 'container',
+        order_type: 'cargo' as OrderType,
+        cargo_type: 'container' as CargoType,
         weight_tons: Math.round(form.weight / 1000),
         price_ink: form.budget,
         is_insured: !!selectedPolicy,
         selected_insurance_policy_id: selectedPolicy?.id || null,
-        status: 'pending'
+        status: 'pending' as OrderStatus
       };
 
       const { data, error } = await supabase
