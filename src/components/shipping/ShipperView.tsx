@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,9 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import InsurancePolicyModal from './InsurancePolicyModal';
 import { useQuery } from '@tanstack/react-query';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
+import CargoNFT from '@/../contracts/ABI/CargoNFT.json';
+import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets';
 
 const ShipperView = () => {
   const [title, setTitle] = useState('');
@@ -29,9 +32,14 @@ const ShipperView = () => {
   const [price, setPrice] = useState('');
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
+  const [minting, setMinting] = useState(false);
 
   const { isConnected, address, loading: authLoading } = useAuth();
+  const { address: wagmiAddress } = useAccount();
   const queryClient = useQueryClient();
+
+  // Use the contract address directly from the constant
+  const cargoNFTAddress = CONTRACT_ADDRESSES.cargoNFT;
 
   const { data: insuranceTemplates } = useQuery({
     queryKey: ['insurance-templates'],
@@ -41,11 +49,34 @@ const ShipperView = () => {
         .select('*')
         .eq('policy_type', 'shipper')
         .eq('is_active', true);
-      
+
       if (error) throw error;
       return data;
     },
   });
+
+  const { data: mintTxHash, isPending: isMintingPending, writeContract, error: mintError } = useWriteContract();
+
+  function isHexString(hash: unknown): hash is `0x${string}` {
+    return typeof hash === 'string' && /^0x([A-Fa-f0-9]{64})$/.test(hash);
+  }
+  let hashForReceipt: `0x${string}` | undefined = undefined;
+  if (isHexString(mintTxHash)) {
+    hashForReceipt = mintTxHash as unknown as `0x${string}`;
+  }
+  const { isLoading: isMintingTxLoading, isSuccess: isMintingTxSuccess, isError: isMintingTxError } = useWaitForTransactionReceipt({
+    hash: hashForReceipt,
+  });
+
+  useEffect(() => {
+    if (isMintingTxSuccess) {
+      toast.success('Cargo NFT minted successfully!');
+      setMinting(false);
+    } else if (isMintingTxError) {
+      toast.error('Minting failed.');
+      setMinting(false);
+    }
+  }, [isMintingTxSuccess, isMintingTxError]);
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
@@ -58,7 +89,7 @@ const ShipperView = () => {
         .insert([orderData])
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -83,7 +114,7 @@ const ShipperView = () => {
     },
   });
 
-  const handleCreateOrder = () => {
+  const handleCreateOrder = async () => {
     if (!isConnected || !address) {
       toast.error('Please connect your wallet to create an order');
       return;
@@ -111,7 +142,27 @@ const ShipperView = () => {
       wallet_address: address
     };
 
-    createOrderMutation.mutate(orderData);
+    try {
+      const result = await createOrderMutation.mutateAsync(orderData);
+      // Only mint NFT if order creation succeeded
+      if (result && address && description && weight && originPort && destinationPort) {
+        setMinting(true);
+        writeContract({
+          address: cargoNFTAddress,
+          abi: CargoNFT.abi,
+          functionName: 'mintCargo',
+          args: [
+            address,
+            description,
+            weight ? BigInt(weight) : 0n,
+            originPort,
+            destinationPort
+          ],
+        });
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create order');
+    }
   };
 
   const calculateTotal = () => {
@@ -307,7 +358,7 @@ const ShipperView = () => {
                 Browse Policies
               </Button>
             </div>
-            
+
             {selectedInsurance && (
               <div className="bg-[#1E3A5F] p-3 rounded-lg border border-[#64FFDA]/30">
                 <div className="flex items-center gap-2 mb-2">
@@ -323,12 +374,14 @@ const ShipperView = () => {
             )}
           </div>
 
-          <Button 
+          <Button
             onClick={handleCreateOrder}
-            disabled={createOrderMutation.isPending || !isConnected}
+            disabled={createOrderMutation.isPending || !isConnected || minting || isMintingPending}
             className="w-full maritime-button bg-[#D4AF37] hover:bg-[#D4AF37]/80 text-[#0A192F] font-serif"
           >
-            {createOrderMutation.isPending ? 'Creating Order...' : 'Create Shipping Order'}
+            {createOrderMutation.isPending || minting || isMintingPending
+              ? 'Processing...'
+              : 'Create Shipping Order'}
           </Button>
         </CardContent>
       </Card>
@@ -339,7 +392,7 @@ const ShipperView = () => {
           <CardTitle className="text-[#FFFFFF] font-serif font-medium">Your Shipping Order</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          
+
           <div className="space-y-3 text-[#CCD6F6] font-serif">
             <div className="flex justify-between">
               <span>Route:</span>
@@ -376,14 +429,14 @@ const ShipperView = () => {
               <span>Base Price:</span>
               <span className="text-[#FFFFFF]">{price || '0'} ETH</span>
             </div>
-            
+
             {selectedInsurance && (
               <div className="flex justify-between text-[#CCD6F6] font-serif">
                 <span>Insurance Premium:</span>
                 <span className="text-[#64FFDA]">{selectedInsurance.premium_ink} ETH</span>
               </div>
             )}
-            
+
             <div className="flex justify-between text-lg font-medium pt-3 border-t border-[#CCD6F6]/20">
               <span className="text-[#CCD6F6] font-serif">Total Cost:</span>
               <span className="text-[#D4AF37]">{calculateTotal()} ETH</span>

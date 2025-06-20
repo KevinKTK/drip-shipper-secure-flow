@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { inkSepolia } from "wagmi/chains";
 import { fetchWalletSecrets } from "@/lib/walletSecrets"

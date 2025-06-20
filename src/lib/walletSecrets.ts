@@ -1,4 +1,6 @@
 import {SUPABASE_PUBLISHABLE_KEY} from '@/integrations/supabase/client';
+import { contractAddresses } from './contract-addresses';
+
 export async function fetchWalletSecrets() {
     // --- IMPORTANT ---
     // Replace this with your actual Supabase anon key
@@ -21,3 +23,6 @@ export async function fetchWalletSecrets() {
     
     return res.json();
   }
+
+// Export contract addresses as a constant
+export const CONTRACT_ADDRESSES = contractAddresses;

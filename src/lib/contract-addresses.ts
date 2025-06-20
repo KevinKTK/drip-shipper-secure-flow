@@ -1,0 +1,7 @@
+export const contractAddresses = {
+  vesselNFT: '0x1CA4aF4A1a69DB30fFbb299d6865Cd87c24f2A89',
+  cargoNFT: '0x1c0A2b9DcbA3D20EFc3379823208Bc67B92506B7',
+  insuranceManager: '0x942088Ca56CA4e98ac33855cA25481a09E05fBCA',
+  journeyManager: '0xe71b13b0D639BdfBe8dFF5d07d396852984f333B',
+  brokerage: '0x9660AF590d7fF2cAB99174970fC0911577eE23a3',
+} as const; 
