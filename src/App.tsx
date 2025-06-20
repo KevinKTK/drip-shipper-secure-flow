@@ -1,4 +1,6 @@
-
+import { useEffect, useState } from "react";
+import { inkSepolia } from "wagmi/chains";
+import { fetchWalletSecrets } from "@/lib/walletSecrets"
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,26 +11,55 @@ import Marketplace from "./pages/Marketplace";
 import ContractBuilder from "./pages/ContractBuilder";
 import Portfolio from "./pages/Portfolio";
 import NotFound from "./pages/NotFound";
+import Navigation from "./components/Navigation";
+import '@rainbow-me/rainbowkit/styles.css';
+
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { WagmiProvider, http } from "wagmi";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/contract-builder" element={<ContractBuilder />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchWalletSecrets().then(({ RPC_PROVIDER_URL, WALLETCONNECT_PROJECT_ID }) => {
+      const wagmiConfig = getDefaultConfig({
+        appName: "DripShippa",
+        projectId: WALLETCONNECT_PROJECT_ID,
+        chains: [inkSepolia],
+        transports: {
+          [inkSepolia.id]: http(RPC_PROVIDER_URL),
+        },
+      });
+      setConfig(wagmiConfig);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading || !config) return <div>Loading...</div>;
+
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/marketplace" element={<Marketplace />} />
+                <Route path="/contract-builder" element={<ContractBuilder />} />
+                <Route path="/portfolio" element={<Portfolio />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+          </TooltipProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+};
 
 export default App;

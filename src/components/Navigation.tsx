@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Anchor } from 'lucide-react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ const Navigation = () => {
           </button>
 
           {/* Navigation Items */}
-          <div className="flex space-x-1">
+          <div className="flex space-x-1 items-center">
             {navItems.map(({ path, label }) => (
               <Button
                 key={path}
@@ -47,6 +47,10 @@ const Navigation = () => {
                 <span>{label}</span>
               </Button>
             ))}
+            {/* Connect Button only */}
+            <div className="flex items-center space-x-3 ml-4">
+              <ConnectButton />
+            </div>
           </div>
         </div>
       </div>
