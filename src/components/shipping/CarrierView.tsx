@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ interface RouteForm {
   originPort: string;
   destinationPort: string;
   departureDate: string;
-  availableCapacity: number;
+  availableCapacity: string;
 }
 
 const CarrierView = () => {
@@ -26,7 +27,7 @@ const CarrierView = () => {
     originPort: '',
     destinationPort: '',
     departureDate: '',
-    availableCapacity: 0
+    availableCapacity: ''
   });
   const [hasSearched, setHasSearched] = useState(false);
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
@@ -109,13 +110,17 @@ const CarrierView = () => {
 
     // Log the route
     try {
+      // Convert capacity string to number for database, default to 0 if empty
+      const capacityInKg = routeForm.availableCapacity ? 
+        parseInt(routeForm.availableCapacity.replace(/[^\d]/g, '')) || 0 : 0;
+
       await supabase
         .from('carrier_routes')
         .insert([{
           origin_port: routeForm.originPort,
           destination_port: routeForm.destinationPort,
           departure_date: routeForm.departureDate,
-          available_capacity_kg: routeForm.availableCapacity
+          available_capacity_kg: capacityInKg
         }]);
       
       // Refetch logged journeys to show the new one
@@ -139,7 +144,7 @@ const CarrierView = () => {
       originPort: journey.origin_port,
       destinationPort: journey.destination_port,
       departureDate: journey.departure_date,
-      availableCapacity: journey.available_capacity_kg || 0
+      availableCapacity: journey.available_capacity_kg ? journey.available_capacity_kg.toLocaleString() + ' kg' : ''
     });
     
     toast({
@@ -201,7 +206,7 @@ const CarrierView = () => {
         <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20">
           <div className="flex items-center gap-1">
             <Coins className="w-4 h-4 text-[#D4AF37]" />
-            <span className="text-[#D4AF37] font-medium">{order.price_ink} INK</span>
+            <span className="text-[#D4AF37] font-medium">{order.price_ink} ETH</span>
           </div>
           {order.weight_tons && (
             <span className="text-xs text-[#CCD6F6]/70">{order.weight_tons} tons</span>
@@ -228,8 +233,8 @@ const CarrierView = () => {
         
         <div className="flex justify-between items-center">
           <div>
-            <div className="text-[#D4AF37] font-medium">Premium: {policy.premium_ink} INK</div>
-            <div className="text-[#64FFDA] font-medium">Payout: {policy.payout_amount_ink} INK</div>
+            <div className="text-[#D4AF37] font-medium">Premium: {policy.premium_ink} ETH</div>
+            <div className="text-[#64FFDA] font-medium">Payout: {policy.payout_amount_ink} ETH</div>
           </div>
         </div>
 
@@ -254,7 +259,8 @@ const CarrierView = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-            <div className="floating-label-input">
+            <div className="maritime-form-group">
+              <Label htmlFor="originPort" className="maritime-label">Origin Port</Label>
               <Input
                 id="originPort"
                 value={routeForm.originPort}
@@ -262,10 +268,10 @@ const CarrierView = () => {
                 placeholder="e.g., Shanghai"
                 className="maritime-input"
               />
-              <Label htmlFor="originPort" className="floating-label">Origin Port</Label>
             </div>
 
-            <div className="floating-label-input">
+            <div className="maritime-form-group">
+              <Label htmlFor="destinationPort" className="maritime-label">Destination Port</Label>
               <Input
                 id="destinationPort"
                 value={routeForm.destinationPort}
@@ -273,10 +279,10 @@ const CarrierView = () => {
                 placeholder="e.g., Long Beach"
                 className="maritime-input"
               />
-              <Label htmlFor="destinationPort" className="floating-label">Destination Port</Label>
             </div>
 
-            <div className="floating-label-input">
+            <div className="maritime-form-group">
+              <Label htmlFor="departureDate" className="maritime-label">Departure Date</Label>
               <Input
                 id="departureDate"
                 type="date"
@@ -284,24 +290,23 @@ const CarrierView = () => {
                 onChange={(e) => setRouteForm(prev => ({ ...prev, departureDate: e.target.value }))}
                 className="maritime-input"
               />
-              <Label htmlFor="departureDate" className="floating-label">Departure Date</Label>
             </div>
 
-            <div className="floating-label-input">
+            <div className="maritime-form-group">
+              <Label htmlFor="availableCapacity" className="maritime-label">Capacity</Label>
               <Input
                 id="availableCapacity"
-                type="number"
+                type="text"
                 value={routeForm.availableCapacity}
-                onChange={(e) => setRouteForm(prev => ({ ...prev, availableCapacity: Number(e.target.value) }))}
-                placeholder="Capacity in kg"
+                onChange={(e) => setRouteForm(prev => ({ ...prev, availableCapacity: e.target.value }))}
+                placeholder="e.g., 50,000 kg"
                 className="maritime-input"
               />
-              <Label htmlFor="availableCapacity" className="floating-label">Capacity (kg)</Label>
             </div>
 
             <Button
               onClick={handleSearch}
-              className="maritime-button bg-[#D4AF37] hover:bg-[#B8860B] text-[#0A192F] font-serif"
+              className="maritime-button bg-[#D4AF37] hover:bg-[#B8860B] text-[#0A192F] font-serif mt-6"
             >
               <Search className="w-4 h-4 mr-2" />
               Find Freight

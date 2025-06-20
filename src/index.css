@@ -178,18 +178,13 @@
   animation: shimmer 2s infinite;
 }
 
-/* Floating label input styles */
-.floating-label-input {
-  @apply relative;
-}
-
-.floating-label {
-  @apply absolute left-3 top-3 text-[#CCD6F6]/70 text-sm font-serif pointer-events-none transition-all duration-200;
-  transform-origin: left top;
+/* Standard label and input styles - no floating labels */
+.maritime-label {
+  @apply block text-[#CCD6F6] text-sm font-serif mb-1;
 }
 
 .maritime-input {
-  @apply w-full px-3 py-3 pt-6 bg-[#1E3A5F]/30 border border-[#CCD6F6]/30 rounded-lg text-[#FFFFFF] font-serif placeholder-transparent;
+  @apply w-full px-3 py-2 bg-[#1E3A5F]/30 border border-[#CCD6F6]/30 rounded-lg text-[#FFFFFF] font-serif;
   transition: all 0.3s ease;
 }
 
@@ -198,14 +193,13 @@
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
 }
 
-.maritime-input:focus + .floating-label,
-.maritime-input:not(:placeholder-shown) + .floating-label {
-  @apply text-[#D4AF37] text-xs;
-  transform: translateY(-0.5rem) scale(0.85);
-}
-
 .maritime-input::placeholder {
   @apply text-[#CCD6F6]/50;
+}
+
+/* Form group for proper spacing */
+.maritime-form-group {
+  @apply space-y-1 mb-4;
 }
 
 /* Slider customization */
@@ -267,8 +261,8 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .floating-label-input {
-    @apply mb-4;
+  .maritime-form-group {
+    @apply mb-3;
   }
   
   .maritime-card {

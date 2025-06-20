@@ -19,7 +19,7 @@ interface ShipmentForm {
   origin: string;
   destination: string;
   commodity: string;
-  weight: number;
+  weight: string;
   pickupDate: string;
   deliveryDate: string;
   budget: number;
@@ -37,10 +37,10 @@ const ShipperView = () => {
     origin: '',
     destination: '',
     commodity: '',
-    weight: 0,
+    weight: '',
     pickupDate: '',
     deliveryDate: '',
-    budget: 1000
+    budget: 1
   });
   const [selectedPolicy, setSelectedPolicy] = useState<SelectedPolicy | null>(null);
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
@@ -62,16 +62,19 @@ const ShipperView = () => {
 
     setIsSubmitting(true);
     try {
+      // Convert weight string to approximate tons for database
+      const weightInTons = form.weight ? Math.max(1, Math.round(parseFloat(form.weight.replace(/[^\d.]/g, '')) / 1000)) : 1;
+      
       const orderData = {
         title: `${form.commodity} - ${form.origin} to ${form.destination}`,
-        description: `Shipping ${form.weight}kg of ${form.commodity}`,
+        description: `Shipping ${form.weight} of ${form.commodity}`,
         origin_port: form.origin,
         destination_port: form.destination,
         departure_date: form.pickupDate,
         arrival_date: form.deliveryDate,
         order_type: 'cargo' as OrderType,
         cargo_type: 'container' as CargoType,
-        weight_tons: Math.round(form.weight / 1000),
+        weight_tons: weightInTons,
         price_ink: form.budget,
         is_insured: !!selectedPolicy,
         selected_insurance_policy_id: selectedPolicy?.id || null,
@@ -96,10 +99,10 @@ const ShipperView = () => {
         origin: '',
         destination: '',
         commodity: '',
-        weight: 0,
+        weight: '',
         pickupDate: '',
         deliveryDate: '',
-        budget: 1000
+        budget: 1
       });
       setSelectedPolicy(null);
 
@@ -129,7 +132,8 @@ const ShipperView = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="floating-label-input">
+            <div className="maritime-form-group">
+              <Label htmlFor="origin" className="maritime-label">Origin Port</Label>
               <Input
                 id="origin"
                 value={form.origin}
@@ -137,9 +141,9 @@ const ShipperView = () => {
                 placeholder="e.g., Port of Shanghai"
                 className="maritime-input"
               />
-              <Label htmlFor="origin" className="floating-label">Origin Port</Label>
             </div>
-            <div className="floating-label-input">
+            <div className="maritime-form-group">
+              <Label htmlFor="destination" className="maritime-label">Destination Port</Label>
               <Input
                 id="destination"
                 value={form.destination}
@@ -147,11 +151,11 @@ const ShipperView = () => {
                 placeholder="e.g., Port of Long Beach"
                 className="maritime-input"
               />
-              <Label htmlFor="destination" className="floating-label">Destination Port</Label>
             </div>
           </div>
 
-          <div className="floating-label-input">
+          <div className="maritime-form-group">
+            <Label htmlFor="commodity" className="maritime-label">Commodity</Label>
             <Input
               id="commodity"
               value={form.commodity}
@@ -159,23 +163,23 @@ const ShipperView = () => {
               placeholder="e.g., 20 Tons of Grade A Coffee Beans"
               className="maritime-input"
             />
-            <Label htmlFor="commodity" className="floating-label">Commodity</Label>
           </div>
 
-          <div className="floating-label-input">
+          <div className="maritime-form-group">
+            <Label htmlFor="weight" className="maritime-label">Weight</Label>
             <Input
               id="weight"
-              type="number"
+              type="text"
               value={form.weight}
-              onChange={(e) => handleInputChange('weight', Number(e.target.value))}
-              placeholder="Weight in kg"
+              onChange={(e) => handleInputChange('weight', e.target.value)}
+              placeholder="e.g., 20,000 kg or 20 tons"
               className="maritime-input"
             />
-            <Label htmlFor="weight" className="floating-label">Weight (kg)</Label>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="floating-label-input">
+            <div className="maritime-form-group">
+              <Label htmlFor="pickupDate" className="maritime-label">Pickup Date</Label>
               <Input
                 id="pickupDate"
                 type="date"
@@ -183,9 +187,9 @@ const ShipperView = () => {
                 onChange={(e) => handleInputChange('pickupDate', e.target.value)}
                 className="maritime-input"
               />
-              <Label htmlFor="pickupDate" className="floating-label">Pickup Date</Label>
             </div>
-            <div className="floating-label-input">
+            <div className="maritime-form-group">
+              <Label htmlFor="deliveryDate" className="maritime-label">Delivery Date</Label>
               <Input
                 id="deliveryDate"
                 type="date"
@@ -193,18 +197,17 @@ const ShipperView = () => {
                 onChange={(e) => handleInputChange('deliveryDate', e.target.value)}
                 className="maritime-input"
               />
-              <Label htmlFor="deliveryDate" className="floating-label">Delivery Date</Label>
             </div>
           </div>
 
           <div className="space-y-3">
-            <Label className="text-[#CCD6F6] font-serif">Budget (INK): {form.budget.toLocaleString()}</Label>
+            <Label className="text-[#CCD6F6] font-serif">Budget (ETH): {form.budget.toLocaleString()}</Label>
             <Slider
               value={[form.budget]}
               onValueChange={(value) => handleInputChange('budget', value[0])}
-              max={10000}
-              min={100}
-              step={50}
+              max={100}
+              min={0.1}
+              step={0.1}
               className="maritime-slider"
             />
           </div>
@@ -228,7 +231,7 @@ const ShipperView = () => {
             </div>
             <div className="flex justify-between">
               <span>Weight:</span>
-              <span className="text-[#FFFFFF]">{form.weight ? `${form.weight.toLocaleString()} kg` : '---'}</span>
+              <span className="text-[#FFFFFF]">{form.weight || '---'}</span>
             </div>
             <div className="flex justify-between">
               <span>Pickup:</span>
@@ -257,7 +260,7 @@ const ShipperView = () => {
               <div className="bg-[#1E3A5F]/30 p-3 rounded border border-[#D4AF37]/30">
                 <div className="flex justify-between text-sm">
                   <span className="text-[#64FFDA]">{selectedPolicy.policy_name}</span>
-                  <span className="text-[#D4AF37]">+{selectedPolicy.premium_ink} INK</span>
+                  <span className="text-[#D4AF37]">+{selectedPolicy.premium_ink} ETH</span>
                 </div>
               </div>
             )}
@@ -266,19 +269,19 @@ const ShipperView = () => {
           <div className="border-t border-[#CCD6F6]/20 pt-4 space-y-2">
             <div className="flex justify-between text-[#CCD6F6] font-serif">
               <span>Base Budget:</span>
-              <span>{form.budget.toLocaleString()} INK</span>
+              <span>{form.budget.toLocaleString()} ETH</span>
             </div>
             {selectedPolicy && (
               <div className="flex justify-between text-[#CCD6F6] font-serif">
                 <span>Insurance Premium:</span>
-                <span>{selectedPolicy.premium_ink.toLocaleString()} INK</span>
+                <span>{selectedPolicy.premium_ink.toLocaleString()} ETH</span>
               </div>
             )}
             <div className="flex justify-between text-[#D4AF37] font-serif font-medium text-lg border-t border-[#CCD6F6]/20 pt-2">
               <span>Total Cost:</span>
               <span className="flex items-center gap-1">
                 <Coins className="w-4 h-4" />
-                {totalCost.toLocaleString()} INK
+                {totalCost.toLocaleString()} ETH
               </span>
             </div>
           </div>
