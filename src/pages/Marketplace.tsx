@@ -30,15 +30,15 @@ const Marketplace = () => {
   const vesselOrders = orders?.filter(order => order.order_type === 'vessel') || [];
 
   const OrderCard = ({ order }: { order: any }) => (
-    <Card className="bg-gradient-to-br from-[#0A192F] to-[#1D566E] border-[#3C5B6F] hover:border-[#FFD700] transition-all duration-300 hover:shadow-lg hover:shadow-[#FFD700]/20">
+    <Card className="maritime-card">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-white font-serif flex items-center gap-2">
-            {order.order_type === 'cargo' ? <Package className="w-5 h-5 text-[#FFD700]" /> : <Ship className="w-5 h-5 text-[#FFD700]" />}
+          <CardTitle className="text-white font-serif font-medium flex items-center gap-2">
+            {order.order_type === 'cargo' ? <Package className="w-5 h-5 text-[#D4AF37]" /> : <Ship className="w-5 h-5 text-[#D4AF37]" />}
             {order.title}
           </CardTitle>
           {order.is_insured && (
-            <Badge className="bg-[#FFD700] text-[#0A192F] font-bold">
+            <Badge className="bg-[#D4AF37] text-[#1B365D] font-medium">
               <Shield className="w-3 h-3 mr-1" />
               Insured
             </Badge>
@@ -46,40 +46,40 @@ const Marketplace = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-[#3C5B6F]">
+        <div className="flex items-center gap-2 text-[#A0957B]">
           <MapPin className="w-4 h-4" />
-          <span className="font-sans text-sm">{order.origin_port} → {order.destination_port}</span>
+          <span className="font-serif text-sm">{order.origin_port} → {order.destination_port}</span>
         </div>
         
-        <div className="flex items-center gap-2 text-[#3C5B6F]">
+        <div className="flex items-center gap-2 text-[#A0957B]">
           <Calendar className="w-4 h-4" />
-          <span className="font-sans text-sm">Departure: {new Date(order.departure_date).toLocaleDateString()}</span>
+          <span className="font-serif text-sm">Departure: {new Date(order.departure_date).toLocaleDateString()}</span>
         </div>
 
         {order.cargo_type && (
-          <Badge variant="outline" className="border-[#3C5B6F] text-white">
+          <Badge variant="outline" className="border-[#A0957B] text-white">
             {order.cargo_type.replace('_', ' ').toUpperCase()}
           </Badge>
         )}
 
         {order.vessel_type && (
-          <Badge variant="outline" className="border-[#3C5B6F] text-white">
+          <Badge variant="outline" className="border-[#A0957B] text-white">
             {order.vessel_type.replace('_', ' ').toUpperCase()}
           </Badge>
         )}
 
-        <div className="flex justify-between items-center pt-3 border-t border-[#3C5B6F]">
+        <div className="flex justify-between items-center pt-3 border-t border-[#A0957B]/30">
           <div className="flex items-center gap-1">
-            <Coins className="w-4 h-4 text-[#FFD700]" />
-            <span className="text-[#FFD700] font-bold">{order.price_ink} INK</span>
+            <Coins className="w-4 h-4 text-[#D4AF37]" />
+            <span className="text-[#D4AF37] font-medium">{order.price_ink} INK</span>
           </div>
           {order.nft_token_id && (
-            <span className="text-xs text-[#3C5B6F]">NFT #{order.nft_token_id}</span>
+            <span className="text-xs text-[#A0957B]">NFT #{order.nft_token_id}</span>
           )}
         </div>
 
         <Button 
-          className="w-full bg-[#3C5B6F] hover:bg-[#FFD700] hover:text-[#0A192F] transition-all duration-300"
+          className="w-full bg-[#A0957B] hover:bg-[#D4AF37] hover:text-[#1B365D] transition-all duration-300 text-white font-serif"
           onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}
         >
           Create Insurance Policy
@@ -90,31 +90,31 @@ const Marketplace = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0A192F] to-[#1D566E]">
+      <div className="min-h-screen bg-[#F4F1E8] maritime-background">
         <Navigation />
         <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFD700]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0A192F] to-[#1D566E]">
+    <div className="min-h-screen bg-[#F4F1E8] maritime-background">
       <Navigation />
       
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-serif font-bold text-white mb-2">Maritime Marketplace</h1>
-          <p className="text-[#3C5B6F] font-sans">Discover shipping opportunities and secure your cargo with parametric insurance</p>
+          <h1 className="text-4xl font-serif font-medium text-[#1B365D] mb-2">Maritime Marketplace</h1>
+          <p className="text-[#8B755D] font-serif font-light">Discover shipping opportunities and secure your cargo with parametric insurance</p>
         </div>
 
         <Tabs defaultValue="cargo" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-[#1D566E] border border-[#3C5B6F]">
-            <TabsTrigger value="cargo" className="data-[state=active]:bg-[#FFD700] data-[state=active]:text-[#0A192F] text-white">
+          <TabsList className="grid w-full grid-cols-2 bg-[#1B365D] border border-[#A0957B]/30">
+            <TabsTrigger value="cargo" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#1B365D] text-white font-serif">
               Available Shipments ({cargoOrders.length})
             </TabsTrigger>
-            <TabsTrigger value="vessel" className="data-[state=active]:bg-[#FFD700] data-[state=active]:text-[#0A192F] text-white">
+            <TabsTrigger value="vessel" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#1B365D] text-white font-serif">
               Available Vessels ({vesselOrders.length})
             </TabsTrigger>
           </TabsList>
@@ -126,8 +126,8 @@ const Marketplace = () => {
               ))}
               {cargoOrders.length === 0 && (
                 <div className="col-span-full text-center py-12">
-                  <Package className="w-16 h-16 text-[#3C5B6F] mx-auto mb-4" />
-                  <p className="text-[#3C5B6F] font-sans">No cargo shipments available</p>
+                  <Package className="w-16 h-16 text-[#A0957B] mx-auto mb-4" />
+                  <p className="text-[#8B755D] font-serif">No cargo shipments available</p>
                 </div>
               )}
             </div>
@@ -140,8 +140,8 @@ const Marketplace = () => {
               ))}
               {vesselOrders.length === 0 && (
                 <div className="col-span-full text-center py-12">
-                  <Ship className="w-16 h-16 text-[#3C5B6F] mx-auto mb-4" />
-                  <p className="text-[#3C5B6F] font-sans">No vessels available</p>
+                  <Ship className="w-16 h-16 text-[#A0957B] mx-auto mb-4" />
+                  <p className="text-[#8B755D] font-serif">No vessels available</p>
                 </div>
               )}
             </div>

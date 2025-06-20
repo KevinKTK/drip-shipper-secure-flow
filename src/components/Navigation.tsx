@@ -10,8 +10,8 @@ const Navigation = () => {
 
   const navItems = [
     { path: '/marketplace', label: 'Marketplace' },
-    { path: '/portfolio', label: 'My Portfolio' },
     { path: '/contract-builder', label: 'Build Policy' },
+    { path: '/portfolio', label: 'My Portfolio' },
   ];
 
   return (
@@ -26,7 +26,7 @@ const Navigation = () => {
             <div className="w-8 h-8 bg-gradient-to-br from-[#D4AF37] to-[#B8860B] rounded-full flex items-center justify-center">
               <Anchor className="w-5 h-5 text-[#1B365D]" />
             </div>
-            <span className="text-xl font-serif font-semibold">DripShippa</span>
+            <span className="text-xl font-serif font-medium">DripShippa</span>
           </button>
 
           {/* Navigation Items */}
@@ -37,7 +37,7 @@ const Navigation = () => {
                 variant={location.pathname === path ? "default" : "ghost"}
                 onClick={() => navigate(path)}
                 className={`
-                  font-serif font-medium
+                  font-serif font-normal
                   ${location.pathname === path 
                     ? 'bg-[#D4AF37] text-[#1B365D] hover:bg-[#B8860B]' 
                     : 'text-white hover:text-[#D4AF37] hover:bg-[#1B365D]/80'
