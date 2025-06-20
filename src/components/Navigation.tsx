@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ const Navigation = () => {
 
   const navItems = [
     { path: '/marketplace', label: 'Marketplace' },
+    { path: '/shipping', label: 'Shipping' },
     { path: '/contract-builder', label: 'Build Policy' },
     { path: '/portfolio', label: 'My Portfolio' },
   ];

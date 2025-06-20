@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      carrier_routes: {
+        Row: {
+          available_capacity_kg: number | null
+          carrier_wallet_address: string | null
+          created_at: string | null
+          departure_date: string
+          destination_port: string
+          id: string
+          origin_port: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          available_capacity_kg?: number | null
+          carrier_wallet_address?: string | null
+          created_at?: string | null
+          departure_date: string
+          destination_port: string
+          id?: string
+          origin_port: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          available_capacity_kg?: number | null
+          carrier_wallet_address?: string | null
+          created_at?: string | null
+          departure_date?: string
+          destination_port?: string
+          id?: string
+          origin_port?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       insurance_policies: {
         Row: {
           created_at: string | null
@@ -64,6 +100,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      insurance_templates: {
+        Row: {
+          created_at: string | null
+          data_source: string | null
+          delay_threshold_hours: number | null
+          description: string
+          id: string
+          is_active: boolean | null
+          payout_amount_ink: number
+          policy_name: string
+          policy_type: string
+          premium_ink: number
+          trigger_condition: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_source?: string | null
+          delay_threshold_hours?: number | null
+          description: string
+          id?: string
+          is_active?: boolean | null
+          payout_amount_ink: number
+          policy_name: string
+          policy_type: string
+          premium_ink: number
+          trigger_condition: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_source?: string | null
+          delay_threshold_hours?: number | null
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          payout_amount_ink?: number
+          policy_name?: string
+          policy_type?: string
+          premium_ink?: number
+          trigger_condition?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       order_matches: {
         Row: {
@@ -124,6 +205,7 @@ export type Database = {
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
           price_ink: number
+          selected_insurance_policy_id: string | null
           status: Database["public"]["Enums"]["order_status"] | null
           title: string
           updated_at: string | null
@@ -145,6 +227,7 @@ export type Database = {
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
           price_ink: number
+          selected_insurance_policy_id?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           title: string
           updated_at?: string | null
@@ -166,6 +249,7 @@ export type Database = {
           order_type?: Database["public"]["Enums"]["order_type"]
           origin_port?: string
           price_ink?: number
+          selected_insurance_policy_id?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           title?: string
           updated_at?: string | null
@@ -174,7 +258,15 @@ export type Database = {
           volume_cbm?: number | null
           weight_tons?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_selected_insurance_policy_id_fkey"
+            columns: ["selected_insurance_policy_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

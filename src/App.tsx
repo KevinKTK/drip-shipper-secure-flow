@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { inkSepolia } from "wagmi/chains";
 import { fetchWalletSecrets } from "@/lib/walletSecrets"
@@ -8,6 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Marketplace from "./pages/Marketplace";
+import Shipping from "./pages/Shipping";
 import ContractBuilder from "./pages/ContractBuilder";
 import Portfolio from "./pages/Portfolio";
 import NotFound from "./pages/NotFound";
@@ -50,6 +52,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/marketplace" element={<Marketplace />} />
+                <Route path="/shipping" element={<Shipping />} />
                 <Route path="/contract-builder" element={<ContractBuilder />} />
                 <Route path="/portfolio" element={<Portfolio />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
