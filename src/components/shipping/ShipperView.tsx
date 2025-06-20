@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,16 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Package, Ship, AlertCircle } from 'lucide-react';
+import { CalendarIcon, Package, Ship, AlertCircle, LogIn } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import InsurancePolicyModal from './InsurancePolicyModal';
+import { useQuery } from '@tanstack/react-query';
 
 const ShipperView = () => {
   const [title, setTitle] = useState('');
@@ -29,16 +32,9 @@ const ShipperView = () => {
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
 
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-
-  // Get current user
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
 
   const { data: insuranceTemplates } = useQuery({
     queryKey: ['insurance-templates'],
@@ -56,7 +52,6 @@ const ShipperView = () => {
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
-      // Ensure user is authenticated
       if (!user) {
         throw new Error('You must be logged in to create an order');
       }
@@ -65,7 +60,7 @@ const ShipperView = () => {
         .from('orders')
         .insert([{
           ...orderData,
-          user_id: user.id // Explicitly set the user_id
+          user_id: user.id
         }])
         .select()
         .single();
@@ -135,6 +130,15 @@ const ShipperView = () => {
     setShowInsuranceModal(false);
   };
 
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 animate-spin rounded-full border-2 border-[#D4AF37] border-t-transparent"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Create Order Form */}
@@ -149,9 +153,19 @@ const ShipperView = () => {
           {/* Authentication Check */}
           {!user && (
             <div className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/30 rounded-lg p-4 mb-4">
-              <div className="flex items-center gap-2 text-[#FF6B6B]">
-                <AlertCircle className="w-4 h-4" />
-                <span className="font-serif text-sm">Please sign in to create shipping orders</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[#FF6B6B]">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="font-serif text-sm">Please sign in to create shipping orders</span>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => navigate('/auth')}
+                  className="bg-[#D4AF37] hover:bg-[#D4AF37]/80 text-[#0A192F] font-serif"
+                >
+                  <LogIn className="w-4 h-4 mr-1" />
+                  Sign In
+                </Button>
               </div>
             </div>
           )}
