@@ -8,14 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Package, Ship, AlertCircle, LogIn } from 'lucide-react';
+import { CalendarIcon, Package, Ship, AlertCircle, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import InsurancePolicyModal from './InsurancePolicyModal';
 import { useQuery } from '@tanstack/react-query';
 
@@ -32,8 +31,7 @@ const ShipperView = () => {
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
 
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+  const { isConnected, address, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: insuranceTemplates } = useQuery({
@@ -52,16 +50,13 @@ const ShipperView = () => {
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
-      if (!user) {
-        throw new Error('You must be logged in to create an order');
+      if (!isConnected || !address) {
+        throw new Error('You must connect your wallet to create an order');
       }
 
       const { data, error } = await supabase
         .from('orders')
-        .insert([{
-          ...orderData,
-          user_id: user.id
-        }])
+        .insert([orderData])
         .select()
         .single();
       
@@ -90,8 +85,8 @@ const ShipperView = () => {
   });
 
   const handleCreateOrder = () => {
-    if (!user) {
-      toast.error('Please sign in to create an order');
+    if (!isConnected || !address) {
+      toast.error('Please connect your wallet to create an order');
       return;
     }
 
@@ -113,7 +108,8 @@ const ShipperView = () => {
       price_ink: parseFloat(price),
       is_insured: !!selectedInsurance,
       selected_insurance_policy_id: selectedInsurance?.id || null,
-      status: 'pending'
+      status: 'pending',
+      wallet_address: address
     };
 
     createOrderMutation.mutate(orderData);
@@ -130,7 +126,7 @@ const ShipperView = () => {
     setShowInsuranceModal(false);
   };
 
-  // Show loading while checking authentication
+  // Show loading while checking wallet connection
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -150,22 +146,24 @@ const ShipperView = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Authentication Check */}
-          {!user && (
+          {/* Wallet Connection Check */}
+          {!isConnected && (
             <div className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/30 rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-center">
                 <div className="flex items-center gap-2 text-[#FF6B6B]">
                   <AlertCircle className="w-4 h-4" />
-                  <span className="font-serif text-sm">Please sign in to create shipping orders</span>
+                  <span className="font-serif text-sm">Please connect your wallet to create shipping orders</span>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => navigate('/auth')}
-                  className="bg-[#D4AF37] hover:bg-[#D4AF37]/80 text-[#0A192F] font-serif"
-                >
-                  <LogIn className="w-4 h-4 mr-1" />
-                  Sign In
-                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Show wallet address when connected */}
+          {isConnected && address && (
+            <div className="bg-[#64FFDA]/20 border border-[#64FFDA]/30 rounded-lg p-3 mb-4">
+              <div className="flex items-center gap-2 text-[#64FFDA]">
+                <Wallet className="w-4 h-4" />
+                <span className="font-serif text-sm">Connected: {address.slice(0, 6)}...{address.slice(-4)}</span>
               </div>
             </div>
           )}
@@ -178,7 +176,7 @@ const ShipperView = () => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Electronics Shipment to Rotterdam"
               className="maritime-input"
-              disabled={!user}
+              disabled={!isConnected}
             />
           </div>
 
@@ -189,7 +187,7 @@ const ShipperView = () => {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Additional details about your cargo..."
               className="maritime-input min-h-[80px]"
-              disabled={!user}
+              disabled={!isConnected}
             />
           </div>
 
@@ -201,7 +199,7 @@ const ShipperView = () => {
                 onChange={(e) => setOriginPort(e.target.value)}
                 placeholder="e.g., Hamburg"
                 className="maritime-input"
-                disabled={!user}
+                disabled={!isConnected}
               />
             </div>
             <div className="space-y-2">
@@ -211,7 +209,7 @@ const ShipperView = () => {
                 onChange={(e) => setDestinationPort(e.target.value)}
                 placeholder="e.g., Rotterdam"
                 className="maritime-input"
-                disabled={!user}
+                disabled={!isConnected}
               />
             </div>
           </div>
@@ -226,7 +224,7 @@ const ShipperView = () => {
                     "w-full justify-start text-left font-normal maritime-input",
                     !departureDate && "text-muted-foreground"
                   )}
-                  disabled={!user}
+                  disabled={!isConnected}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {departureDate ? format(departureDate, "PPP") : <span>Pick a date</span>}
@@ -245,7 +243,7 @@ const ShipperView = () => {
 
           <div className="space-y-2">
             <Label className="text-[#CCD6F6] font-serif">Cargo Type *</Label>
-            <Select value={cargoType} onValueChange={setCargoType} disabled={!user}>
+            <Select value={cargoType} onValueChange={setCargoType} disabled={!isConnected}>
               <SelectTrigger className="maritime-input">
                 <SelectValue placeholder="Select cargo type" />
               </SelectTrigger>
@@ -268,7 +266,7 @@ const ShipperView = () => {
                 onChange={(e) => setWeight(e.target.value)}
                 placeholder="1000"
                 className="maritime-input"
-                disabled={!user}
+                disabled={!isConnected}
               />
             </div>
             <div className="space-y-2">
@@ -279,7 +277,7 @@ const ShipperView = () => {
                 onChange={(e) => setVolume(e.target.value)}
                 placeholder="500"
                 className="maritime-input"
-                disabled={!user}
+                disabled={!isConnected}
               />
             </div>
           </div>
@@ -292,7 +290,7 @@ const ShipperView = () => {
               onChange={(e) => setPrice(e.target.value)}
               placeholder="1000"
               className="maritime-input"
-              disabled={!user}
+              disabled={!isConnected}
             />
           </div>
 
@@ -305,7 +303,7 @@ const ShipperView = () => {
                 size="sm"
                 onClick={() => setShowInsuranceModal(true)}
                 className="maritime-button-outline"
-                disabled={!user}
+                disabled={!isConnected}
               >
                 Browse Policies
               </Button>
@@ -321,7 +319,7 @@ const ShipperView = () => {
                     size="sm"
                     onClick={() => setSelectedInsurance(null)}
                     className="h-6 w-6 p-0 text-[#CCD6F6] hover:text-[#FF6B6B]"
-                    disabled={!user}
+                    disabled={!isConnected}
                   >
                     ×
                   </Button>
@@ -337,7 +335,7 @@ const ShipperView = () => {
 
           <Button 
             onClick={handleCreateOrder}
-            disabled={createOrderMutation.isPending || !user}
+            disabled={createOrderMutation.isPending || !isConnected}
             className="w-full maritime-button bg-[#D4AF37] hover:bg-[#D4AF37]/80 text-[#0A192F] font-serif"
           >
             {createOrderMutation.isPending ? 'Creating Order...' : 'Create Shipping Order'}

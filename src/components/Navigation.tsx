@@ -2,15 +2,14 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Anchor, LogIn, LogOut, User } from 'lucide-react';
+import { Anchor } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading, signOut } = useAuth();
+  const { isConnected } = useAuth();
 
   const navItems = [
     { path: '/marketplace', label: 'Marketplace' },
@@ -18,16 +17,6 @@ const Navigation = () => {
     { path: '/contract-builder', label: 'Build Policy' },
     { path: '/portfolio', label: 'My Portfolio' },
   ];
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success('Signed out successfully');
-      navigate('/');
-    } catch (error) {
-      toast.error('Error signing out');
-    }
-  };
 
   return (
     <nav className="bg-[#0A192F] border-b border-[#D4AF37]/20 sticky top-0 z-50">
@@ -63,37 +52,8 @@ const Navigation = () => {
               </Button>
             ))}
             
-            {/* Authentication & Wallet Section */}
+            {/* Wallet Connection */}
             <div className="flex items-center space-x-3 ml-4">
-              {loading ? (
-                <div className="w-8 h-8 animate-spin rounded-full border-2 border-[#D4AF37] border-t-transparent"></div>
-              ) : user ? (
-                <>
-                  <div className="flex items-center space-x-2 text-[#CCD6F6] text-sm font-serif">
-                    <User className="w-4 h-4" />
-                    <span>{user.user_metadata?.full_name || user.email}</span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleSignOut}
-                    className="maritime-nav-glow text-[#CCD6F6] hover:text-[#FF6B6B] hover:bg-[#1E3A5F] font-serif"
-                  >
-                    <LogOut className="w-4 h-4 mr-1" />
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/auth')}
-                  className="maritime-nav-glow text-[#CCD6F6] hover:text-[#D4AF37] hover:bg-[#1E3A5F] font-serif"
-                >
-                  <LogIn className="w-4 h-4 mr-1" />
-                  Sign In
-                </Button>
-              )}
               <ConnectButton />
             </div>
           </div>

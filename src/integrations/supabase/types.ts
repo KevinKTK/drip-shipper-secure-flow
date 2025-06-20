@@ -212,6 +212,7 @@ export type Database = {
           user_id: string | null
           vessel_type: Database["public"]["Enums"]["vessel_type"] | null
           volume_cbm: number | null
+          wallet_address: string | null
           weight_tons: number | null
         }
         Insert: {
@@ -234,6 +235,7 @@ export type Database = {
           user_id?: string | null
           vessel_type?: Database["public"]["Enums"]["vessel_type"] | null
           volume_cbm?: number | null
+          wallet_address?: string | null
           weight_tons?: number | null
         }
         Update: {
@@ -256,6 +258,7 @@ export type Database = {
           user_id?: string | null
           vessel_type?: Database["public"]["Enums"]["vessel_type"] | null
           volume_cbm?: number | null
+          wallet_address?: string | null
           weight_tons?: number | null
         }
         Relationships: [
