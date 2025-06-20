@@ -9,33 +9,89 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      order_matches: {
+      insurance_policies: {
         Row: {
-          agreed_price: number | null
-          cargo_order_id: string | null
-          contract_terms: string | null
+          created_at: string | null
+          data_source: string | null
+          delay_threshold_hours: number
           id: string
-          matched_at: string | null
-          status: string | null
-          vessel_order_id: string | null
+          is_active: boolean | null
+          nft_token_id: string | null
+          order_id: string
+          payout_amount_ink: number
+          policy_name: string
+          premium_ink: number
+          trigger_condition: string
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
-          agreed_price?: number | null
-          cargo_order_id?: string | null
-          contract_terms?: string | null
+          created_at?: string | null
+          data_source?: string | null
+          delay_threshold_hours: number
           id?: string
-          matched_at?: string | null
-          status?: string | null
-          vessel_order_id?: string | null
+          is_active?: boolean | null
+          nft_token_id?: string | null
+          order_id: string
+          payout_amount_ink: number
+          policy_name: string
+          premium_ink: number
+          trigger_condition: string
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
-          agreed_price?: number | null
-          cargo_order_id?: string | null
-          contract_terms?: string | null
+          created_at?: string | null
+          data_source?: string | null
+          delay_threshold_hours?: number
           id?: string
-          matched_at?: string | null
+          is_active?: boolean | null
+          nft_token_id?: string | null
+          order_id?: string
+          payout_amount_ink?: number
+          policy_name?: string
+          premium_ink?: number
+          trigger_condition?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_policies_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_matches: {
+        Row: {
+          cargo_order_id: string
+          created_at: string | null
+          id: string
+          match_price_ink: number
+          status: string | null
+          updated_at: string | null
+          vessel_order_id: string
+        }
+        Insert: {
+          cargo_order_id: string
+          created_at?: string | null
+          id?: string
+          match_price_ink: number
           status?: string | null
-          vessel_order_id?: string | null
+          updated_at?: string | null
+          vessel_order_id: string
+        }
+        Update: {
+          cargo_order_id?: string
+          created_at?: string | null
+          id?: string
+          match_price_ink?: number
+          status?: string | null
+          updated_at?: string | null
+          vessel_order_id?: string
         }
         Relationships: [
           {
@@ -58,83 +114,65 @@ export type Database = {
         Row: {
           arrival_date: string | null
           cargo_type: Database["public"]["Enums"]["cargo_type"] | null
-          cargo_volume: number | null
-          cargo_weight: number | null
           created_at: string | null
-          currency: string | null
-          departure_date: string | null
+          departure_date: string
           description: string | null
           destination_port: string
           id: string
-          nft_contract_address: string | null
-          nft_minted: boolean | null
+          is_insured: boolean | null
           nft_token_id: string | null
-          nft_transaction_hash: string | null
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
-          price: number | null
+          price_ink: number
           status: Database["public"]["Enums"]["order_status"] | null
           title: string
           updated_at: string | null
           user_id: string
-          vessel_beam: number | null
-          vessel_dwt: number | null
-          vessel_length: number | null
           vessel_type: Database["public"]["Enums"]["vessel_type"] | null
+          volume_cbm: number | null
+          weight_tons: number | null
         }
         Insert: {
           arrival_date?: string | null
           cargo_type?: Database["public"]["Enums"]["cargo_type"] | null
-          cargo_volume?: number | null
-          cargo_weight?: number | null
           created_at?: string | null
-          currency?: string | null
-          departure_date?: string | null
+          departure_date: string
           description?: string | null
           destination_port: string
           id?: string
-          nft_contract_address?: string | null
-          nft_minted?: boolean | null
+          is_insured?: boolean | null
           nft_token_id?: string | null
-          nft_transaction_hash?: string | null
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
-          price?: number | null
+          price_ink: number
           status?: Database["public"]["Enums"]["order_status"] | null
           title: string
           updated_at?: string | null
           user_id: string
-          vessel_beam?: number | null
-          vessel_dwt?: number | null
-          vessel_length?: number | null
           vessel_type?: Database["public"]["Enums"]["vessel_type"] | null
+          volume_cbm?: number | null
+          weight_tons?: number | null
         }
         Update: {
           arrival_date?: string | null
           cargo_type?: Database["public"]["Enums"]["cargo_type"] | null
-          cargo_volume?: number | null
-          cargo_weight?: number | null
           created_at?: string | null
-          currency?: string | null
-          departure_date?: string | null
+          departure_date?: string
           description?: string | null
           destination_port?: string
           id?: string
-          nft_contract_address?: string | null
-          nft_minted?: boolean | null
+          is_insured?: boolean | null
           nft_token_id?: string | null
-          nft_transaction_hash?: string | null
           order_type?: Database["public"]["Enums"]["order_type"]
           origin_port?: string
-          price?: number | null
+          price_ink?: number
           status?: Database["public"]["Enums"]["order_status"] | null
           title?: string
           updated_at?: string | null
           user_id?: string
-          vessel_beam?: number | null
-          vessel_dwt?: number | null
-          vessel_length?: number | null
           vessel_type?: Database["public"]["Enums"]["vessel_type"] | null
+          volume_cbm?: number | null
+          weight_tons?: number | null
         }
         Relationships: []
       }
@@ -144,8 +182,6 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
-          is_verified: boolean | null
-          phone: string | null
           updated_at: string | null
           wallet_address: string | null
         }
@@ -154,8 +190,6 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id: string
-          is_verified?: boolean | null
-          phone?: string | null
           updated_at?: string | null
           wallet_address?: string | null
         }
@@ -164,8 +198,6 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
-          is_verified?: boolean | null
-          phone?: string | null
           updated_at?: string | null
           wallet_address?: string | null
         }
