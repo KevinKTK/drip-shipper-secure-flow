@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -220,6 +219,7 @@ const ShipperView = () => {
           <CardTitle className="text-[#FFFFFF] font-serif font-medium">Your Shipping Order</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          
           <div className="space-y-3 text-[#CCD6F6] font-serif">
             <div className="flex justify-between">
               <span>Route:</span>

@@ -125,7 +125,7 @@ const ContractBuilder = () => {
 
                 {/* Step 3: Payout Amount */}
                 <div className="space-y-2">
-                  <Label className="text-[#CCD6F6] font-serif">Payout Amount (INK)</Label>
+                  <Label className="text-[#CCD6F6] font-serif">Payout Amount (ETH)</Label>
                   <Input
                     type="number"
                     value={payoutAmount}
@@ -138,7 +138,7 @@ const ContractBuilder = () => {
                 <div className="bg-[#1E3A5F] p-4 rounded-lg border border-[#CCD6F6]/20">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[#CCD6F6] font-serif">Premium Required:</span>
-                    <span className="text-[#D4AF37] font-semibold text-lg">{premium} INK</span>
+                    <span className="text-[#D4AF37] font-semibold text-lg">{premium} ETH</span>
                   </div>
                   <p className="text-xs text-[#CCD6F6]/70 font-serif">
                     Premium calculated based on risk assessment and payout amount

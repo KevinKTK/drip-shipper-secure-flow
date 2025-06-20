@@ -72,7 +72,7 @@ const Marketplace = () => {
         <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20">
           <div className="flex items-center gap-1">
             <Coins className="w-4 h-4 text-[#D4AF37]" />
-            <span className="text-[#D4AF37] font-medium">{order.price_ink} INK</span>
+            <span className="text-[#D4AF37] font-medium">{order.price_ink} ETH</span>
           </div>
           {order.nft_token_id && (
             <span className="text-xs text-[#CCD6F6]/70">NFT #{order.nft_token_id}</span>

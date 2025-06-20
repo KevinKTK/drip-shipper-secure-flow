@@ -57,9 +57,9 @@ const Portfolio = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {[
             { title: 'Total Orders', value: orders?.length || 0, icon: Package, color: '#CCD6F6' },
-            { title: 'Portfolio Value', value: `${totalValue.toLocaleString()} INK`, icon: Coins, color: '#D4AF37' },
+            { title: 'Portfolio Value', value: `${totalValue.toLocaleString()} ETH`, icon: Coins, color: '#D4AF37' },
             { title: 'Insured Orders', value: insuredOrders, icon: Shield, color: '#64FFDA' },
-            { title: 'Total Premiums', value: `${totalPremiums.toLocaleString()} INK`, icon: TrendingUp, color: '#D4AF37' }
+            { title: 'Total Premiums', value: `${totalPremiums.toLocaleString()} ETH`, icon: TrendingUp, color: '#D4AF37' }
           ].map((stat, index) => (
             <div key={stat.title} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
               <Card className="maritime-card maritime-card-glow">
@@ -117,7 +117,7 @@ const Portfolio = () => {
                           </Badge>
                         </td>
                         <td className="py-4 text-[#D4AF37] font-medium font-serif">
-                          {Number(order.price_ink).toLocaleString()} INK
+                          {Number(order.price_ink).toLocaleString()} ETH
                         </td>
                         <td className="py-4">
                           <Badge className={`
