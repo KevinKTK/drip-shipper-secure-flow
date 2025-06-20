@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -311,18 +310,9 @@ const ShipperView = () => {
             
             {selectedInsurance && (
               <div className="bg-[#1E3A5F] p-3 rounded-lg border border-[#64FFDA]/30">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Ship className="w-4 h-4 text-[#64FFDA]" />
                   <span className="text-[#64FFDA] font-serif font-medium">{selectedInsurance.policy_name}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedInsurance(null)}
-                    className="h-6 w-6 p-0 text-[#CCD6F6] hover:text-[#FF6B6B]"
-                    disabled={!isConnected}
-                  >
-                    ×
-                  </Button>
                 </div>
                 <p className="text-xs text-[#CCD6F6] mb-2 font-serif">{selectedInsurance.description}</p>
                 <div className="flex justify-between items-center">
@@ -431,9 +421,8 @@ const ShipperView = () => {
       <InsurancePolicyModal
         isOpen={showInsuranceModal}
         onClose={() => setShowInsuranceModal(false)}
-        templates={insuranceTemplates || []}
-        onSelect={handleInsuranceSelect}
-        userType="shipper"
+        onSelectPolicy={handleInsuranceSelect}
+        policyType="shipper"
       />
     </div>
   );
