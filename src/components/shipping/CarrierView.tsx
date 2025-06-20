@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Ship, Search, MapPin, Calendar, Package, Shield, Coins } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Ship, Search, MapPin, Calendar, Package, Shield, Coins, History } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import InsurancePolicyModal from './InsurancePolicyModal';
+import JourneyCard from './JourneyCard';
 
 interface RouteForm {
   originPort: string;
@@ -29,6 +30,20 @@ const CarrierView = () => {
   });
   const [hasSearched, setHasSearched] = useState(false);
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
+
+  // Query for logged journeys
+  const { data: loggedJourneys, isLoading: loadingJourneys, refetch: refetchJourneys } = useQuery({
+    queryKey: ['logged-journeys'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('carrier_routes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   const { data: directMatches, isLoading: loadingDirect } = useQuery({
     queryKey: ['direct-matches', routeForm],
@@ -102,6 +117,9 @@ const CarrierView = () => {
           departure_date: routeForm.departureDate,
           available_capacity_kg: routeForm.availableCapacity
         }]);
+      
+      // Refetch logged journeys to show the new one
+      refetchJourneys();
     } catch (error) {
       console.error('Error logging route:', error);
     }
@@ -114,6 +132,43 @@ const CarrierView = () => {
       title: "Job Accepted",
       description: "You have successfully accepted this shipping job",
     });
+  };
+
+  const handleSelectJourney = (journey: any) => {
+    setRouteForm({
+      originPort: journey.origin_port,
+      destinationPort: journey.destination_port,
+      departureDate: journey.departure_date,
+      availableCapacity: journey.available_capacity_kg || 0
+    });
+    
+    toast({
+      title: "Route Selected",
+      description: "Form filled with selected journey details",
+    });
+  };
+
+  const handleDeleteJourney = async (journeyId: string) => {
+    try {
+      await supabase
+        .from('carrier_routes')
+        .delete()
+        .eq('id', journeyId);
+      
+      refetchJourneys();
+      
+      toast({
+        title: "Journey Deleted",
+        description: "Journey has been removed from your logs",
+      });
+    } catch (error) {
+      console.error('Error deleting journey:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete journey",
+        variant: "destructive"
+      });
+    }
   };
 
   const OrderCard = ({ order }: { order: any }) => (
@@ -254,6 +309,36 @@ const CarrierView = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Your Logged Journeys Section */}
+      {loggedJourneys && loggedJourneys.length > 0 && (
+        <Card className="maritime-card maritime-card-glow">
+          <CardHeader>
+            <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
+              <History className="w-5 h-5 text-[#D4AF37]" />
+              Your Logged Journeys ({loggedJourneys.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingJourneys ? (
+              <div className="text-center py-8 text-[#CCD6F6]">Loading your journeys...</div>
+            ) : (
+              <ScrollArea className="w-full">
+                <div className="flex gap-4 pb-4">
+                  {loggedJourneys.map((journey) => (
+                    <JourneyCard
+                      key={journey.id}
+                      journey={journey}
+                      onSelect={handleSelectJourney}
+                      onDelete={handleDeleteJourney}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Results Section */}
       {hasSearched && (
