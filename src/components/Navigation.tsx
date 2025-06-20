@@ -15,16 +15,16 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="bg-[#1B365D] border-b border-[#A0957B]/20 sticky top-0 z-50">
+    <nav className="bg-[#0A192F] border-b border-[#D4AF37]/20 sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <button
             onClick={() => navigate('/')}
-            className="flex items-center space-x-2 text-white hover:text-[#D4AF37] transition-colors"
+            className="flex items-center space-x-2 text-[#FFFFFF] hover:text-[#D4AF37] transition-colors"
           >
             <div className="w-8 h-8 bg-gradient-to-br from-[#D4AF37] to-[#B8860B] rounded-full flex items-center justify-center">
-              <Anchor className="w-5 h-5 text-[#1B365D]" />
+              <Anchor className="w-5 h-5 text-[#0A192F]" />
             </div>
             <span className="text-xl font-serif font-medium">DripShippa</span>
           </button>
@@ -39,8 +39,8 @@ const Navigation = () => {
                 className={`
                   font-serif font-normal
                   ${location.pathname === path 
-                    ? 'bg-[#D4AF37] text-[#1B365D] hover:bg-[#B8860B]' 
-                    : 'text-white hover:text-[#D4AF37] hover:bg-[#1B365D]/80'
+                    ? 'bg-[#D4AF37] text-[#0A192F] hover:bg-[#B8860B]' 
+                    : 'text-[#CCD6F6] hover:text-[#D4AF37] hover:bg-[#1E3A5F]'
                   }
                 `}
               >

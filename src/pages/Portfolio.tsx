@@ -40,7 +40,7 @@ const Portfolio = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F4F1E8] maritime-background">
+      <div className="min-h-screen bg-[#0A192F] maritime-background">
         <Navigation />
         <div className="flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
@@ -50,13 +50,13 @@ const Portfolio = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F1E8] maritime-background">
+    <div className="min-h-screen bg-[#0A192F] maritime-background">
       <Navigation />
       
       <div className="container mx-auto px-6 py-8 relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-serif font-medium text-[#1B365D] mb-2">Portfolio Dashboard</h1>
-          <p className="text-[#8B755D] font-serif font-light">Manage your shipping NFTs and insurance policies</p>
+          <h1 className="text-4xl font-serif font-medium text-[#FFFFFF] mb-2">Portfolio Dashboard</h1>
+          <p className="text-[#CCD6F6] font-serif font-light">Manage your shipping NFTs and insurance policies</p>
         </div>
 
         {/* Portfolio Stats */}
@@ -65,8 +65,8 @@ const Portfolio = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[#A0957B] text-sm font-serif">Total Orders</p>
-                  <p className="text-2xl font-medium text-white">{orders?.length || 0}</p>
+                  <p className="text-[#CCD6F6] text-sm font-serif">Total Orders</p>
+                  <p className="text-2xl font-medium text-[#FFFFFF]">{orders?.length || 0}</p>
                 </div>
                 <Package className="w-8 h-8 text-[#D4AF37]" />
               </div>
@@ -77,7 +77,7 @@ const Portfolio = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[#A0957B] text-sm font-serif">Portfolio Value</p>
+                  <p className="text-[#CCD6F6] text-sm font-serif">Portfolio Value</p>
                   <p className="text-2xl font-medium text-[#D4AF37]">{totalValue.toLocaleString()} INK</p>
                 </div>
                 <Coins className="w-8 h-8 text-[#D4AF37]" />
@@ -89,10 +89,10 @@ const Portfolio = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[#A0957B] text-sm font-serif">Insured Orders</p>
-                  <p className="text-2xl font-medium text-white">{insuredOrders}</p>
+                  <p className="text-[#CCD6F6] text-sm font-serif">Insured Orders</p>
+                  <p className="text-2xl font-medium text-[#64FFDA]">{insuredOrders}</p>
                 </div>
-                <Shield className="w-8 h-8 text-[#D4AF37]" />
+                <Shield className="w-8 h-8 text-[#64FFDA]" />
               </div>
             </CardContent>
           </Card>
@@ -101,8 +101,8 @@ const Portfolio = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[#A0957B] text-sm font-serif">Total Premiums</p>
-                  <p className="text-2xl font-medium text-white">{totalPremiums.toLocaleString()} INK</p>
+                  <p className="text-[#CCD6F6] text-sm font-serif">Total Premiums</p>
+                  <p className="text-2xl font-medium text-[#FFFFFF]">{totalPremiums.toLocaleString()} INK</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-[#D4AF37]" />
               </div>
@@ -113,38 +113,38 @@ const Portfolio = () => {
         {/* Orders Table */}
         <Card className="maritime-card">
           <CardHeader>
-            <CardTitle className="text-white font-serif font-medium">Your Shipping Orders</CardTitle>
+            <CardTitle className="text-[#FFFFFF] font-serif font-medium">Your Shipping Orders</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[#A0957B]/30">
-                    <th className="text-left text-[#A0957B] font-serif py-3">Order</th>
-                    <th className="text-left text-[#A0957B] font-serif py-3">Route</th>
-                    <th className="text-left text-[#A0957B] font-serif py-3">Type</th>
-                    <th className="text-left text-[#A0957B] font-serif py-3">Value</th>
-                    <th className="text-left text-[#A0957B] font-serif py-3">Status</th>
-                    <th className="text-left text-[#A0957B] font-serif py-3">Insurance</th>
+                  <tr className="border-b border-[#CCD6F6]/20">
+                    <th className="text-left text-[#CCD6F6] font-serif py-3">Order</th>
+                    <th className="text-left text-[#CCD6F6] font-serif py-3">Route</th>
+                    <th className="text-left text-[#CCD6F6] font-serif py-3">Type</th>
+                    <th className="text-left text-[#CCD6F6] font-serif py-3">Value</th>
+                    <th className="text-left text-[#CCD6F6] font-serif py-3">Status</th>
+                    <th className="text-left text-[#CCD6F6] font-serif py-3">Insurance</th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders?.map((order) => (
-                    <tr key={order.id} className="border-b border-[#A0957B]/20">
+                    <tr key={order.id} className="border-b border-[#CCD6F6]/10">
                       <td className="py-4">
                         <div className="flex items-center gap-2">
                           {order.order_type === 'cargo' ? 
                             <Package className="w-4 h-4 text-[#D4AF37]" /> : 
                             <Ship className="w-4 h-4 text-[#D4AF37]" />
                           }
-                          <span className="text-white font-serif">{order.title}</span>
+                          <span className="text-[#FFFFFF] font-serif">{order.title}</span>
                         </div>
                       </td>
-                      <td className="py-4 text-[#A0957B] font-serif">
+                      <td className="py-4 text-[#CCD6F6] font-serif">
                         {order.origin_port} → {order.destination_port}
                       </td>
                       <td className="py-4">
-                        <Badge variant="outline" className="border-[#A0957B] text-white">
+                        <Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">
                           {order.order_type}
                         </Badge>
                       </td>
@@ -153,21 +153,21 @@ const Portfolio = () => {
                       </td>
                       <td className="py-4">
                         <Badge className={`
-                          ${order.status === 'completed' ? 'bg-green-600' : ''}
-                          ${order.status === 'pending' ? 'bg-yellow-600' : ''}
-                          ${order.status === 'active' ? 'bg-blue-600' : ''}
+                          ${order.status === 'completed' ? 'bg-[#64FFDA] text-[#0A192F]' : ''}
+                          ${order.status === 'pending' ? 'bg-[#FF6B6B] text-[#FFFFFF]' : ''}
+                          ${order.status === 'active' ? 'bg-[#D4AF37] text-[#0A192F]' : ''}
                         `}>
                           {order.status}
                         </Badge>
                       </td>
                       <td className="py-4">
                         {order.is_insured ? (
-                          <Badge className="bg-[#D4AF37] text-[#1B365D]">
+                          <Badge className="bg-[#64FFDA] text-[#0A192F]">
                             <Shield className="w-3 h-3 mr-1" />
                             Protected
                           </Badge>
                         ) : (
-                          <span className="text-[#A0957B] text-sm font-serif">Not insured</span>
+                          <span className="text-[#CCD6F6]/70 text-sm font-serif">Not insured</span>
                         )}
                       </td>
                     </tr>
@@ -178,8 +178,8 @@ const Portfolio = () => {
             
             {orders?.length === 0 && (
               <div className="text-center py-12">
-                <Package className="w-16 h-16 text-[#A0957B] mx-auto mb-4" />
-                <p className="text-[#8B755D] font-serif">No orders in your portfolio yet</p>
+                <Package className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+                <p className="text-[#CCD6F6] font-serif">No orders in your portfolio yet</p>
               </div>
             )}
           </CardContent>

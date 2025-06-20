@@ -7,74 +7,83 @@
 
 @layer base {
   :root {
-    --background: 37 21% 96%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 40% 19%;
+    --foreground: 213 31% 91%;
 
-    --card: 210 100% 20%;
-    --card-foreground: 0 0% 100%;
+    --card: 213 27% 18%;
+    --card-foreground: 213 31% 91%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 213 27% 18%;
+    --popover-foreground: 213 31% 91%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 45 74% 55%;
+    --primary-foreground: 210 40% 19%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 213 27% 18%;
+    --secondary-foreground: 213 31% 91%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 213 27% 18%;
+    --muted-foreground: 213 19% 69%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 45 74% 55%;
+    --accent-foreground: 210 40% 19%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 65% 70%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 213 27% 25%;
+    --input: 213 27% 25%;
+    --ring: 45 74% 55%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 210 40% 19%;
+    --sidebar-foreground: 213 31% 91%;
+    --sidebar-primary: 45 74% 55%;
+    --sidebar-primary-foreground: 210 40% 19%;
+    --sidebar-accent: 213 27% 18%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 213 27% 25%;
+    --sidebar-ring: 45 74% 55%;
+
+    /* Ocean Theme Variables */
+    --color-navy: #0A192F;
+    --color-slate: #1E3A5F;
+    --color-gold: #D4AF37;
+    --color-light-slate: #CCD6F6;
+    --color-white: #FFFFFF;
+    --color-seafoam: #64FFDA;
+    --color-coral: #FF6B6B;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 210 40% 19%;
+    --foreground: 213 31% 91%;
+    --card: 213 27% 18%;
+    --card-foreground: 213 31% 91%;
+    --popover: 213 27% 18%;
+    --popover-foreground: 213 31% 91%;
+    --primary: 45 74% 55%;
+    --primary-foreground: 210 40% 19%;
+    --secondary: 213 27% 18%;
+    --secondary-foreground: 213 31% 91%;
+    --muted: 213 27% 18%;
+    --muted-foreground: 213 19% 69%;
+    --accent: 45 74% 55%;
+    --accent-foreground: 210 40% 19%;
+    --destructive: 0 65% 70%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 213 27% 25%;
+    --input: 213 27% 25%;
+    --ring: 45 74% 55%;
+    --sidebar-background: 210 40% 19%;
+    --sidebar-foreground: 213 31% 91%;
+    --sidebar-primary: 45 74% 55%;
+    --sidebar-primary-foreground: 210 40% 19%;
+    --sidebar-accent: 213 27% 18%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 213 27% 25%;
+    --sidebar-ring: 45 74% 55%;
   }
 }
 
@@ -88,11 +97,11 @@
   }
 }
 
-/* World Map Cartographic Background */
+/* Deep Ocean Maritime Background */
 .maritime-background {
   position: relative;
   overflow: hidden;
-  background-color: #F4F1E8;
+  background-color: #0A192F;
 }
 
 .maritime-background::before {
@@ -102,7 +111,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='1400' height='800' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E.continent{fill:none;stroke:%231B365D;stroke-width:0.8;opacity:0.4}.shipping-route{fill:none;stroke:%231B365D;stroke-width:0.6;opacity:0.3;stroke-dasharray:4,8}.port{fill:%231B365D;opacity:0.5}%3C/style%3E%3C/defs%3E%3C!-- North America --%3E%3Cpath class='continent' d='M100,150 Q120,140 140,145 L160,140 Q180,135 200,140 L220,145 Q240,150 260,155 L280,160 Q300,165 320,170 L340,175 Q360,180 380,185 L400,190 Q420,195 440,200 L460,205 Q480,210 500,215 L520,220 Q540,225 560,230 L580,235 Q600,240 620,245 L640,250 Q660,255 680,260 L700,265 Q720,270 740,275 L760,280 Q780,285 800,290 L820,295 Q840,300 860,305 L880,310 Q900,315 920,320 L940,325 Q960,330 980,335 L1000,340 Q1020,345 1040,350 L1060,355 Q1080,360 1100,365 L1120,370 Q1140,375 1160,380 L1180,385 Q1200,390 1220,395 L1240,400 Q1260,405 1280,410 L1300,415'/%3E%3C!-- Europe --%3E%3Cpath class='continent' d='M600,120 Q620,115 640,120 L660,125 Q680,130 700,135 L720,140 Q740,145 760,150 L780,155 Q800,160 820,165 L840,170 Q860,175 880,180 L900,185'/%3E%3C!-- Asia --%3E%3Cpath class='continent' d='M900,100 Q920,95 940,100 L960,105 Q980,110 1000,115 L1020,120 Q1040,125 1060,130 L1080,135 Q1100,140 1120,145 L1140,150 Q1160,155 1180,160 L1200,165 Q1220,170 1240,175 L1260,180'/%3E%3C!-- Africa --%3E%3Cpath class='continent' d='M600,200 Q620,195 640,200 L660,205 Q680,210 700,215 L720,220 Q740,225 760,230 L780,235 Q800,240 820,245 L840,250 Q860,255 880,260 L900,265 Q920,270 940,275 L960,280'/%3E%3C!-- South America --%3E%3Cpath class='continent' d='M300,300 Q320,295 340,300 L360,305 Q380,310 400,315 L420,320 Q440,325 460,330 L480,335 Q500,340 520,345 L540,350 Q560,355 580,360 L600,365'/%3E%3C!-- Australia --%3E%3Cpath class='continent' d='M1000,400 Q1020,395 1040,400 L1060,405 Q1080,410 1100,415 L1120,420 Q1140,425 1160,430 L1180,435'/%3E%3C!-- Major Shipping Routes --%3E%3Cpath class='shipping-route' d='M200,180 Q400,160 600,140 Q800,120 1000,140 Q1200,160 1300,180'/%3E%3Cpath class='shipping-route' d='M300,200 Q500,180 700,200 Q900,220 1100,200'/%3E%3Cpath class='shipping-route' d='M400,250 Q600,230 800,250 Q1000,270 1200,250'/%3E%3Cpath class='shipping-route' d='M200,300 Q400,280 600,300 Q800,320 1000,300'/%3E%3C!-- Port Markers --%3E%3Ccircle class='port' cx='200' cy='180' r='2'/%3E%3Ccircle class='port' cx='400' cy='160' r='2'/%3E%3Ccircle class='port' cx='600' cy='140' r='2'/%3E%3Ccircle class='port' cx='800' cy='120' r='2'/%3E%3Ccircle class='port' cx='1000' cy='140' r='2'/%3E%3Ccircle class='port' cx='300' cy='200' r='2'/%3E%3Ccircle class='port' cx='700' cy='200' r='2'/%3E%3Ccircle class='port' cx='1100' cy='200' r='2'/%3E%3Ccircle class='port' cx='400' cy='250' r='2'/%3E%3Ccircle class='port' cx='800' cy='250' r='2'/%3E%3Ccircle class='port' cx='1200' cy='250' r='2'/%3E%3Ccircle class='port' cx='350' cy='320' r='2'/%3E%3Ccircle class='port' cx='550' cy='340' r='2'/%3E%3Ccircle class='port' cx='1050' cy='410' r='2'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='1400' height='800' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E.continent{fill:none;stroke:%23CCD6F6;stroke-width:0.8;opacity:0.3}.shipping-route{fill:none;stroke:%23CCD6F6;stroke-width:0.6;opacity:0.2;stroke-dasharray:4,8}.port{fill:%23CCD6F6;opacity:0.4}%3C/style%3E%3C/defs%3E%3C!-- North America --%3E%3Cpath class='continent' d='M100,150 Q120,140 140,145 L160,140 Q180,135 200,140 L220,145 Q240,150 260,155 L280,160 Q300,165 320,170 L340,175 Q360,180 380,185 L400,190 Q420,195 440,200 L460,205 Q480,210 500,215 L520,220 Q540,225 560,230 L580,235 Q600,240 620,245 L640,250 Q660,255 680,260 L700,265 Q720,270 740,275 L760,280 Q780,285 800,290 L820,295 Q840,300 860,305 L880,310 Q900,315 920,320 L940,325 Q960,330 980,335 L1000,340 Q1020,345 1040,350 L1060,355 Q1080,360 1100,365 L1120,370 Q1140,375 1160,380 L1180,385 Q1200,390 1220,395 L1240,400 Q1260,405 1280,410 L1300,415'/%3E%3C!-- Europe --%3E%3Cpath class='continent' d='M600,120 Q620,115 640,120 L660,125 Q680,130 700,135 L720,140 Q740,145 760,150 L780,155 Q800,160 820,165 L840,170 Q860,175 880,180 L900,185'/%3E%3C!-- Asia --%3E%3Cpath class='continent' d='M900,100 Q920,95 940,100 L960,105 Q980,110 1000,115 L1020,120 Q1040,125 1060,130 L1080,135 Q1100,140 1120,145 L1140,150 Q1160,155 1180,160 L1200,165 Q1220,170 1240,175 L1260,180'/%3E%3C!-- Africa --%3E%3Cpath class='continent' d='M600,200 Q620,195 640,200 L660,205 Q680,210 700,215 L720,220 Q740,225 760,230 L780,235 Q800,240 820,245 L840,250 Q860,255 880,260 L900,265 Q920,270 940,275 L960,280'/%3E%3C!-- South America --%3E%3Cpath class='continent' d='M300,300 Q320,295 340,300 L360,305 Q380,310 400,315 L420,320 Q440,325 460,330 L480,335 Q500,340 520,345 L540,350 Q560,355 580,360 L600,365'/%3E%3C!-- Australia --%3E%3Cpath class='continent' d='M1000,400 Q1020,395 1040,400 L1060,405 Q1080,410 1100,415 L1120,420 Q1140,425 1160,430 L1180,435'/%3E%3C!-- Major Shipping Routes --%3E%3Cpath class='shipping-route' d='M200,180 Q400,160 600,140 Q800,120 1000,140 Q1200,160 1300,180'/%3E%3Cpath class='shipping-route' d='M300,200 Q500,180 700,200 Q900,220 1100,200'/%3E%3Cpath class='shipping-route' d='M400,250 Q600,230 800,250 Q1000,270 1200,250'/%3E%3Cpath class='shipping-route' d='M200,300 Q400,280 600,300 Q800,320 1000,300'/%3E%3C!-- Port Markers --%3E%3Ccircle class='port' cx='200' cy='180' r='2'/%3E%3Ccircle class='port' cx='400' cy='160' r='2'/%3E%3Ccircle class='port' cx='600' cy='140' r='2'/%3E%3Ccircle class='port' cx='800' cy='120' r='2'/%3E%3Ccircle class='port' cx='1000' cy='140' r='2'/%3E%3Ccircle class='port' cx='300' cy='200' r='2'/%3E%3Ccircle class='port' cx='700' cy='200' r='2'/%3E%3Ccircle class='port' cx='1100' cy='200' r='2'/%3E%3Ccircle class='port' cx='400' cy='250' r='2'/%3E%3Ccircle class='port' cx='800' cy='250' r='2'/%3E%3Ccircle class='port' cx='1200' cy='250' r='2'/%3E%3Ccircle class='port' cx='350' cy='320' r='2'/%3E%3Ccircle class='port' cx='550' cy='340' r='2'/%3E%3Ccircle class='port' cx='1050' cy='410' r='2'/%3E%3C/svg%3E");
   background-size: 2800px 1600px;
   animation: world-map-drift 40s ease-in-out infinite alternate;
   z-index: 0;
@@ -115,7 +124,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='1400' height='800' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E.trade-route{fill:none;stroke:%23D4AF37;stroke-width:1;opacity:0.6;stroke-dasharray:6,12}.port-pulse{fill:%23D4AF37;opacity:0.7}%3C/style%3E%3C/defs%3E%3C!-- Animated Trade Routes --%3E%3Cpath class='trade-route' d='M200,180 Q400,160 600,140 Q800,120 1000,140 Q1200,160 1300,180'/%3E%3Cpath class='trade-route' d='M300,200 Q500,180 700,200 Q900,220 1100,200'/%3E%3Cpath class='trade-route' d='M400,250 Q600,230 800,250 Q1000,270 1200,250'/%3E%3Cpath class='trade-route' d='M200,300 Q400,280 600,300 Q800,320 1000,300'/%3E%3Cpath class='trade-route' d='M150,220 Q350,200 550,220 Q750,240 950,220'/%3E%3C!-- Pulsing Port Activity --%3E%3Ccircle class='port-pulse' cx='200' cy='180' r='1.5'/%3E%3Ccircle class='port-pulse' cx='600' cy='140' r='1.5'/%3E%3Ccircle class='port-pulse' cx='1000' cy='140' r='1.5'/%3E%3Ccircle class='port-pulse' cx='700' cy='200' r='1.5'/%3E%3Ccircle class='port-pulse' cx='800' cy='250' r='1.5'/%3E%3Ccircle class='port-pulse' cx='350' cy='320' r='1.5'/%3E%3Ccircle class='port-pulse' cx='1050' cy='410' r='1.5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='1400' height='800' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E.trade-route{fill:none;stroke:%23D4AF37;stroke-width:1;opacity:0.8;stroke-dasharray:6,12}.port-pulse{fill:%23D4AF37;opacity:0.9}%3C/style%3E%3C/defs%3E%3C!-- Animated Trade Routes --%3E%3Cpath class='trade-route' d='M200,180 Q400,160 600,140 Q800,120 1000,140 Q1200,160 1300,180'/%3E%3Cpath class='trade-route' d='M300,200 Q500,180 700,200 Q900,220 1100,200'/%3E%3Cpath class='trade-route' d='M400,250 Q600,230 800,250 Q1000,270 1200,250'/%3E%3Cpath class='trade-route' d='M200,300 Q400,280 600,300 Q800,320 1000,300'/%3E%3Cpath class='trade-route' d='M150,220 Q350,200 550,220 Q750,240 950,220'/%3E%3C!-- Pulsing Port Activity --%3E%3Ccircle class='port-pulse' cx='200' cy='180' r='1.5'/%3E%3Ccircle class='port-pulse' cx='600' cy='140' r='1.5'/%3E%3Ccircle class='port-pulse' cx='1000' cy='140' r='1.5'/%3E%3Ccircle class='port-pulse' cx='700' cy='200' r='1.5'/%3E%3Ccircle class='port-pulse' cx='800' cy='250' r='1.5'/%3E%3Ccircle class='port-pulse' cx='350' cy='320' r='1.5'/%3E%3Ccircle class='port-pulse' cx='1050' cy='410' r='1.5'/%3E%3C/svg%3E");
   background-size: 2800px 1600px;
   animation: trade-routes-flow 25s linear infinite, port-activity 3s ease-in-out infinite alternate;
   z-index: 0;
@@ -124,11 +133,11 @@
 @keyframes world-map-drift {
   0% { 
     transform: translateX(-2px) translateY(-1px);
-    opacity: 0.8;
+    opacity: 0.6;
   }
   100% { 
     transform: translateX(2px) translateY(1px);
-    opacity: 1;
+    opacity: 0.8;
   }
 }
 
@@ -145,19 +154,19 @@
 
 @keyframes port-activity {
   0% { 
-    opacity: 0.4;
+    opacity: 0.6;
     transform: scale(1);
   }
   100% { 
-    opacity: 0.9;
-    transform: scale(1.2);
+    opacity: 1;
+    transform: scale(1.3);
   }
 }
 
-/* Navy Card Styling with Enhanced Maritime Glow */
+/* Ocean Theme Card Styling */
 .navy-card {
-  background: #1B365D;
-  border: 1px solid rgba(160, 149, 123, 0.4);
+  background: #1E3A5F;
+  border: 1px solid rgba(212, 175, 55, 0.2);
   transition: all 0.3s ease;
   position: relative;
   z-index: 1;
@@ -165,16 +174,16 @@
 
 .navy-card:hover {
   box-shadow: 
-    0 0 30px rgba(212, 175, 55, 0.5),
-    0 0 60px rgba(212, 175, 55, 0.2),
-    inset 0 0 0 1px rgba(212, 175, 55, 0.6);
+    0 0 30px rgba(212, 175, 55, 0.4),
+    0 0 60px rgba(212, 175, 55, 0.15),
+    inset 0 0 0 1px rgba(212, 175, 55, 0.4);
   transform: translateY(-3px);
 }
 
 /* Golden Button Styling */
 .golden-button {
   background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
-  color: #1B365D;
+  color: #0A192F;
   border: none;
   transition: all 0.3s ease;
 }
@@ -187,8 +196,8 @@
 
 /* Enhanced Maritime Card Styles */
 .maritime-card {
-  background: #1B365D;
-  border: 1px solid rgba(160, 149, 123, 0.4);
+  background: #1E3A5F;
+  border: 1px solid rgba(212, 175, 55, 0.2);
   transition: all 0.3s ease;
   position: relative;
   z-index: 1;
@@ -196,9 +205,9 @@
 
 .maritime-card:hover {
   box-shadow: 
-    0 0 35px rgba(212, 175, 55, 0.4),
-    0 0 70px rgba(212, 175, 55, 0.15),
-    inset 0 0 0 1px rgba(212, 175, 55, 0.5);
+    0 0 35px rgba(212, 175, 55, 0.3),
+    0 0 70px rgba(212, 175, 55, 0.1),
+    inset 0 0 0 1px rgba(212, 175, 55, 0.3);
   transform: translateY(-2px);
 }
 
@@ -210,8 +219,8 @@
   right: 0;
   bottom: 0;
   background-image: 
-    linear-gradient(rgba(27, 54, 93, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(27, 54, 93, 0.1) 1px, transparent 1px);
+    linear-gradient(rgba(204, 214, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(204, 214, 246, 0.05) 1px, transparent 1px);
   background-size: 60px 60px;
   animation: grid-float 35s ease-in-out infinite alternate;
   z-index: 0;

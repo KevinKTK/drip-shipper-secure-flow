@@ -33,12 +33,12 @@ const Marketplace = () => {
     <Card className="maritime-card">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-white font-serif font-medium flex items-center gap-2">
+          <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
             {order.order_type === 'cargo' ? <Package className="w-5 h-5 text-[#D4AF37]" /> : <Ship className="w-5 h-5 text-[#D4AF37]" />}
             {order.title}
           </CardTitle>
           {order.is_insured && (
-            <Badge className="bg-[#D4AF37] text-[#1B365D] font-medium">
+            <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium">
               <Shield className="w-3 h-3 mr-1" />
               Insured
             </Badge>
@@ -46,40 +46,40 @@ const Marketplace = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-[#A0957B]">
+        <div className="flex items-center gap-2 text-[#CCD6F6]">
           <MapPin className="w-4 h-4" />
           <span className="font-serif text-sm">{order.origin_port} → {order.destination_port}</span>
         </div>
         
-        <div className="flex items-center gap-2 text-[#A0957B]">
+        <div className="flex items-center gap-2 text-[#CCD6F6]">
           <Calendar className="w-4 h-4" />
           <span className="font-serif text-sm">Departure: {new Date(order.departure_date).toLocaleDateString()}</span>
         </div>
 
         {order.cargo_type && (
-          <Badge variant="outline" className="border-[#A0957B] text-white">
+          <Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">
             {order.cargo_type.replace('_', ' ').toUpperCase()}
           </Badge>
         )}
 
         {order.vessel_type && (
-          <Badge variant="outline" className="border-[#A0957B] text-white">
+          <Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">
             {order.vessel_type.replace('_', ' ').toUpperCase()}
           </Badge>
         )}
 
-        <div className="flex justify-between items-center pt-3 border-t border-[#A0957B]/30">
+        <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20">
           <div className="flex items-center gap-1">
             <Coins className="w-4 h-4 text-[#D4AF37]" />
             <span className="text-[#D4AF37] font-medium">{order.price_ink} INK</span>
           </div>
           {order.nft_token_id && (
-            <span className="text-xs text-[#A0957B]">NFT #{order.nft_token_id}</span>
+            <span className="text-xs text-[#CCD6F6]/70">NFT #{order.nft_token_id}</span>
           )}
         </div>
 
         <Button 
-          className="w-full bg-[#A0957B] hover:bg-[#D4AF37] hover:text-[#1B365D] transition-all duration-300 text-white font-serif"
+          className="w-full bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] transition-all duration-300 text-[#CCD6F6] font-serif border border-[#CCD6F6]/30"
           onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}
         >
           Create Insurance Policy
@@ -90,7 +90,7 @@ const Marketplace = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F4F1E8] maritime-background">
+      <div className="min-h-screen bg-[#0A192F] maritime-background">
         <Navigation />
         <div className="flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37]"></div>
@@ -100,21 +100,21 @@ const Marketplace = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F1E8] maritime-background">
+    <div className="min-h-screen bg-[#0A192F] maritime-background">
       <Navigation />
       
       <div className="container mx-auto px-6 py-8 relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-serif font-medium text-[#1B365D] mb-2">Maritime Marketplace</h1>
-          <p className="text-[#8B755D] font-serif font-light">Discover shipping opportunities and secure your cargo with parametric insurance</p>
+          <h1 className="text-4xl font-serif font-medium text-[#FFFFFF] mb-2">Maritime Marketplace</h1>
+          <p className="text-[#CCD6F6] font-serif font-light">Discover shipping opportunities and secure your cargo with parametric insurance</p>
         </div>
 
         <Tabs defaultValue="cargo" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-[#1B365D] border border-[#A0957B]/30">
-            <TabsTrigger value="cargo" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#1B365D] text-white font-serif">
+          <TabsList className="grid w-full grid-cols-2 bg-[#1E3A5F] border border-[#D4AF37]/30">
+            <TabsTrigger value="cargo" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
               Available Shipments ({cargoOrders.length})
             </TabsTrigger>
-            <TabsTrigger value="vessel" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#1B365D] text-white font-serif">
+            <TabsTrigger value="vessel" className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
               Available Vessels ({vesselOrders.length})
             </TabsTrigger>
           </TabsList>
@@ -126,8 +126,8 @@ const Marketplace = () => {
               ))}
               {cargoOrders.length === 0 && (
                 <div className="col-span-full text-center py-12">
-                  <Package className="w-16 h-16 text-[#A0957B] mx-auto mb-4" />
-                  <p className="text-[#8B755D] font-serif">No cargo shipments available</p>
+                  <Package className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+                  <p className="text-[#CCD6F6] font-serif">No cargo shipments available</p>
                 </div>
               )}
             </div>
@@ -140,8 +140,8 @@ const Marketplace = () => {
               ))}
               {vesselOrders.length === 0 && (
                 <div className="col-span-full text-center py-12">
-                  <Ship className="w-16 h-16 text-[#A0957B] mx-auto mb-4" />
-                  <p className="text-[#8B755D] font-serif">No vessels available</p>
+                  <Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+                  <p className="text-[#CCD6F6] font-serif">No vessels available</p>
                 </div>
               )}
             </div>

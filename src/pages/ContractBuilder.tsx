@@ -31,25 +31,25 @@ const ContractBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F6F0] maritime-background">
+    <div className="min-h-screen bg-[#0A192F] maritime-background">
       <Navigation />
       
       <div className="container mx-auto px-6 py-8 relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-serif font-semibold text-[#1B365D] mb-2">Parametric Insurance Builder</h1>
-          <p className="text-[#8B755D] font-serif">Create smart insurance policies for your shipping NFTs</p>
+          <h1 className="text-4xl font-serif font-semibold text-[#FFFFFF] mb-2">Parametric Insurance Builder</h1>
+          <p className="text-[#CCD6F6] font-serif">Create smart insurance policies for your shipping NFTs</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Risk Simulator */}
-          <Card className="navy-card">
+          <Card className="maritime-card">
             <CardHeader>
-              <CardTitle className="text-white font-serif font-medium">
+              <CardTitle className="text-[#FFFFFF] font-serif font-medium">
                 Risk Analysis
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-white/80 font-serif">
+              <div className="text-[#CCD6F6] font-serif">
                 <p className="text-sm mb-3">Historical delay probability for this route:</p>
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -67,12 +67,12 @@ const ContractBuilder = () => {
                 </div>
               </div>
               
-              <div className="pt-4 border-t border-white/20">
-                <Badge className="bg-[#D4AF37] text-[#1B365D] font-semibold mb-2">
+              <div className="pt-4 border-t border-[#CCD6F6]/20">
+                <Badge className="bg-[#64FFDA] text-[#0A192F] font-semibold mb-2">
                   <Database className="w-3 h-3 mr-1" />
                   Oracle: PortAuthorityAPI
                 </Badge>
-                <p className="text-xs text-white/60">
+                <p className="text-xs text-[#CCD6F6]/70">
                   Delay verification powered by real-time port authority data
                 </p>
               </div>
@@ -80,29 +80,29 @@ const ContractBuilder = () => {
           </Card>
 
           {/* Policy Builder */}
-          <Card className="lg:col-span-2 navy-card">
+          <Card className="lg:col-span-2 maritime-card">
             <CardHeader>
-              <CardTitle className="text-white font-serif font-medium">
+              <CardTitle className="text-[#FFFFFF] font-serif font-medium">
                 Build Your Policy
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Step 1: Policy Name */}
               <div className="space-y-2">
-                <Label className="text-white font-serif">Policy Name</Label>
+                <Label className="text-[#CCD6F6] font-serif">Policy Name</Label>
                 <Input
                   value={policyName}
                   onChange={(e) => setPolicyName(e.target.value)}
                   placeholder="e.g., Shanghai-LA Container Protection"
-                  className="bg-[#2C4A6B] border-white/20 text-white placeholder-white/50 font-serif"
+                  className="bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
                 />
               </div>
 
               {/* Step 2: Delay Threshold */}
               <div className="space-y-4">
-                <Label className="text-white font-serif">Trigger Condition</Label>
-                <div className="bg-[#2C4A6B] p-4 rounded-lg border border-white/20">
-                  <p className="text-white mb-4 font-serif">
+                <Label className="text-[#CCD6F6] font-serif">Trigger Condition</Label>
+                <div className="bg-[#1E3A5F] p-4 rounded-lg border border-[#CCD6F6]/20">
+                  <p className="text-[#FFFFFF] mb-4 font-serif">
                     If shipment is delayed more than <span className="text-[#D4AF37] font-semibold">{delayThreshold[0]} hours</span>
                   </p>
                   <Slider
@@ -113,7 +113,7 @@ const ContractBuilder = () => {
                     step={12}
                     className="w-full"
                   />
-                  <div className="flex justify-between text-xs text-white/60 mt-2 font-serif">
+                  <div className="flex justify-between text-xs text-[#CCD6F6]/70 mt-2 font-serif">
                     <span>12h</span>
                     <span>168h (7 days)</span>
                   </div>
@@ -122,31 +122,31 @@ const ContractBuilder = () => {
 
               {/* Step 3: Payout Amount */}
               <div className="space-y-2">
-                <Label className="text-white font-serif">Payout Amount (INK)</Label>
+                <Label className="text-[#CCD6F6] font-serif">Payout Amount (INK)</Label>
                 <Input
                   type="number"
                   value={payoutAmount}
                   onChange={(e) => setPayoutAmount(Number(e.target.value))}
-                  className="bg-[#2C4A6B] border-white/20 text-white font-serif"
+                  className="bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] font-serif"
                 />
               </div>
 
               {/* Premium Calculation */}
-              <div className="bg-[#2C4A6B] p-4 rounded-lg border border-white/20">
+              <div className="bg-[#1E3A5F] p-4 rounded-lg border border-[#CCD6F6]/20">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-white font-serif">Premium Required:</span>
+                  <span className="text-[#CCD6F6] font-serif">Premium Required:</span>
                   <span className="text-[#D4AF37] font-semibold text-lg">{premium} INK</span>
                 </div>
-                <p className="text-xs text-white/60 font-serif">
+                <p className="text-xs text-[#CCD6F6]/70 font-serif">
                   Premium calculated based on risk assessment and payout amount
                 </p>
               </div>
 
               {/* Warning */}
-              <div className="flex items-start gap-3 p-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5" />
+              <div className="flex items-start gap-3 p-4 bg-[#FF6B6B]/10 border border-[#FF6B6B]/30 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-[#FF6B6B] mt-0.5" />
                 <div>
-                  <p className="text-yellow-400 font-serif text-sm">
+                  <p className="text-[#FF6B6B] font-serif text-sm">
                     Once minted, this policy cannot be modified. Please review all parameters carefully.
                   </p>
                 </div>
