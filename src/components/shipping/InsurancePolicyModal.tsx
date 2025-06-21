@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,7 @@ const InsurancePolicyModal = ({ isOpen, onClose, onSelectPolicy, policyType }: I
         .select('*')
         .eq('policy_type', policyType)
         .eq('is_active', true)
-        .order('premium_ink', { ascending: true });
+        .order('premium_eth', { ascending: true });
       
       if (error) throw error;
       return data || [];
@@ -36,7 +35,7 @@ const InsurancePolicyModal = ({ isOpen, onClose, onSelectPolicy, policyType }: I
     onSelectPolicy({
       id: policy.id,
       policy_name: policy.policy_name,
-      premium_ink: policy.premium_ink
+      premium_eth: policy.premium_eth
     });
     onClose();
   };
@@ -81,14 +80,14 @@ const InsurancePolicyModal = ({ isOpen, onClose, onSelectPolicy, policyType }: I
                         <span className="text-[#CCD6F6] text-sm font-serif">Premium:</span>
                         <span className="text-[#D4AF37] font-medium flex items-center gap-1">
                           <Coins className="w-4 h-4" />
-                          {policy.premium_ink} INK
+                          {policy.premium_eth} ETH
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-[#CCD6F6] text-sm font-serif">Payout:</span>
                         <span className="text-[#64FFDA] font-medium flex items-center gap-1">
                           <Coins className="w-4 h-4" />
-                          {policy.payout_amount_ink} INK
+                          {policy.payout_amount_eth} ETH
                         </span>
                       </div>
                       {policy.delay_threshold_hours && (

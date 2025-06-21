@@ -135,7 +135,7 @@ const ShipperView = () => {
       cargo_type: cargoType,
       weight_tons: weight ? parseInt(weight) : null,
       volume_cbm: volume ? parseInt(volume) : null,
-      price_ink: parseFloat(price),
+      price_eth: parseFloat(price),
       is_insured: !!selectedInsurance,
       selected_insurance_policy_id: selectedInsurance?.id || null,
       status: 'pending',
@@ -145,19 +145,21 @@ const ShipperView = () => {
     try {
       const result = await createOrderMutation.mutateAsync(orderData);
       // Only mint NFT if order creation succeeded
-      if (result && address && description && weight && originPort && destinationPort) {
+      if (result && wagmiAddress && description && weight && originPort && destinationPort) {
         setMinting(true);
         writeContract({
           address: cargoNFTAddress,
           abi: CargoNFT.abi,
           functionName: 'mintCargo',
           args: [
-            address,
+            wagmiAddress,
             description,
             weight ? BigInt(weight) : 0n,
             originPort,
             destinationPort
           ],
+          account: wagmiAddress,
+          chain: null,
         });
       }
     } catch (error: any) {
@@ -167,7 +169,7 @@ const ShipperView = () => {
 
   const calculateTotal = () => {
     const basePrice = parseFloat(price) || 0;
-    const insurancePremium = selectedInsurance ? selectedInsurance.premium_ink : 0;
+    const insurancePremium = selectedInsurance ? selectedInsurance.premium_eth : 0;
     return basePrice + insurancePremium;
   };
 
@@ -368,7 +370,7 @@ const ShipperView = () => {
                 <p className="text-xs text-[#CCD6F6] mb-2 font-serif">{selectedInsurance.description}</p>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-[#CCD6F6] font-serif">Premium:</span>
-                  <span className="text-[#D4AF37] font-medium">{selectedInsurance.premium_ink} ETH</span>
+                  <span className="text-[#D4AF37] font-medium">{selectedInsurance.premium_eth} ETH</span>
                 </div>
               </div>
             )}
@@ -433,7 +435,7 @@ const ShipperView = () => {
             {selectedInsurance && (
               <div className="flex justify-between text-[#CCD6F6] font-serif">
                 <span>Insurance Premium:</span>
-                <span className="text-[#64FFDA]">{selectedInsurance.premium_ink} ETH</span>
+                <span className="text-[#64FFDA]">{selectedInsurance.premium_eth} ETH</span>
               </div>
             )}
 
@@ -452,7 +454,7 @@ const ShipperView = () => {
               <div className="space-y-2 text-sm text-[#CCD6F6] font-serif">
                 <div className="flex justify-between">
                   <span>Coverage:</span>
-                  <span className="text-[#FFFFFF]">{selectedInsurance.payout_amount_ink} ETH</span>
+                  <span className="text-[#FFFFFF]">{selectedInsurance.payout_amount_eth} ETH</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Trigger:</span>

@@ -54,9 +54,9 @@ export type Database = {
           is_active: boolean | null
           nft_token_id: string | null
           order_id: string
-          payout_amount_ink: number
+          payout_amount_eth: number
           policy_name: string
-          premium_ink: number
+          premium_eth: number
           trigger_condition: string
           updated_at: string | null
           user_id: string | null
@@ -69,9 +69,9 @@ export type Database = {
           is_active?: boolean | null
           nft_token_id?: string | null
           order_id: string
-          payout_amount_ink: number
+          payout_amount_eth: number
           policy_name: string
-          premium_ink: number
+          premium_eth: number
           trigger_condition: string
           updated_at?: string | null
           user_id?: string | null
@@ -84,9 +84,9 @@ export type Database = {
           is_active?: boolean | null
           nft_token_id?: string | null
           order_id?: string
-          payout_amount_ink?: number
+          payout_amount_eth?: number
           policy_name?: string
-          premium_ink?: number
+          premium_eth?: number
           trigger_condition?: string
           updated_at?: string | null
           user_id?: string | null
@@ -109,10 +109,10 @@ export type Database = {
           description: string
           id: string
           is_active: boolean | null
-          payout_amount_ink: number
+          payout_amount_eth: number
           policy_name: string
           policy_type: string
-          premium_ink: number
+          premium_eth: number
           trigger_condition: string
           updated_at: string | null
         }
@@ -123,10 +123,10 @@ export type Database = {
           description: string
           id?: string
           is_active?: boolean | null
-          payout_amount_ink: number
+          payout_amount_eth: number
           policy_name: string
           policy_type: string
-          premium_ink: number
+          premium_eth: number
           trigger_condition: string
           updated_at?: string | null
         }
@@ -137,10 +137,10 @@ export type Database = {
           description?: string
           id?: string
           is_active?: boolean | null
-          payout_amount_ink?: number
+          payout_amount_eth?: number
           policy_name?: string
           policy_type?: string
-          premium_ink?: number
+          premium_eth?: number
           trigger_condition?: string
           updated_at?: string | null
         }
@@ -151,7 +151,7 @@ export type Database = {
           cargo_order_id: string
           created_at: string | null
           id: string
-          match_price_ink: number
+          match_price_eth: number
           status: string | null
           updated_at: string | null
           vessel_order_id: string
@@ -160,7 +160,7 @@ export type Database = {
           cargo_order_id: string
           created_at?: string | null
           id?: string
-          match_price_ink: number
+          match_price_eth: number
           status?: string | null
           updated_at?: string | null
           vessel_order_id: string
@@ -169,7 +169,7 @@ export type Database = {
           cargo_order_id?: string
           created_at?: string | null
           id?: string
-          match_price_ink?: number
+          match_price_eth?: number
           status?: string | null
           updated_at?: string | null
           vessel_order_id?: string
@@ -204,7 +204,7 @@ export type Database = {
           nft_token_id: string | null
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
-          price_ink: number
+          price_eth: number
           selected_insurance_policy_id: string | null
           status: Database["public"]["Enums"]["order_status"] | null
           title: string
@@ -227,7 +227,7 @@ export type Database = {
           nft_token_id?: string | null
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
-          price_ink: number
+          price_eth: number
           selected_insurance_policy_id?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           title: string
@@ -250,7 +250,7 @@ export type Database = {
           nft_token_id?: string | null
           order_type?: Database["public"]["Enums"]["order_type"]
           origin_port?: string
-          price_ink?: number
+          price_eth?: number
           selected_insurance_policy_id?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           title?: string

@@ -14,31 +14,31 @@ const SMART_CONTRACTS = [
   {
     contract_name: 'VesselNFT',
     contract_address: '0x1CA4aF4A1a69DB30fFbb299d6865Cd87c24f2A89',
-    network: 'ink-sepolia',
+    network: 'sepolia',
     abi_hash: 'vessel_nft_abi_v1'
   },
   {
     contract_name: 'CargoNFT',
     contract_address: '0x1c0A2b9DcbA3D20EFc3379823208Bc67B92506B7',
-    network: 'ink-sepolia',
+    network: 'sepolia',
     abi_hash: 'cargo_nft_abi_v1'
   },
   {
     contract_name: 'InsuranceManager',
     contract_address: '0x942088Ca56CA4e98ac33855cA25481a09E05fBCA',
-    network: 'ink-sepolia',
+    network: 'sepolia',
     abi_hash: 'insurance_manager_abi_v1'
   },
   {
     contract_name: 'JourneyManager',
     contract_address: '0xe71b13b0D639BdfBe8dFF5d07d396852984f333B',
-    network: 'ink-sepolia',
+    network: 'sepolia',
     abi_hash: 'journey_manager_abi_v1'
   },
   {
     contract_name: 'Brokerage',
     contract_address: '0x9660AF590d7fF2cAB99174970fC0911577eE23a3',
-    network: 'ink-sepolia',
+    network: 'sepolia',
     abi_hash: 'brokerage_abi_v1'
   }
 ];
@@ -56,7 +56,7 @@ const MOCK_ORDERS = [
     cargo_type: 'container',
     weight_tons: 500,
     volume_cbm: 1200,
-    price_ink: 15000.00,
+    price_eth: 15000.00,
     status: 'pending',
     is_insured: true,
     wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
@@ -72,7 +72,7 @@ const MOCK_ORDERS = [
     vessel_type: 'container_ship',
     weight_tons: 8000,
     volume_cbm: 5000,
-    price_ink: 25000.00,
+    price_eth: 25000.00,
     status: 'pending',
     is_insured: false,
     wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3'
@@ -88,7 +88,7 @@ const MOCK_ORDERS = [
     cargo_type: 'dry_bulk',
     weight_tons: 2000,
     volume_cbm: 3000,
-    price_ink: 8000.00,
+    price_eth: 8000.00,
     status: 'active',
     is_insured: true,
     wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
@@ -104,7 +104,7 @@ const MOCK_ORDERS = [
     vessel_type: 'bulk_carrier',
     weight_tons: 5000,
     volume_cbm: 4000,
-    price_ink: 12000.00,
+    price_eth: 12000.00,
     status: 'active',
     is_insured: true,
     wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3'
@@ -112,26 +112,94 @@ const MOCK_ORDERS = [
 ];
 
 // Mock data for insurance policies
-const MOCK_INSURANCE_POLICIES = [
+const MOCK_INSURANCE_TEMPLATES = [
   {
-    policy_name: 'Delay Protection',
+    policy_name: 'Shipper Delay Protection',
+    description: 'Covers financial losses if your cargo arrival is delayed beyond the agreed threshold. Ideal for time-sensitive shipments.',
+    policy_type: 'shipper',
     trigger_condition: 'arrival_delay',
     delay_threshold_hours: 24,
-    payout_amount_ink: 5000.00,
-    premium_ink: 500.00,
+    payout_amount_eth: 5000.00,
+    premium_eth: 500.00,
     data_source: 'PortAuthorityAPI',
-    is_active: true,
-    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+    is_active: true
   },
   {
-    policy_name: 'Weather Damage Coverage',
+    policy_name: 'Carrier Weather Damage Coverage',
+    description: 'Protects against damages to the vessel or cargo caused by severe weather events during the journey.',
+    policy_type: 'carrier',
     trigger_condition: 'weather_damage',
     delay_threshold_hours: 0,
-    payout_amount_ink: 10000.00,
-    premium_ink: 800.00,
+    payout_amount_eth: 10000.00,
+    premium_eth: 800.00,
     data_source: 'WeatherAPI',
-    is_active: true,
-    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3'
+    is_active: true
+  },
+  {
+    policy_name: 'Shipper Cargo Temperature Damage',
+    description: 'Essential for reefer cargo. Payout is triggered if the temperature deviates from the set range for a specified duration.',
+    policy_type: 'shipper',
+    trigger_condition: 'temperature_fluctuation',
+    delay_threshold_hours: 4,
+    payout_amount_eth: 7500.00,
+    premium_eth: 650.00,
+    data_source: 'OnboardSensorAPI',
+    is_active: true
+  },
+  {
+    policy_name: 'Carrier Piracy Event Coverage',
+    description: 'Provides financial coverage in the unfortunate event of a piracy attack, covering ransom and recovery costs.',
+    policy_type: 'carrier',
+    trigger_condition: 'piracy_event',
+    delay_threshold_hours: null,
+    payout_amount_eth: 50000.00,
+    premium_eth: 2000.00,
+    data_source: 'MaritimeSecurityAPI',
+    is_active: true
+  },
+  {
+    policy_name: 'Shipper Contamination Coverage',
+    description: 'Protects high-value liquid or bulk cargo from contamination during transit, covering cleaning costs and value loss.',
+    policy_type: 'shipper',
+    trigger_condition: 'contamination_detected',
+    delay_threshold_hours: null,
+    payout_amount_eth: 15000.00,
+    premium_eth: 950.00,
+    data_source: 'IndependentSurveyorAPI',
+    is_active: true
+  },
+  {
+    policy_name: 'Shipper General Average Contribution',
+    description: 'Covers the policyholder\'s legally required contribution to a general average loss, a common risk in maritime adventures.',
+    policy_type: 'shipper',
+    trigger_condition: 'general_average_declared',
+    delay_threshold_hours: null,
+    payout_amount_eth: 25000.00,
+    premium_eth: 1200.00,
+    data_source: 'LloydsAverageAdjustersAPI',
+    is_active: true
+  },
+  {
+    policy_name: 'Carrier Port Congestion Surcharge',
+    description: 'Compensates carriers for unexpected operational costs and demurrage fees incurred due to extended waiting times at congested ports.',
+    policy_type: 'carrier',
+    trigger_condition: 'port_congestion_delay',
+    delay_threshold_hours: 72,
+    payout_amount_eth: 8000.00,
+    premium_eth: 700.00,
+    data_source: 'PortAuthorityAPI',
+    is_active: true
+  },
+  {
+    policy_name: 'Shipper Customs Rejection',
+    description: 'Covers losses if cargo is rejected by customs authorities at the destination due to unforeseen regulatory changes or documentation issues.',
+    policy_type: 'shipper',
+    trigger_condition: 'customs_rejection',
+    delay_threshold_hours: null,
+    payout_amount_eth: 12000.00,
+    premium_eth: 1100.00,
+    data_source: 'CustomsAuthorityAPI',
+    is_active: true
   }
 ];
 
@@ -168,17 +236,17 @@ async function populateDatabase() {
     console.log(`✅ Inserted ${ordersData?.length || 0} orders`);
 
     // Step 3: Insert insurance policies
-    console.log('🛡️  Inserting insurance policies...');
+    console.log('🛡️  Inserting insurance templates...');
     const { data: policiesData, error: policiesError } = await supabase
-      .from('insurance_policies')
-      .insert(MOCK_INSURANCE_POLICIES)
+      .from('insurance_templates')
+      .insert(MOCK_INSURANCE_TEMPLATES)
       .select();
 
     if (policiesError) {
-      throw new Error(`Error inserting insurance policies: ${JSON.stringify(policiesError)}`);
+      throw new Error(`Error inserting insurance templates: ${JSON.stringify(policiesError)}`);
     }
 
-    console.log(`✅ Inserted ${policiesData?.length || 0} insurance policies`);
+    console.log(`✅ Inserted ${policiesData?.length || 0} insurance templates`);
 
     // Step 4: Try to update orders with smart contract addresses
     console.log('🔗 Linking orders to smart contracts...');
@@ -229,7 +297,7 @@ async function populateDatabase() {
     console.log('\n📊 Summary:');
     console.log(`   • Smart Contracts: ${contractsData?.length || 0} (may be limited by RLS)`);
     console.log(`   • Orders: ${ordersData?.length || 0}`);
-    console.log(`   • Insurance Policies: ${policiesData?.length || 0}`);
+    console.log(`   • Insurance Templates: ${policiesData?.length || 0}`);
 
   } catch (error) {
     console.error('❌ Error during database population:', error);
@@ -243,7 +311,7 @@ async function clearDatabase() {
 
   try {
     // Clear all data from tables
-    const tables = ['insurance_policies', 'order_matches', 'orders', 'smart_contracts'];
+    const tables = ['insurance_policies', 'order_matches', 'orders', 'smart_contracts', 'insurance_templates'];
     
     for (const table of tables) {
       console.log(`🗑️  Clearing ${table}...`);
