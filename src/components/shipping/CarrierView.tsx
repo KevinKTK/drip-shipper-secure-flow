@@ -320,7 +320,7 @@ const CarrierView = () => {
   const [isRegistering, setIsRegistering] = useState(false);
 
   const { isConnected, address, loading: authLoading } = useAuth();
-  const { address: wagmiAddress } = useAccount();
+  const { address: wagmiAddress, chain } = useAccount();
   const vesselNFTAddress = CONTRACT_ADDRESSES.vesselNFT as `0x${string}`;
 
   const { data: mintTxHash, isPending: isMintingPending, writeContract, error: mintError } = useWriteContract();
@@ -354,6 +354,8 @@ const CarrierView = () => {
       abi: VesselNFT.abi,
       functionName: 'mintVessel',
       args: [wagmiAddress, vesselName, imoNumber, BigInt(capacity)],
+      account: wagmiAddress,
+      chain,
     });
   };
 
@@ -399,7 +401,16 @@ const CarrierView = () => {
           } else {
             toast({ title: 'Vessel registered and NFT minted successfully!' });
             // Reset form
-            setVesselName(''); setImoNumber(''); setVesselType(''); setCapacity(''); setVesselPrice(''); setVesselDescription(''); setVesselOrigin(''); setVesselDestination(''); setVesselDeparture(''); setVesselArrival('');
+            setVesselName(''); 
+            setImoNumber(''); 
+            setVesselType('container_ship'); 
+            setCapacity(''); 
+            setVesselPrice(''); 
+            setVesselDescription(''); 
+            setVesselOrigin(''); 
+            setVesselDestination(''); 
+            setVesselDeparture(''); 
+            setVesselArrival('');
           }
           setIsRegistering(false);
         });

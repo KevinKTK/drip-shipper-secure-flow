@@ -50,7 +50,7 @@ const ShipperView = () => {
 
   // --- HOOKS INITIALIZATION ---
   const { isConnected, address, loading: authLoading } = useAuth();
-  const { address: wagmiAddress } = useAccount();
+  const { address: wagmiAddress, chain } = useAccount();
   const queryClient = useQueryClient();
   const cargoNFTAddress = CONTRACT_ADDRESSES.cargoNFT as `0x${string}`;
 
@@ -124,6 +124,8 @@ const ShipperView = () => {
         originPort,
         destinationPort
       ],
+      account: wagmiAddress,
+      chain,
     });
   };
 
