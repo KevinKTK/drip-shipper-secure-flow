@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,7 +42,7 @@ const ShipperView = () => {
   const { isConnected, address, loading: authLoading } = useAuth();
   const { address: wagmiAddress } = useAccount();
   const queryClient = useQueryClient();
-  const cargoNFTAddress = CONTRACT_ADDRESSES.cargoNFT;
+  const cargoNFTAddress = CONTRACT_ADDRESSES.cargoNFT as `0x${string}`;
 
   const { data: insuranceTemplates } = useQuery({
     queryKey: ['insurance-templates'],
@@ -128,7 +129,7 @@ const ShipperView = () => {
       for (const log of mintTxReceipt.logs) {
         try {
           const decodedLog = decodeEventLog({ abi: [eventAbi], data: log.data, topics: log.topics });
-          if (decodedLog.eventName === 'CargoMinted') {
+          if ('eventName' in decodedLog && decodedLog.eventName === 'CargoMinted') {
             mintedTokenId = (decodedLog.args as any).tokenId.toString();
             break;
           }
@@ -169,7 +170,7 @@ const ShipperView = () => {
   // Effect for handling minting errors
   useEffect(() => {
     if (mintError) {
-      toast.error(mintError.shortMessage || "An error occurred during minting.");
+      toast.error((mintError as any).message || "An error occurred during minting.");
     }
   }, [mintError]);
 

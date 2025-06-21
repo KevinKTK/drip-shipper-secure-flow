@@ -35,9 +35,9 @@ const Portfolio = () => {
     },
   });
 
-  const totalValue = orders?.reduce((sum, order) => sum + Number(order.price_ink), 0) || 0;
+  const totalValue = orders?.reduce((sum, order) => sum + Number(order.price_eth), 0) || 0;
   const insuredOrders = orders?.filter(order => order.is_insured).length || 0;
-  const totalPremiums = policies?.reduce((sum, policy) => sum + Number(policy.premium_ink), 0) || 0;
+  const totalPremiums = policies?.reduce((sum, policy) => sum + Number(policy.premium_eth), 0) || 0;
 
   if (isLoading) {
     return <SonarLoader />;
@@ -117,7 +117,7 @@ const Portfolio = () => {
                           </Badge>
                         </td>
                         <td className="py-4 text-[#D4AF37] font-medium font-serif">
-                          {Number(order.price_ink).toLocaleString()} ETH
+                          {Number(order.price_eth).toLocaleString()} ETH
                         </td>
                         <td className="py-4">
                           <Badge className={`

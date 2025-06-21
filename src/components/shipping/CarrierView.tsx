@@ -28,6 +28,8 @@ interface RouteForm {
   availableCapacity: string;
 }
 
+type VesselType = 'container_ship' | 'bulk_carrier' | 'tanker' | 'ro_ro' | 'general_cargo' | 'lng_carrier' | 'lpg_carrier';
+
 const VESSEL_TYPE_OPTIONS = [
   { value: 'container_ship', label: 'Container Ship' },
   { value: 'bulk_carrier', label: 'Bulk Carrier' },
@@ -208,7 +210,6 @@ const CarrierView = () => {
 
   // State for details modal
   const [detailsModal, setDetailsModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
-  const [imoError, setImoError] = useState<string | null>(null);
 
   const OrderCard = ({ order }: { order: any }) => (
     <Card className="maritime-card maritime-card-glow">
@@ -295,9 +296,7 @@ const CarrierView = () => {
   // Vessel Registration State
   const [vesselName, setVesselName] = useState('');
   const [imoNumber, setImoNumber] = useState('');
-  const [vesselType, setVesselType] = useState<
-    'container_ship' | 'bulk_carrier' | 'tanker' | 'ro_ro' | 'general_cargo' | 'lng_carrier' | 'lpg_carrier'
-  >('');
+  const [vesselType, setVesselType] = useState<VesselType | ''>('');
   const [capacity, setCapacity] = useState('');
   const [vesselPrice, setVesselPrice] = useState('');
   const [vesselDescription, setVesselDescription] = useState('');
@@ -309,7 +308,7 @@ const CarrierView = () => {
 
   const { isConnected, address, loading: authLoading } = useAuth();
   const { address: wagmiAddress } = useAccount();
-  const vesselNFTAddress = CONTRACT_ADDRESSES.vesselNFT;
+  const vesselNFTAddress = CONTRACT_ADDRESSES.vesselNFT as `0x${string}`;
 
   const { data: mintTxHash, isPending: isMintingPending, writeContract, error: mintError } = useWriteContract();
   const { data: mintTxReceipt, isLoading: isMintingTxLoading, isSuccess: isMintingTxSuccess } = useWaitForTransactionReceipt({ hash: mintTxHash });
@@ -353,8 +352,8 @@ const CarrierView = () => {
       for (const log of mintTxReceipt.logs) {
         try {
           const decodedLog = decodeEventLog({ abi: [eventAbi], data: log.data, topics: log.topics });
-          if (decodedLog.eventName === 'VesselMinted') {
-            mintedTokenId = (decodedLog.args).tokenId.toString();
+          if ('eventName' in decodedLog && decodedLog.eventName === 'VesselMinted') {
+            mintedTokenId = (decodedLog.args as any).tokenId.toString();
             break;
           }
         } catch (e) {}
@@ -395,7 +394,7 @@ const CarrierView = () => {
 
   React.useEffect(() => {
     if (mintError) {
-      toast({ title: mintError.shortMessage || 'An error occurred during minting.', variant: 'destructive' });
+      toast({ title: (mintError as any).message || 'An error occurred during minting.', variant: 'destructive' });
       setIsRegistering(false);
     }
   }, [mintError]);
@@ -602,14 +601,7 @@ const CarrierView = () => {
               <Label className="text-[#CCD6F6] font-serif">IMO Number *</Label>
               <Input
                 value={imoNumber}
-                onChange={e => {
-                  setImoNumber(e.target.value);
-                  if (!/^\d{7}$/.test(e.target.value)) {
-                    setImoError('IMO number must be exactly 7 digits, e.g., 1234567');
-                  } else {
-                    setImoError(null);
-                  }
-                }}
+                onChange={e => setImoNumber(e.target.value)}
                 className="maritime-input"
                 disabled={isRegistering}
                 maxLength={7}
@@ -618,11 +610,10 @@ const CarrierView = () => {
                 placeholder="e.g., 1234567"
               />
               <p className="text-xs text-[#64FFDA] font-serif mt-1">The IMO number is a 7-digit identifier, e.g., 1234567</p>
-              {imoError && <p className="text-xs text-red-500 font-serif mt-1">{imoError}</p>}
             </div>
             <div className="space-y-2">
               <Label className="text-[#CCD6F6] font-serif">Vessel Type *</Label>
-              <Select value={vesselType} onValueChange={setVesselType} disabled={isRegistering}>
+              <Select value={vesselType} onValueChange={(value: VesselType) => setVesselType(value)} disabled={isRegistering}>
                 <SelectTrigger className="maritime-input">
                   <SelectValue placeholder="Select vessel type" />
                 </SelectTrigger>
