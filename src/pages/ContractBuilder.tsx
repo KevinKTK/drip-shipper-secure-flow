@@ -30,9 +30,22 @@ const ContractBuilder = () => {
 
   const createPolicyMutation = useMutation({
     mutationFn: async (policyData: any) => {
+      // Get the current user session to ensure we have the user_id
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User must be authenticated to create policies');
+      }
+
+      const policyWithUser = {
+        ...policyData,
+        user_id: user.id, // Ensure user_id is set
+        wallet_address: address // Ensure wallet_address is set
+      };
+
       const { data, error } = await supabase
         .from('user_insurance_policies')
-        .insert([policyData])
+        .insert([policyWithUser])
         .select()
         .single();
       
@@ -45,6 +58,7 @@ const ContractBuilder = () => {
         description: `Policy "${policyName}" has been saved and is now available for your shipments.`,
       });
       queryClient.invalidateQueries({ queryKey: ['user-insurance-policies'] });
+      queryClient.invalidateQueries({ queryKey: ['insurance-policies'] });
       
       // Reset form
       setPolicyName('');
@@ -52,6 +66,7 @@ const ContractBuilder = () => {
       setPayoutAmount(1000);
     },
     onError: (error: any) => {
+      console.error('Policy creation error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create insurance policy",
@@ -60,7 +75,7 @@ const ContractBuilder = () => {
     },
   });
 
-  const handleMintPolicy = () => {
+  const handleMintPolicy = async () => {
     if (!isConnected || !address) {
       toast({
         title: "Wallet Required",
@@ -74,6 +89,17 @@ const ContractBuilder = () => {
       toast({
         title: "Policy Name Required",
         description: "Please enter a name for your insurance policy",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to create insurance policies",
         variant: "destructive",
       });
       return;
