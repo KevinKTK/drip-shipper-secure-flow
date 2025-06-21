@@ -24,6 +24,7 @@ interface RouteForm {
   departureDate: string;
   arrivalDate: string;
   availableCapacity: string;
+  priceEth: string;
 }
 
 const CarrierView = () => {
@@ -35,7 +36,8 @@ const CarrierView = () => {
     destinationPort: '',
     departureDate: '',
     arrivalDate: '',
-    availableCapacity: ''
+    availableCapacity: '',
+    priceEth: ''
   });
   const [hasSearched, setHasSearched] = useState(false);
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
@@ -175,12 +177,20 @@ const CarrierView = () => {
       return;
     }
 
-    // Log the route with vessel association
+    // Log the route with vessel association and create marketplace entry
     try {
+      const selectedVessel = userVessels?.find(v => v.id === selectedVesselId);
+      if (!selectedVessel) {
+        throw new Error('Selected vessel not found');
+      }
+
       // Convert capacity string to number for database, default to 0 if empty
       const capacityInKg = routeForm.availableCapacity ? 
         parseInt(routeForm.availableCapacity.replace(/[^\d]/g, '')) || 0 : 0;
 
+      const priceEth = routeForm.priceEth ? parseFloat(routeForm.priceEth) : 0;
+
+      // Create entry in carrier_routes table for journey tracking
       await supabase
         .from('carrier_routes')
         .insert([{
@@ -189,13 +199,42 @@ const CarrierView = () => {
           destination_port: routeForm.destinationPort,
           departure_date: routeForm.departureDate,
           arrival_date: routeForm.arrivalDate || null,
-          available_capacity_kg: capacityInKg
+          available_capacity_kg: capacityInKg,
+          carrier_wallet_address: address
+        }]);
+
+      // Create entry in orders table for marketplace visibility
+      await supabase
+        .from('orders')
+        .insert([{
+          title: selectedVessel.title,
+          order_type: 'vessel',
+          origin_port: routeForm.originPort,
+          destination_port: routeForm.destinationPort,
+          departure_date: routeForm.departureDate,
+          arrival_date: routeForm.arrivalDate || null,
+          weight_tons: selectedVessel.weight_tons || Math.floor(capacityInKg / 1000),
+          vessel_type: selectedVessel.vessel_type,
+          description: selectedVessel.description,
+          price_eth: priceEth,
+          wallet_address: address,
+          status: 'pending'
         }]);
       
       // Refetch logged journeys to show the new one
       refetchJourneys();
+      
+      toast({
+        title: "Journey Logged Successfully",
+        description: "Your journey has been logged and is now available on the marketplace",
+      });
     } catch (error) {
       console.error('Error logging route:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log journey. Please try again.",
+        variant: "destructive"
+      });
     }
 
     setHasSearched(true);
@@ -411,11 +450,11 @@ const CarrierView = () => {
         <CardHeader>
           <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
             <Ship className="w-5 h-5 text-[#D4AF37]" />
-            Log Your Journey
+            Log Your Journey & List on Marketplace
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
             <div className="maritime-form-group">
               <Label htmlFor="originPort" className="maritime-label">Origin Port</Label>
               <Input
@@ -477,13 +516,27 @@ const CarrierView = () => {
               />
             </div>
 
+            <div className="maritime-form-group">
+              <Label htmlFor="priceEth" className="maritime-label">Rate (ETH)</Label>
+              <Input
+                id="priceEth"
+                type="number"
+                step="0.001"
+                value={routeForm.priceEth}
+                onChange={(e) => setRouteForm(prev => ({ ...prev, priceEth: e.target.value }))}
+                placeholder="0.0"
+                className="maritime-input"
+                disabled={!selectedVesselId}
+              />
+            </div>
+
             <Button
               onClick={handleSearch}
               disabled={!selectedVesselId}
               className="maritime-button bg-[#D4AF37] hover:bg-[#B8860B] text-[#0A192F] font-serif mt-6"
             >
               <Search className="w-4 h-4 mr-2" />
-              Find Freight
+              List on Marketplace
             </Button>
           </div>
           
