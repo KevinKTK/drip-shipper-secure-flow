@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,18 @@ const VESSEL_TYPE_OPTIONS = [
   { value: 'lng_carrier', label: 'LNG Carrier' },
   { value: 'lpg_carrier', label: 'LPG Carrier' },
 ];
+
+interface VesselMintedEventArgs {
+  tokenId: bigint;
+  owner: string;
+  name: string;
+  capacity: bigint;
+}
+
+interface VesselMintedEvent {
+  eventName: 'VesselMinted';
+  args: VesselMintedEventArgs;
+}
 
 const CarrierView = () => {
   const { toast } = useToast();
@@ -296,7 +309,7 @@ const CarrierView = () => {
   // Vessel Registration State
   const [vesselName, setVesselName] = useState('');
   const [imoNumber, setImoNumber] = useState('');
-  const [vesselType, setVesselType] = useState<VesselType | ''>('');
+  const [vesselType, setVesselType] = useState<VesselType>('container_ship');
   const [capacity, setCapacity] = useState('');
   const [vesselPrice, setVesselPrice] = useState('');
   const [vesselDescription, setVesselDescription] = useState('');
@@ -351,9 +364,14 @@ const CarrierView = () => {
       const eventAbi = parseAbiItem('event VesselMinted(uint256 indexed tokenId, address indexed owner, string name, uint256 capacity)');
       for (const log of mintTxReceipt.logs) {
         try {
-          const decodedLog = decodeEventLog({ abi: [eventAbi], data: log.data, topics: log.topics });
-          if ('eventName' in decodedLog && decodedLog.eventName === 'VesselMinted') {
-            mintedTokenId = (decodedLog.args as any).tokenId.toString();
+          const decodedLog = decodeEventLog({ 
+            abi: [eventAbi], 
+            data: log.data, 
+            topics: log.topics 
+          }) as VesselMintedEvent;
+          
+          if (decodedLog.eventName === 'VesselMinted') {
+            mintedTokenId = decodedLog.args.tokenId.toString();
             break;
           }
         } catch (e) {}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,17 @@ import { decodeEventLog } from 'viem';
 import CargoNFT from '@/../contracts/ABI/CargoNFT.json';
 import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+
+interface CargoMintedEventArgs {
+  tokenId: bigint;
+  shipper: string;
+  weight: bigint;
+}
+
+interface CargoMintedEvent {
+  eventName: 'CargoMinted';
+  args: CargoMintedEventArgs;
+}
 
 const ShipperView = () => {
   // --- STATE MANAGEMENT ---
@@ -128,9 +138,14 @@ const ShipperView = () => {
 
       for (const log of mintTxReceipt.logs) {
         try {
-          const decodedLog = decodeEventLog({ abi: [eventAbi], data: log.data, topics: log.topics });
-          if ('eventName' in decodedLog && decodedLog.eventName === 'CargoMinted') {
-            mintedTokenId = (decodedLog.args as any).tokenId.toString();
+          const decodedLog = decodeEventLog({ 
+            abi: [eventAbi], 
+            data: log.data, 
+            topics: log.topics 
+          }) as CargoMintedEvent;
+          
+          if (decodedLog.eventName === 'CargoMinted') {
+            mintedTokenId = decodedLog.args.tokenId.toString();
             break;
           }
         } catch (e) {
@@ -173,7 +188,6 @@ const ShipperView = () => {
       toast.error((mintError as any).message || "An error occurred during minting.");
     }
   }, [mintError]);
-
 
   const calculateTotal = () => {
     const basePrice = parseFloat(price) || 0;
