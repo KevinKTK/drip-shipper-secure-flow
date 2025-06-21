@@ -253,7 +253,8 @@ const CarrierView = () => {
       destinationPort: journey.destination_port,
       departureDate: journey.departure_date,
       arrivalDate: journey.arrival_date || '',
-      availableCapacity: journey.available_capacity_kg ? journey.available_capacity_kg.toLocaleString() + ' kg' : ''
+      availableCapacity: journey.available_capacity_kg ? journey.available_capacity_kg.toLocaleString() + ' kg' : '',
+      priceEth: ''
     });
     
     // Select the vessel associated with this journey if available
