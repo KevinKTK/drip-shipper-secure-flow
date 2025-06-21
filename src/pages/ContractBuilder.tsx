@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AlertTriangle, Database, Shield, TrendingUp } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -26,11 +28,16 @@ const ContractBuilder = () => {
   const [damageThreshold, setDamageThreshold] = useState([10]);
   const [payoutAmount, setPayoutAmount] = useState(1000);
   const [policyName, setPolicyName] = useState('');
+  const [includeForceMajeure, setIncludeForceMajeure] = useState(false);
 
-  // Calculate premium based on policy type
-  const premium = policyType === 'shipper' 
+  // Calculate premium based on policy type and force majeure coverage
+  const basePremium = policyType === 'shipper' 
     ? Math.round(payoutAmount * 0.05) 
-    : Math.round(payoutAmount * 0.08); // Higher premium for cargo damage
+    : Math.round(payoutAmount * 0.08);
+  
+  const premium = includeForceMajeure 
+    ? Math.round(basePremium * 1.2) // 20% increase for force majeure coverage
+    : basePremium;
 
   const createPolicyMutation = useMutation({
     mutationFn: async (policyData: any) => {
@@ -57,6 +64,7 @@ const ContractBuilder = () => {
       setDamageThreshold([10]);
       setPayoutAmount(1000);
       setPolicyType('shipper');
+      setIncludeForceMajeure(false);
     },
     onError: (error: any) => {
       console.error('Policy creation error:', error);
@@ -99,21 +107,41 @@ const ContractBuilder = () => {
 
     let policyData;
     if (policyType === 'shipper') {
+      const baseDescription = `Parametric insurance policy covering shipment delays exceeding ${delayThreshold[0]} hours`;
+      const description = includeForceMajeure 
+        ? `${baseDescription}. Includes coverage for delays caused by Act of God/Force Majeure events.`
+        : baseDescription;
+      
+      const baseTrigger = `Shipment delay exceeds ${delayThreshold[0]} hours`;
+      const triggerCondition = includeForceMajeure 
+        ? `${baseTrigger} OR Force Majeure event causes shipment disruption`
+        : baseTrigger;
+
       policyData = {
         ...basePolicyData,
-        description: `Parametric insurance policy covering shipment delays exceeding ${delayThreshold[0]} hours`,
+        description,
         delay_threshold_hours: delayThreshold[0],
-        trigger_condition: `Shipment delay exceeds ${delayThreshold[0]} hours`,
-        data_source: 'PortAuthorityAPI',
+        trigger_condition: triggerCondition,
+        data_source: includeForceMajeure ? 'PortAuthorityAPI + WeatherAPI + DisasterAPI' : 'PortAuthorityAPI',
         cargo_damage_threshold_percentage: null,
       };
     } else {
+      const baseDescription = `Parametric insurance policy covering cargo damage exceeding ${damageThreshold[0]}%`;
+      const description = includeForceMajeure 
+        ? `${baseDescription}. Includes coverage for damage caused by Act of God/Force Majeure events.`
+        : baseDescription;
+      
+      const baseTrigger = `Cargo damage exceeds ${damageThreshold[0]}%`;
+      const triggerCondition = includeForceMajeure 
+        ? `${baseTrigger} OR Force Majeure event causes cargo damage`
+        : baseTrigger;
+
       policyData = {
         ...basePolicyData,
-        description: `Parametric insurance policy covering cargo damage exceeding ${damageThreshold[0]}%`,
+        description,
         delay_threshold_hours: 0,
-        trigger_condition: `Cargo damage exceeds ${damageThreshold[0]}%`,
-        data_source: 'CargoInspectionAPI',
+        trigger_condition: triggerCondition,
+        data_source: includeForceMajeure ? 'CargoInspectionAPI + WeatherAPI + DisasterAPI' : 'CargoInspectionAPI',
         cargo_damage_threshold_percentage: damageThreshold[0],
       };
     }
@@ -123,31 +151,63 @@ const ContractBuilder = () => {
 
   const getRiskData = () => {
     if (policyType === 'shipper') {
-      return [
+      const baseRisks = [
         { label: '24h delay', probability: '12%' },
         { label: '48h delay', probability: '7%' },
         { label: '72h delay', probability: '3%' },
       ];
+      
+      if (includeForceMajeure) {
+        return [
+          ...baseRisks,
+          { label: 'Force Majeure delay', probability: '2%' },
+        ];
+      }
+      return baseRisks;
     } else {
-      return [
+      const baseRisks = [
         { label: '5% damage', probability: '8%' },
         { label: '10% damage', probability: '4%' },
         { label: '15% damage', probability: '2%' },
       ];
+      
+      if (includeForceMajeure) {
+        return [
+          ...baseRisks,
+          { label: 'Force Majeure damage', probability: '1.5%' },
+        ];
+      }
+      return baseRisks;
     }
   };
 
   const getOracleInfo = () => {
     if (policyType === 'shipper') {
-      return {
+      const baseInfo = {
         name: 'PortAuthorityAPI',
         description: 'Delay verification powered by real-time port authority data'
       };
+      
+      if (includeForceMajeure) {
+        return {
+          name: 'Multi-Oracle System',
+          description: 'Delay verification via port authority data + weather/disaster monitoring for Force Majeure events'
+        };
+      }
+      return baseInfo;
     } else {
-      return {
+      const baseInfo = {
         name: 'CargoInspectionAPI',
         description: 'Damage assessment via certified cargo inspection reports'
       };
+      
+      if (includeForceMajeure) {
+        return {
+          name: 'Multi-Oracle System',
+          description: 'Damage assessment via cargo inspection + weather/disaster monitoring for Force Majeure events'
+        };
+      }
+      return baseInfo;
     }
   };
 
@@ -228,13 +288,13 @@ const ContractBuilder = () => {
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="shipper" id="shipper" className="border-[#D4AF37] text-[#D4AF37]" />
                       <Label htmlFor="shipper" className="text-[#CCD6F6] font-serif cursor-pointer">
-                        Shipper (Delay Protection)
+                        Delay Protection
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="carrier" id="carrier" className="border-[#D4AF37] text-[#D4AF37]" />
                       <Label htmlFor="carrier" className="text-[#CCD6F6] font-serif cursor-pointer">
-                        Carrier (Cargo Damage Protection)
+                        Cargo Damage Protection
                       </Label>
                     </div>
                   </RadioGroup>
@@ -246,10 +306,29 @@ const ContractBuilder = () => {
                   <Input
                     value={policyName}
                     onChange={(e) => setPolicyName(e.target.value)}
-                    placeholder={policyType === 'shipper' ? "e.g., Shanghai-LA Delay Protection" : "e.g., Container Damage Shield"}
+                    placeholder={policyType === 'shipper' ? "e.g., Shanghai-LA Delay Shield" : "e.g., Container Damage Guard"}
                     className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
                     disabled={createPolicyMutation.isPending || !isConnected}
                   />
+                </div>
+
+                {/* Force Majeure Coverage */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="force-majeure"
+                      checked={includeForceMajeure}
+                      onCheckedChange={(checked) => setIncludeForceMajeure(checked as boolean)}
+                      className="border-[#D4AF37] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:text-[#0A192F]"
+                      disabled={createPolicyMutation.isPending || !isConnected}
+                    />
+                    <Label htmlFor="force-majeure" className="text-[#CCD6F6] font-serif cursor-pointer">
+                      Include Act of God/Force Majeure Protection
+                    </Label>
+                  </div>
+                  <p className="text-xs text-[#CCD6F6]/70 font-serif ml-6">
+                    Covers {policyType === 'shipper' ? 'delays' : 'damage'} caused by natural disasters, extreme weather, political events, and other unforeseeable circumstances.
+                  </p>
                 </div>
 
                 {/* Trigger Condition */}
@@ -316,9 +395,12 @@ const ContractBuilder = () => {
                     <span className="text-[#CCD6F6] font-serif">Premium Required:</span>
                     <span className="text-[#D4AF37] font-semibold text-lg">{premium} ETH</span>
                   </div>
-                  <p className="text-xs text-[#CCD6F6]/70 font-serif">
-                    Premium calculated based on {policyType} risk assessment and payout amount
-                  </p>
+                  <div className="text-xs text-[#CCD6F6]/70 font-serif space-y-1">
+                    <p>Base premium: {basePremium} ETH</p>
+                    {includeForceMajeure && (
+                      <p>Force Majeure surcharge: +{Math.round(basePremium * 0.2)} ETH (+20%)</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Warning */}
@@ -326,7 +408,7 @@ const ContractBuilder = () => {
                   <AlertTriangle className="w-5 h-5 text-[#FF6B6B] mt-0.5" />
                   <div>
                     <p className="text-[#FF6B6B] font-serif text-sm">
-                      This will create a parametric {policyType} insurance policy that you can apply to any of your shipments.
+                      This will create a parametric {policyType === 'shipper' ? 'delay protection' : 'cargo damage protection'} policy that you can apply to any of your shipments.
                     </p>
                   </div>
                 </div>

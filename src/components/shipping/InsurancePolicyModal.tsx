@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -80,6 +79,17 @@ const InsurancePolicyModal = ({
     onSelectPolicy(formattedPolicy);
   };
 
+  const getPolicyTypeLabel = (type: string) => {
+    switch (type) {
+      case 'shipper':
+        return 'Delay Protection';
+      case 'carrier':
+        return 'Cargo Damage Protection';
+      default:
+        return type;
+    }
+  };
+
   const PolicyCard = ({ policy, isTemplate }: { policy: any, isTemplate: boolean }) => (
     <Card className="maritime-card maritime-card-glow cursor-pointer hover:scale-105 transition-transform">
       <CardHeader className="pb-3">
@@ -87,19 +97,26 @@ const InsurancePolicyModal = ({
           <CardTitle className="text-[#FFFFFF] font-serif font-medium text-lg">
             {policy.policy_name}
           </CardTitle>
-          <Badge className={isTemplate ? "bg-[#D4AF37] text-[#0A192F]" : "bg-[#64FFDA] text-[#0A192F]"}>
-            {isTemplate ? (
-              <>
-                <Shield className="w-3 h-3 mr-1" />
-                Template
-              </>
-            ) : (
-              <>
-                <User className="w-3 h-3 mr-1" />
-                Custom
-              </>
+          <div className="flex flex-col gap-1">
+            <Badge className={isTemplate ? "bg-[#D4AF37] text-[#0A192F]" : "bg-[#64FFDA] text-[#0A192F]"}>
+              {isTemplate ? (
+                <>
+                  <Shield className="w-3 h-3 mr-1" />
+                  Template
+                </>
+              ) : (
+                <>
+                  <User className="w-3 h-3 mr-1" />
+                  Custom
+                </>
+              )}
+            </Badge>
+            {policy.policy_type && (
+              <Badge variant="outline" className="text-[#CCD6F6] border-[#CCD6F6]/30">
+                {getPolicyTypeLabel(policy.policy_type)}
+              </Badge>
             )}
-          </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -150,6 +167,15 @@ const InsurancePolicyModal = ({
     </Card>
   );
 
+  // ... keep existing code (filtered policies logic for proper policy type display)
+  const filteredUserPolicies = userPolicies?.filter(policy => {
+    if (policyType === 'shipper') {
+      return policy.policy_type === 'shipper' || policy.delay_threshold_hours > 0;
+    } else {
+      return policy.policy_type === 'carrier' || policy.cargo_damage_threshold_percentage > 0;
+    }
+  }) || [];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden bg-[#0A192F] border border-[#D4AF37]/30">
@@ -166,14 +192,14 @@ const InsurancePolicyModal = ({
           ) : (
             <div className="space-y-6">
               {/* User's Custom Policies */}
-              {userPolicies && userPolicies.length > 0 && (
+              {filteredUserPolicies && filteredUserPolicies.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <User className="w-5 h-5 text-[#64FFDA]" />
                     <h3 className="text-[#64FFDA] font-serif font-medium text-lg">Your Custom Policies</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {userPolicies.map((policy) => (
+                    {filteredUserPolicies.map((policy) => (
                       <PolicyCard key={policy.id} policy={policy} isTemplate={false} />
                     ))}
                   </div>
@@ -196,10 +222,10 @@ const InsurancePolicyModal = ({
               )}
 
               {/* No policies available */}
-              {(!templatePolicies || templatePolicies.length === 0) && (!userPolicies || userPolicies.length === 0) && (
+              {(!templatePolicies || templatePolicies.length === 0) && (!filteredUserPolicies || filteredUserPolicies.length === 0) && (
                 <div className="text-center py-12">
                   <Shield className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
-                  <p className="text-[#CCD6F6] font-serif">No insurance policies available</p>
+                  <p className="text-[#CCD6F6] font-serif">No {getPolicyTypeLabel(policyType).toLowerCase()} policies available</p>
                   <p className="text-[#CCD6F6]/70 font-serif text-sm mt-2">
                     Create custom policies using the Contract Builder
                   </p>
