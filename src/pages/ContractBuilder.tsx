@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Database } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { AlertTriangle, Database, Shield, TrendingUp } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,12 +22,16 @@ const ContractBuilder = () => {
   const queryClient = useQueryClient();
   const orderId = searchParams.get('orderId');
 
+  const [policyType, setPolicyType] = useState<'shipper' | 'carrier'>('shipper');
   const [delayThreshold, setDelayThreshold] = useState([48]);
+  const [damageThreshold, setDamageThreshold] = useState([10]);
   const [payoutAmount, setPayoutAmount] = useState(1000);
   const [policyName, setPolicyName] = useState('');
 
-  // Calculate premium (simplified formula for demo)
-  const premium = Math.round(payoutAmount * 0.05);
+  // Calculate premium based on policy type
+  const premium = policyType === 'shipper' 
+    ? Math.round(payoutAmount * 0.05) 
+    : Math.round(payoutAmount * 0.08); // Higher premium for cargo damage
 
   const createPolicyMutation = useMutation({
     mutationFn: async (policyData: any) => {
@@ -50,7 +55,9 @@ const ContractBuilder = () => {
       // Reset form
       setPolicyName('');
       setDelayThreshold([48]);
+      setDamageThreshold([10]);
       setPayoutAmount(1000);
+      setPolicyType('shipper');
     },
     onError: (error: any) => {
       console.error('Policy creation error:', error);
@@ -81,21 +88,68 @@ const ContractBuilder = () => {
       return;
     }
 
-    const policyData = {
+    const basePolicyData = {
       wallet_address: address,
       policy_name: policyName,
-      description: `Custom parametric insurance policy with ${delayThreshold[0]}h delay threshold`,
-      delay_threshold_hours: delayThreshold[0],
+      policy_type: policyType,
       payout_amount_eth: payoutAmount,
       premium_eth: premium,
-      trigger_condition: `Shipment delay exceeds ${delayThreshold[0]} hours`,
-      data_source: 'PortAuthorityAPI',
       is_active: true,
-      policy_type: 'custom',
-      user_id: null, // Set to null since we're using wallet-only authentication
+      user_id: null,
     };
 
+    let policyData;
+    if (policyType === 'shipper') {
+      policyData = {
+        ...basePolicyData,
+        description: `Parametric insurance policy covering shipment delays exceeding ${delayThreshold[0]} hours`,
+        delay_threshold_hours: delayThreshold[0],
+        trigger_condition: `Shipment delay exceeds ${delayThreshold[0]} hours`,
+        data_source: 'PortAuthorityAPI',
+        cargo_damage_threshold_percentage: null,
+      };
+    } else {
+      policyData = {
+        ...basePolicyData,
+        description: `Parametric insurance policy covering cargo damage exceeding ${damageThreshold[0]}%`,
+        delay_threshold_hours: 0,
+        trigger_condition: `Cargo damage exceeds ${damageThreshold[0]}%`,
+        data_source: 'CargoInspectionAPI',
+        cargo_damage_threshold_percentage: damageThreshold[0],
+      };
+    }
+
     createPolicyMutation.mutate(policyData);
+  };
+
+  const getRiskData = () => {
+    if (policyType === 'shipper') {
+      return [
+        { label: '24h delay', probability: '12%' },
+        { label: '48h delay', probability: '7%' },
+        { label: '72h delay', probability: '3%' },
+      ];
+    } else {
+      return [
+        { label: '5% damage', probability: '8%' },
+        { label: '10% damage', probability: '4%' },
+        { label: '15% damage', probability: '2%' },
+      ];
+    }
+  };
+
+  const getOracleInfo = () => {
+    if (policyType === 'shipper') {
+      return {
+        name: 'PortAuthorityAPI',
+        description: 'Delay verification powered by real-time port authority data'
+      };
+    } else {
+      return {
+        name: 'CargoInspectionAPI',
+        description: 'Damage assessment via certified cargo inspection reports'
+      };
+    }
   };
 
   return (
@@ -105,7 +159,7 @@ const ContractBuilder = () => {
       <div className="container mx-auto px-6 py-8 relative z-10">
         <div className="text-center mb-8 page-enter">
           <h1 className="text-4xl font-serif font-semibold text-[#FFFFFF] mb-2">Parametric Insurance Builder</h1>
-          <p className="text-[#CCD6F6] font-serif">Create smart insurance policies for your shipping NFTs</p>
+          <p className="text-[#CCD6F6] font-serif">Create smart insurance policies for your shipping operations</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -113,36 +167,33 @@ const ContractBuilder = () => {
           <div className="page-enter-stagger" style={{ animationDelay: '0.2s' }}>
             <Card className="maritime-card maritime-card-glow">
               <CardHeader>
-                <CardTitle className="text-[#FFFFFF] font-serif font-medium">
+                <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-[#D4AF37]" />
                   Risk Analysis
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-[#CCD6F6] font-serif">
-                  <p className="text-sm mb-3">Historical delay probability for this route:</p>
+                  <p className="text-sm mb-3">
+                    Historical {policyType === 'shipper' ? 'delay' : 'damage'} probability for this route:
+                  </p>
                   <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>24h delay</span>
-                      <span className="text-[#D4AF37]">12%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>48h delay</span>
-                      <span className="text-[#D4AF37]">7%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>72h delay</span>
-                      <span className="text-[#D4AF37]">3%</span>
-                    </div>
+                    {getRiskData().map((item, index) => (
+                      <div key={index} className="flex justify-between">
+                        <span>{item.label}</span>
+                        <span className="text-[#D4AF37]">{item.probability}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
                 
                 <div className="pt-4 border-t border-[#CCD6F6]/20">
                   <Badge className="bg-[#64FFDA] text-[#0A192F] font-semibold mb-2">
                     <Database className="w-3 h-3 mr-1" />
-                    Oracle: PortAuthorityAPI
+                    Oracle: {getOracleInfo().name}
                   </Badge>
                   <p className="text-xs text-[#CCD6F6]/70">
-                    Delay verification powered by real-time port authority data
+                    {getOracleInfo().description}
                   </p>
                 </div>
               </CardContent>
@@ -166,42 +217,89 @@ const ContractBuilder = () => {
                   </div>
                 )}
 
-                {/* Step 1: Policy Name */}
+                {/* Policy Type Selection */}
+                <div className="space-y-3">
+                  <Label className="text-[#CCD6F6] font-serif">Policy Type</Label>
+                  <RadioGroup
+                    value={policyType}
+                    onValueChange={(value: 'shipper' | 'carrier') => setPolicyType(value)}
+                    className="flex gap-6"
+                    disabled={createPolicyMutation.isPending || !isConnected}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="shipper" id="shipper" className="border-[#D4AF37] text-[#D4AF37]" />
+                      <Label htmlFor="shipper" className="text-[#CCD6F6] font-serif cursor-pointer">
+                        Shipper (Delay Protection)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="carrier" id="carrier" className="border-[#D4AF37] text-[#D4AF37]" />
+                      <Label htmlFor="carrier" className="text-[#CCD6F6] font-serif cursor-pointer">
+                        Carrier (Cargo Damage Protection)
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {/* Policy Name */}
                 <div className="space-y-2">
                   <Label className="text-[#CCD6F6] font-serif">Policy Name</Label>
                   <Input
                     value={policyName}
                     onChange={(e) => setPolicyName(e.target.value)}
-                    placeholder="e.g., Shanghai-LA Container Protection"
+                    placeholder={policyType === 'shipper' ? "e.g., Shanghai-LA Delay Protection" : "e.g., Container Damage Shield"}
                     className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
                     disabled={createPolicyMutation.isPending || !isConnected}
                   />
                 </div>
 
-                {/* Step 2: Delay Threshold */}
+                {/* Trigger Condition */}
                 <div className="space-y-4">
                   <Label className="text-[#CCD6F6] font-serif">Trigger Condition</Label>
                   <div className="bg-[#1E3A5F] p-4 rounded-lg border border-[#CCD6F6]/20">
-                    <p className="text-[#FFFFFF] mb-4 font-serif">
-                      If shipment is delayed more than <span className="text-[#D4AF37] font-semibold">{delayThreshold[0]} hours</span>
-                    </p>
-                    <Slider
-                      value={delayThreshold}
-                      onValueChange={setDelayThreshold}
-                      max={168}
-                      min={12}
-                      step={12}
-                      className="w-full"
-                      disabled={createPolicyMutation.isPending || !isConnected}
-                    />
-                    <div className="flex justify-between text-xs text-[#CCD6F6]/70 mt-2 font-serif">
-                      <span>12h</span>
-                      <span>168h (7 days)</span>
-                    </div>
+                    {policyType === 'shipper' ? (
+                      <>
+                        <p className="text-[#FFFFFF] mb-4 font-serif">
+                          If shipment is delayed more than <span className="text-[#D4AF37] font-semibold">{delayThreshold[0]} hours</span>
+                        </p>
+                        <Slider
+                          value={delayThreshold}
+                          onValueChange={setDelayThreshold}
+                          max={168}
+                          min={12}
+                          step={12}
+                          className="w-full"
+                          disabled={createPolicyMutation.isPending || !isConnected}
+                        />
+                        <div className="flex justify-between text-xs text-[#CCD6F6]/70 mt-2 font-serif">
+                          <span>12h</span>
+                          <span>168h (7 days)</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-[#FFFFFF] mb-4 font-serif">
+                          If cargo damage exceeds <span className="text-[#D4AF37] font-semibold">{damageThreshold[0]}%</span>
+                        </p>
+                        <Slider
+                          value={damageThreshold}
+                          onValueChange={setDamageThreshold}
+                          max={50}
+                          min={5}
+                          step={5}
+                          className="w-full"
+                          disabled={createPolicyMutation.isPending || !isConnected}
+                        />
+                        <div className="flex justify-between text-xs text-[#CCD6F6]/70 mt-2 font-serif">
+                          <span>5%</span>
+                          <span>50%</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* Step 3: Payout Amount */}
+                {/* Payout Amount */}
                 <div className="space-y-2">
                   <Label className="text-[#CCD6F6] font-serif">Payout Amount (ETH)</Label>
                   <Input
@@ -220,7 +318,7 @@ const ContractBuilder = () => {
                     <span className="text-[#D4AF37] font-semibold text-lg">{premium} ETH</span>
                   </div>
                   <p className="text-xs text-[#CCD6F6]/70 font-serif">
-                    Premium calculated based on risk assessment and payout amount
+                    Premium calculated based on {policyType} risk assessment and payout amount
                   </p>
                 </div>
 
@@ -229,7 +327,7 @@ const ContractBuilder = () => {
                   <AlertTriangle className="w-5 h-5 text-[#FF6B6B] mt-0.5" />
                   <div>
                     <p className="text-[#FF6B6B] font-serif text-sm">
-                      This will create a custom parametric insurance policy that you can apply to any of your shipments.
+                      This will create a parametric {policyType} insurance policy that you can apply to any of your shipments.
                     </p>
                   </div>
                 </div>

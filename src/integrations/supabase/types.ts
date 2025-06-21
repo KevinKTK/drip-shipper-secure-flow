@@ -379,6 +379,7 @@ export type Database = {
       }
       user_insurance_policies: {
         Row: {
+          cargo_damage_threshold_percentage: number | null
           created_at: string | null
           data_source: string | null
           delay_threshold_hours: number
@@ -395,6 +396,7 @@ export type Database = {
           wallet_address: string
         }
         Insert: {
+          cargo_damage_threshold_percentage?: number | null
           created_at?: string | null
           data_source?: string | null
           delay_threshold_hours: number
@@ -411,6 +413,7 @@ export type Database = {
           wallet_address: string
         }
         Update: {
+          cargo_damage_threshold_percentage?: number | null
           created_at?: string | null
           data_source?: string | null
           delay_threshold_hours?: number
