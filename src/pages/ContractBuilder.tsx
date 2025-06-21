@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertTriangle, TrendingUp, Sparkles } from 'lucide-react';
+import { AlertTriangle, TrendingUp, Sparkles, Shield } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -244,6 +245,27 @@ const ContractBuilder = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Policy Type Display */}
+                <div className="bg-[#1E3A5F] p-3 rounded-lg border border-[#D4AF37]/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-4 h-4 text-[#D4AF37]" />
+                    <span className="text-[#CCD6F6] font-serif text-sm">Current Policy Type</span>
+                  </div>
+                  <Badge className={`${
+                    policyType === 'shipper' 
+                      ? 'bg-blue-500/20 text-blue-300 border-blue-400/30' 
+                      : 'bg-green-500/20 text-green-300 border-green-400/30'
+                  } font-serif`}>
+                    {policyType === 'shipper' ? 'Delay Protection' : 'Cargo Damage Protection'}
+                  </Badge>
+                  <p className="text-xs text-[#CCD6F6]/70 mt-2 font-serif">
+                    {policyType === 'shipper' 
+                      ? 'Covers shipment delays and late deliveries'
+                      : 'Covers cargo damage during transportation'
+                    }
+                  </p>
+                </div>
+
                 {/* Route Input Fields */}
                 <div className="space-y-4">
                   <div className="space-y-2">
