@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertTriangle, Database, Shield, TrendingUp } from 'lucide-react';
+import { AlertTriangle, TrendingUp, Sparkles } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +29,10 @@ const ContractBuilder = () => {
   const [payoutAmount, setPayoutAmount] = useState(1000);
   const [policyName, setPolicyName] = useState('');
   const [includeForceMajeure, setIncludeForceMajeure] = useState(false);
+  const [sourceLocation, setSourceLocation] = useState('');
+  const [destinationLocation, setDestinationLocation] = useState('');
+  const [aiRiskAssessment, setAiRiskAssessment] = useState<string>('');
+  const [isLoadingRiskAssessment, setIsLoadingRiskAssessment] = useState(false);
 
   // Calculate premium based on policy type and force majeure coverage
   const basePremium = policyType === 'shipper' 
@@ -65,6 +69,9 @@ const ContractBuilder = () => {
       setPayoutAmount(1000);
       setPolicyType('shipper');
       setIncludeForceMajeure(false);
+      setSourceLocation('');
+      setDestinationLocation('');
+      setAiRiskAssessment('');
     },
     onError: (error: any) => {
       console.error('Policy creation error:', error);
@@ -149,6 +156,43 @@ const ContractBuilder = () => {
     createPolicyMutation.mutate(policyData);
   };
 
+  const handleAiRiskAssessment = async () => {
+    if (!sourceLocation.trim() || !destinationLocation.trim()) {
+      toast({
+        title: "Route Information Required",
+        description: "Please enter both source and destination locations",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoadingRiskAssessment(true);
+    try {
+      // Mock AI risk assessment for now
+      // In a real implementation, this would call an AI service
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockRiskAssessment = policyType === 'shipper' 
+        ? `Route analysis for ${sourceLocation} to ${destinationLocation}:\n\n• Average delays: 15% of shipments experience >24h delays\n• Weather impact: Moderate seasonal risk\n• Port congestion: Low-medium risk\n• Recommended threshold: 48-72 hours`
+        : `Cargo risk analysis for ${sourceLocation} to ${destinationLocation}:\n\n• Historical damage rate: 3-5% minor damage\n• Route conditions: Standard maritime risks\n• Handling quality: Good port facilities\n• Recommended threshold: 10-15% damage`;
+      
+      setAiRiskAssessment(mockRiskAssessment);
+      
+      toast({
+        title: "Risk Assessment Complete",
+        description: "AI analysis has been generated for your route",
+      });
+    } catch (error) {
+      toast({
+        title: "Assessment Failed",
+        description: "Could not generate risk assessment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingRiskAssessment(false);
+    }
+  };
+
   const getRiskData = () => {
     if (policyType === 'shipper') {
       const baseRisks = [
@@ -181,36 +225,6 @@ const ContractBuilder = () => {
     }
   };
 
-  const getOracleInfo = () => {
-    if (policyType === 'shipper') {
-      const baseInfo = {
-        name: 'PortAuthorityAPI',
-        description: 'Delay verification powered by real-time port authority data'
-      };
-      
-      if (includeForceMajeure) {
-        return {
-          name: 'Multi-Oracle System',
-          description: 'Delay verification via port authority data + weather/disaster monitoring for Force Majeure events'
-        };
-      }
-      return baseInfo;
-    } else {
-      const baseInfo = {
-        name: 'CargoInspectionAPI',
-        description: 'Damage assessment via certified cargo inspection reports'
-      };
-      
-      if (includeForceMajeure) {
-        return {
-          name: 'Multi-Oracle System',
-          description: 'Damage assessment via cargo inspection + weather/disaster monitoring for Force Majeure events'
-        };
-      }
-      return baseInfo;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#0A192F] maritime-background">
       <Navigation />
@@ -232,28 +246,62 @@ const ContractBuilder = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Route Input Fields */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[#CCD6F6] font-serif text-sm">Source Location</Label>
+                    <Input
+                      value={sourceLocation}
+                      onChange={(e) => setSourceLocation(e.target.value)}
+                      placeholder="e.g., Shanghai Port, China"
+                      className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#CCD6F6] font-serif text-sm">Destination Location</Label>
+                    <Input
+                      value={destinationLocation}
+                      onChange={(e) => setDestinationLocation(e.target.value)}
+                      placeholder="e.g., Los Angeles Port, USA"
+                      className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif text-sm"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleAiRiskAssessment}
+                    disabled={isLoadingRiskAssessment || !sourceLocation.trim() || !destinationLocation.trim()}
+                    className="w-full bg-[#D4AF37] hover:bg-[#B8941F] text-[#0A192F] font-serif font-semibold text-sm py-2"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {isLoadingRiskAssessment ? 'Analyzing...' : 'Ask AI for Risk Assessment'}
+                  </Button>
+                </div>
+
+                {/* AI Risk Assessment Results */}
+                {aiRiskAssessment && (
+                  <div className="bg-[#1E3A5F] p-3 rounded-lg border border-[#D4AF37]/30">
+                    <Badge className="bg-[#D4AF37] text-[#0A192F] font-semibold mb-2 text-xs">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      AI Assessment
+                    </Badge>
+                    <p className="text-xs text-[#CCD6F6] whitespace-pre-line font-serif">
+                      {aiRiskAssessment}
+                    </p>
+                  </div>
+                )}
+
+                {/* Historical Risk Data */}
                 <div className="text-[#CCD6F6] font-serif">
                   <p className="text-sm mb-3">
-                    Historical {policyType === 'shipper' ? 'delay' : 'damage'} probability for this route:
+                    Historical {policyType === 'shipper' ? 'delay' : 'damage'} probability:
                   </p>
                   <div className="space-y-2">
                     {getRiskData().map((item, index) => (
-                      <div key={index} className="flex justify-between">
+                      <div key={index} className="flex justify-between text-sm">
                         <span>{item.label}</span>
                         <span className="text-[#D4AF37]">{item.probability}</span>
                       </div>
                     ))}
                   </div>
-                </div>
-                
-                <div className="pt-4 border-t border-[#CCD6F6]/20">
-                  <Badge className="bg-[#64FFDA] text-[#0A192F] font-semibold mb-2">
-                    <Database className="w-3 h-3 mr-1" />
-                    Oracle: {getOracleInfo().name}
-                  </Badge>
-                  <p className="text-xs text-[#CCD6F6]/70">
-                    {getOracleInfo().description}
-                  </p>
                 </div>
               </CardContent>
             </Card>
