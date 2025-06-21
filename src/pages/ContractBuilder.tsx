@@ -30,22 +30,9 @@ const ContractBuilder = () => {
 
   const createPolicyMutation = useMutation({
     mutationFn: async (policyData: any) => {
-      // Get the current user session to ensure we have the user_id
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('User must be authenticated to create policies');
-      }
-
-      const policyWithUser = {
-        ...policyData,
-        user_id: user.id, // Ensure user_id is set
-        wallet_address: address // Ensure wallet_address is set
-      };
-
       const { data, error } = await supabase
         .from('user_insurance_policies')
-        .insert([policyWithUser])
+        .insert([policyData])
         .select()
         .single();
       
@@ -94,17 +81,6 @@ const ContractBuilder = () => {
       return;
     }
 
-    // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to create insurance policies",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const policyData = {
       wallet_address: address,
       policy_name: policyName,
@@ -116,6 +92,7 @@ const ContractBuilder = () => {
       data_source: 'PortAuthorityAPI',
       is_active: true,
       policy_type: 'custom',
+      user_id: null, // Set to null since we're using wallet-only authentication
     };
 
     createPolicyMutation.mutate(policyData);
