@@ -14,9 +14,18 @@ interface InsurancePolicyModalProps {
   onClose: () => void;
   onSelectPolicy: (policy: any) => void;
   policyType: 'shipper' | 'carrier';
+  title?: string;
+  description?: string;
 }
 
-const InsurancePolicyModal = ({ isOpen, onClose, onSelectPolicy, policyType }: InsurancePolicyModalProps) => {
+const InsurancePolicyModal = ({ 
+  isOpen, 
+  onClose, 
+  onSelectPolicy, 
+  policyType,
+  title = "Select an Insurance Policy",
+  description = "Choose from your custom policies or standard template policies to protect your shipment."
+}: InsurancePolicyModalProps) => {
   const { address } = useAuth();
 
   // Fetch template policies
@@ -69,16 +78,86 @@ const InsurancePolicyModal = ({ isOpen, onClose, onSelectPolicy, policyType }: I
       isTemplate,
     };
     onSelectPolicy(formattedPolicy);
-    onClose();
   };
+
+  const PolicyCard = ({ policy, isTemplate }: { policy: any, isTemplate: boolean }) => (
+    <Card className="maritime-card maritime-card-glow cursor-pointer hover:scale-105 transition-transform">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-[#FFFFFF] font-serif font-medium text-lg">
+            {policy.policy_name}
+          </CardTitle>
+          <Badge className={isTemplate ? "bg-[#D4AF37] text-[#0A192F]" : "bg-[#64FFDA] text-[#0A192F]"}>
+            {isTemplate ? (
+              <>
+                <Shield className="w-3 h-3 mr-1" />
+                Template
+              </>
+            ) : (
+              <>
+                <User className="w-3 h-3 mr-1" />
+                Custom
+              </>
+            )}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-[#CCD6F6] font-serif text-sm">{policy.description}</p>
+        
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-[#CCD6F6] text-sm font-serif">Premium:</span>
+            <span className="text-[#D4AF37] font-medium flex items-center gap-1">
+              <Coins className="w-4 h-4" />
+              {policy.premium_eth} ETH
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[#CCD6F6] text-sm font-serif">Payout:</span>
+            <span className="text-[#64FFDA] font-medium flex items-center gap-1">
+              <Coins className="w-4 h-4" />
+              {policy.payout_amount_eth} ETH
+            </span>
+          </div>
+          {policy.delay_threshold_hours && (
+            <div className="flex justify-between items-center">
+              <span className="text-[#CCD6F6] text-sm font-serif">Threshold:</span>
+              <span className="text-[#CCD6F6] font-medium flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                {policy.delay_threshold_hours}h delay
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-[#CCD6F6]/20 pt-4">
+          <div className="text-xs text-[#CCD6F6]/70 mb-3 font-serif">
+            Trigger: {policy.trigger_condition}
+          </div>
+          <Button
+            onClick={() => handleSelectPolicy(policy, isTemplate)}
+            className={`w-full maritime-button font-serif ${
+              isTemplate 
+                ? "bg-[#D4AF37] hover:bg-[#B8860B] text-[#0A192F]"
+                : "bg-[#64FFDA] hover:bg-[#4DD0E1] text-[#0A192F]"
+            }`}
+          >
+            Apply This Policy
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden bg-[#0A192F] border border-[#D4AF37]/30">
         <DialogHeader>
           <DialogTitle className="text-[#FFFFFF] font-serif font-medium text-2xl">
-            Select an Insurance Policy
+            {title}
           </DialogTitle>
+          <p className="text-[#CCD6F6] font-serif">{description}</p>
         </DialogHeader>
         
         <div className="overflow-y-auto max-h-[60vh] pr-2">
@@ -95,60 +174,7 @@ const InsurancePolicyModal = ({ isOpen, onClose, onSelectPolicy, policyType }: I
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {userPolicies.map((policy) => (
-                      <Card key={policy.id} className="maritime-card maritime-card-glow cursor-pointer hover:scale-105 transition-transform">
-                        <CardHeader className="pb-3">
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-[#FFFFFF] font-serif font-medium text-lg">
-                              {policy.policy_name}
-                            </CardTitle>
-                            <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium">
-                              <User className="w-3 h-3 mr-1" />
-                              Custom
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <p className="text-[#CCD6F6] font-serif text-sm">{policy.description}</p>
-                          
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-[#CCD6F6] text-sm font-serif">Premium:</span>
-                              <span className="text-[#D4AF37] font-medium flex items-center gap-1">
-                                <Coins className="w-4 h-4" />
-                                {policy.premium_eth} ETH
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-[#CCD6F6] text-sm font-serif">Payout:</span>
-                              <span className="text-[#64FFDA] font-medium flex items-center gap-1">
-                                <Coins className="w-4 h-4" />
-                                {policy.payout_amount_eth} ETH
-                              </span>
-                            </div>
-                            {policy.delay_threshold_hours && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-[#CCD6F6] text-sm font-serif">Threshold:</span>
-                                <span className="text-[#CCD6F6] font-medium flex items-center gap-1">
-                                  <Clock className="w-4 h-4" />
-                                  {policy.delay_threshold_hours}h delay
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="border-t border-[#CCD6F6]/20 pt-4">
-                            <div className="text-xs text-[#CCD6F6]/70 mb-3 font-serif">
-                              Trigger: {policy.trigger_condition}
-                            </div>
-                            <Button
-                              onClick={() => handleSelectPolicy(policy, false)}
-                              className="w-full maritime-button bg-[#64FFDA] hover:bg-[#4DD0E1] text-[#0A192F] font-serif"
-                            >
-                              Select This Policy
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <PolicyCard key={policy.id} policy={policy} isTemplate={false} />
                     ))}
                   </div>
                 </div>
@@ -163,60 +189,7 @@ const InsurancePolicyModal = ({ isOpen, onClose, onSelectPolicy, policyType }: I
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {templatePolicies.map((policy) => (
-                      <Card key={policy.id} className="maritime-card maritime-card-glow cursor-pointer hover:scale-105 transition-transform">
-                        <CardHeader className="pb-3">
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-[#FFFFFF] font-serif font-medium text-lg">
-                              {policy.policy_name}
-                            </CardTitle>
-                            <Badge className="bg-[#D4AF37] text-[#0A192F] font-medium">
-                              <Shield className="w-3 h-3 mr-1" />
-                              Template
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <p className="text-[#CCD6F6] font-serif text-sm">{policy.description}</p>
-                          
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-[#CCD6F6] text-sm font-serif">Premium:</span>
-                              <span className="text-[#D4AF37] font-medium flex items-center gap-1">
-                                <Coins className="w-4 h-4" />
-                                {policy.premium_eth} ETH
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-[#CCD6F6] text-sm font-serif">Payout:</span>
-                              <span className="text-[#64FFDA] font-medium flex items-center gap-1">
-                                <Coins className="w-4 h-4" />
-                                {policy.payout_amount_eth} ETH
-                              </span>
-                            </div>
-                            {policy.delay_threshold_hours && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-[#CCD6F6] text-sm font-serif">Threshold:</span>
-                                <span className="text-[#CCD6F6] font-medium flex items-center gap-1">
-                                  <Clock className="w-4 h-4" />
-                                  {policy.delay_threshold_hours}h delay
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="border-t border-[#CCD6F6]/20 pt-4">
-                            <div className="text-xs text-[#CCD6F6]/70 mb-3 font-serif">
-                              Trigger: {policy.trigger_condition}
-                            </div>
-                            <Button
-                              onClick={() => handleSelectPolicy(policy, true)}
-                              className="w-full maritime-button bg-[#D4AF37] hover:bg-[#B8860B] text-[#0A192F] font-serif"
-                            >
-                              Select This Policy
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <PolicyCard key={policy.id} policy={policy} isTemplate={true} />
                     ))}
                   </div>
                 </div>

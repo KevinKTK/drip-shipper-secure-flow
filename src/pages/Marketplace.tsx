@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,11 +10,19 @@ import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { SkeletonOrderCard } from '@/components/ui/maritime-skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import InsurancePolicyModal from '@/components/shipping/InsurancePolicyModal';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Marketplace = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { isConnected, address } = useAuth();
+  const queryClient = useQueryClient();
+  
   const [detailsModal, setDetailsModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
   const [insuranceModal, setInsuranceModal] = useState<{ open: boolean, policy: any | null }>({ open: false, policy: null });
+  const [selectInsuranceModal, setSelectInsuranceModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
   
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders'],
@@ -87,6 +95,7 @@ const Marketplace = () => {
             <span className="text-xs text-[#CCD6F6]/70">NFT #{order.nft_token_id}</span>
           )}
         </div>
+        
         {order.nft_token_id && order.nft_contract_address && (
           <a
             href={`https://explorer-sepolia.inkonchain.com/token/${order.nft_contract_address}/instance/${order.nft_token_id}`}
@@ -103,14 +112,25 @@ const Marketplace = () => {
           </a>
         )}
 
-        {!(order.is_insured) && (
-          <Button 
-            className="w-full maritime-button bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] font-serif border border-[#CCD6F6]/30"
-            onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}
-          >
-            Create Insurance Policy
-          </Button>
+        {!order.is_insured && (
+          <div className="space-y-2">
+            <Button 
+              className="w-full maritime-button bg-[#64FFDA]/20 hover:bg-[#64FFDA] hover:text-[#0A192F] text-[#64FFDA] font-serif border border-[#64FFDA]/30"
+              onClick={() => setSelectInsuranceModal({ open: true, order })}
+              disabled={!isConnected}
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Select Insurance Policy
+            </Button>
+            <Button 
+              className="w-full maritime-button bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] font-serif border border-[#CCD6F6]/30"
+              onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}
+            >
+              Create Custom Policy
+            </Button>
+          </div>
         )}
+        
         <Button
           variant="outline"
           className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif mt-2"
@@ -129,6 +149,66 @@ const Marketplace = () => {
       ))}
     </div>
   );
+
+  const applyInsuranceMutation = useMutation({
+    mutationFn: async ({ orderId, policy }: { orderId: string, policy: any }) => {
+      const updateData: any = {
+        is_insured: true,
+        updated_at: new Date().toISOString()
+      };
+
+      // Link to the appropriate policy based on whether it's a template or custom policy
+      if (policy.isTemplate) {
+        updateData.selected_insurance_policy_id = policy.id;
+      } else {
+        updateData.user_insurance_policy_id = policy.id;
+      }
+
+      const { data, error } = await supabase
+        .from('orders')
+        .update(updateData)
+        .eq('id', orderId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Insurance Applied!",
+        description: `Insurance policy "${variables.policy.policy_name}" has been applied to this order.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      setSelectInsuranceModal({ open: false, order: null });
+    },
+    onError: (error: any) => {
+      console.error('Apply insurance error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to apply insurance policy",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleApplyInsurance = (policy: any) => {
+    if (!selectInsuranceModal.order) return;
+    
+    if (!isConnected || !address) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your wallet to apply insurance policies",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    applyInsuranceMutation.mutate({
+      orderId: selectInsuranceModal.order.id,
+      policy
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#0A192F] maritime-background">
@@ -199,6 +279,8 @@ const Marketplace = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Order Details Modal */}
       <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, order: open ? detailsModal.order : null })}>
         <DialogContent>
           <DialogHeader>
@@ -241,7 +323,8 @@ const Marketplace = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Insurance Policy Modal */}
+
+      {/* Insurance Policy Details Modal */}
       <Dialog open={insuranceModal.open} onOpenChange={open => setInsuranceModal({ open, policy: open ? insuranceModal.policy : null })}>
         <DialogContent>
           <DialogHeader>
@@ -274,6 +357,14 @@ const Marketplace = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Select Insurance Policy Modal */}
+      <InsurancePolicyModal
+        isOpen={selectInsuranceModal.open}
+        onClose={() => setSelectInsuranceModal({ open: false, order: null })}
+        onSelectPolicy={handleApplyInsurance}
+        policyType="shipper"
+      />
     </div>
   );
 };
