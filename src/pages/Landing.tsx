@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -90,7 +89,7 @@ const Landing = () => {
         {/* Subtle footer text */}
         <div className="page-enter" style={{ animationDelay: '1.0s' }}>
           <p className="text-[#CCD6F6] text-sm mt-12 font-serif font-light opacity-70">
-            Built on ink! blockchain • Powered by parametric smart contracts
+            Built on Polygon zkEVM Cardona testnet • Powered by parametric smart contracts
           </p>
         </div>
       </div>

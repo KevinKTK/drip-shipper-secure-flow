@@ -532,31 +532,31 @@ export const mockSmartContracts: SmartContract[] = [
   {
     contract_name: 'VesselNFT',
     contract_address: contractAddresses.vesselNFT,
-    network: 'ink-sepolia',
+    network: 'polygon-zkevm-cardona',
     is_active: true,
   },
   {
     contract_name: 'CargoNFT',
     contract_address: contractAddresses.cargoNFT,
-    network: 'ink-sepolia',
+    network: 'polygon-zkevm-cardona',
     is_active: true,
   },
   {
     contract_name: 'InsurancePolicyNFT',
     contract_address: contractAddresses.insurancePolicyNFT,
-    network: 'ink-sepolia',
+    network: 'polygon-zkevm-cardona',
     is_active: true,
   },
   {
     contract_name: 'JourneyNFT',
     contract_address: contractAddresses.journeyNFT,
-    network: 'ink-sepolia',
+    network: 'polygon-zkevm-cardona',
     is_active: true,
   },
   {
     contract_name: 'Brokerage',
     contract_address: contractAddresses.brokerage,
-    network: 'ink-sepolia',
+    network: 'polygon-zkevm-cardona',
     is_active: true,
   },
 ];

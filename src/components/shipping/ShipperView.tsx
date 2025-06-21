@@ -490,7 +490,7 @@ const ShipperView = () => {
             </DialogHeader>
             <div className="mt-4 text-sm text-[#CCD6F6]">
               <a
-                href={`https://explorer-sepolia.inkonchain.com/token/${detailsModal.contract}/instance/${detailsModal.tokenId}`}
+                href={`https://cardona-zkevm.polygonscan.com/token/${detailsModal.contract}?a=${detailsModal.tokenId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[#64FFDA] underline"

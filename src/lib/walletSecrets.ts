@@ -26,9 +26,9 @@ export async function fetchWalletSecrets() {
 
 // Export contract addresses as a constant
 export const CONTRACT_ADDRESSES = {
-  vesselNFT: '0x1CA4aF4A1a69DB30fFbb299d6865Cd87c24f2A89',
+  vesselNFT: '0x942088Ca56CA4e98ac33855cA25481a09E05fBCA',
   cargoNFT: '0x1c0A2b9DcbA3D20EFc3379823208Bc67B92506B7',
-  insurancePolicyNFT: '0xA1b3bF8ADe091aFa3a2339Bc231cf76e6451DCEA',
-  journeyNFT: '0x3C7CD2708Dd0bB440D8dc3F04c447e1DB923EC58',
-  brokerage: '0x422cB3340c180bF41641Fc970871193843562c2f',
+  insurancePolicyNFT: '0x1CA4aF4A1a69DB30fFbb299d6865Cd87c24f2A89',
+  journeyNFT: '0xe71b13b0D639BdfBe8dFF5d07d396852984f333B',
+  brokerage: '0x9660AF590d7fF2cAB99174970fC0911577eE23a3',
 };

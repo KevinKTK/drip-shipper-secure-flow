@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { inkSepolia } from "wagmi/chains";
+import { polygonZkEvmCardona } from "wagmi/chains";
 import { fetchWalletSecrets } from "@/lib/walletSecrets"
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -33,9 +32,9 @@ const App = () => {
       const wagmiConfig = getDefaultConfig({
         appName: "DripShippa",
         projectId: WALLETCONNECT_PROJECT_ID,
-        chains: [inkSepolia],
+        chains: [polygonZkEvmCardona],
         transports: {
-          [inkSepolia.id]: http(RPC_PROVIDER_URL),
+          [polygonZkEvmCardona.id]: http(RPC_PROVIDER_URL),
         },
       });
       setConfig(wagmiConfig);

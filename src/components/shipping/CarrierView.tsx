@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -666,7 +665,7 @@ const CarrierView = () => {
           </DialogHeader>
           <div className="mt-4 text-sm text-[#CCD6F6]">
             <a
-              href={`https://explorer-sepolia.inkonchain.com/token/${detailsModal.order?.nft_contract_address}/instance/${detailsModal.order?.nft_token_id}`}
+              href={`https://cardona-zkevm.polygonscan.com/token/${detailsModal.order?.nft_contract_address}?a=${detailsModal.order?.nft_token_id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#64FFDA] underline"
