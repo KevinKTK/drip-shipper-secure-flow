@@ -70,7 +70,7 @@ const ShipperView = () => {
     hash: mintTxHash,
   });
 
-  // --- DATABASE MUTATION (Now triggered *after* successful minting) ---
+  // --- DATABASE MUTATION (Now handles both template and custom policies) ---
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
       const { data, error } = await supabase.from('orders').insert([orderData]).select().single();
@@ -168,7 +168,9 @@ const ShipperView = () => {
           volume_cbm: volume ? parseInt(volume) : null,
           price_eth: parseFloat(price),
           is_insured: !!selectedInsurance,
-          selected_insurance_policy_id: selectedInsurance?.id || null,
+          // Handle both template and custom policies
+          selected_insurance_policy_id: selectedInsurance?.isTemplate ? selectedInsurance.id : null,
+          user_insurance_policy_id: selectedInsurance?.isTemplate ? null : selectedInsurance.id,
           status: 'pending',
           wallet_address: address,
           nft_token_id: mintedTokenId, // *** Storing the new token ID ***
@@ -322,6 +324,9 @@ const ShipperView = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <Ship className="w-4 h-4 text-[#64FFDA]" />
                       <span className="text-[#64FFDA] font-serif font-medium">{selectedInsurance.policy_name}</span>
+                      {!selectedInsurance.isTemplate && (
+                        <Badge className="bg-[#64FFDA] text-[#0A192F] text-xs">Custom</Badge>
+                      )}
                     </div>
                     <p className="text-xs text-[#CCD6F6] mb-2 font-serif">{selectedInsurance.description}</p>
                     <div className="flex justify-between items-center">
@@ -396,6 +401,9 @@ const ShipperView = () => {
                   <div className="flex items-center gap-2 mb-2">
                     <Ship className="w-4 h-4 text-[#64FFDA]" />
                     <span className="text-[#64FFDA] font-serif font-medium">Insurance Coverage</span>
+                    {!selectedInsurance.isTemplate && (
+                      <Badge className="bg-[#64FFDA] text-[#0A192F] text-xs">Custom Policy</Badge>
+                    )}
                   </div>
                   <div className="space-y-2 text-sm text-[#CCD6F6] font-serif">
                     <div className="flex justify-between">

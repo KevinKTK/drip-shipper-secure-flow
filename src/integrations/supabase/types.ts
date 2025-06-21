@@ -230,6 +230,7 @@ export type Database = {
           title: string
           updated_at: string | null
           user_id: string | null
+          user_insurance_policy_id: string | null
           vessel_nft_contract_address: string | null
           vessel_type: Database["public"]["Enums"]["vessel_type"] | null
           volume_cbm: number | null
@@ -259,6 +260,7 @@ export type Database = {
           title: string
           updated_at?: string | null
           user_id?: string | null
+          user_insurance_policy_id?: string | null
           vessel_nft_contract_address?: string | null
           vessel_type?: Database["public"]["Enums"]["vessel_type"] | null
           volume_cbm?: number | null
@@ -288,6 +290,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
           user_id?: string | null
+          user_insurance_policy_id?: string | null
           vessel_nft_contract_address?: string | null
           vessel_type?: Database["public"]["Enums"]["vessel_type"] | null
           volume_cbm?: number | null
@@ -300,6 +303,13 @@ export type Database = {
             columns: ["selected_insurance_policy_id"]
             isOneToOne: false
             referencedRelation: "insurance_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_user_insurance_policy_id_fkey"
+            columns: ["user_insurance_policy_id"]
+            isOneToOne: false
+            referencedRelation: "user_insurance_policies"
             referencedColumns: ["id"]
           },
         ]
@@ -364,6 +374,57 @@ export type Database = {
           is_active?: boolean | null
           network?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_insurance_policies: {
+        Row: {
+          created_at: string | null
+          data_source: string | null
+          delay_threshold_hours: number
+          description: string | null
+          id: string
+          is_active: boolean | null
+          payout_amount_eth: number
+          policy_name: string
+          policy_type: string | null
+          premium_eth: number
+          trigger_condition: string
+          updated_at: string | null
+          user_id: string | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_source?: string | null
+          delay_threshold_hours: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          payout_amount_eth: number
+          policy_name: string
+          policy_type?: string | null
+          premium_eth: number
+          trigger_condition?: string
+          updated_at?: string | null
+          user_id?: string | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          data_source?: string | null
+          delay_threshold_hours?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          payout_amount_eth?: number
+          policy_name?: string
+          policy_type?: string | null
+          premium_eth?: number
+          trigger_condition?: string
+          updated_at?: string | null
+          user_id?: string | null
+          wallet_address?: string
         }
         Relationships: []
       }

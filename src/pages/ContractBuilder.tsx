@@ -10,10 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Database } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ContractBuilder = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { isConnected, address } = useAuth();
+  const queryClient = useQueryClient();
   const orderId = searchParams.get('orderId');
 
   const [delayThreshold, setDelayThreshold] = useState([48]);
@@ -23,11 +28,71 @@ const ContractBuilder = () => {
   // Calculate premium (simplified formula for demo)
   const premium = Math.round(payoutAmount * 0.05);
 
+  const createPolicyMutation = useMutation({
+    mutationFn: async (policyData: any) => {
+      const { data, error } = await supabase
+        .from('user_insurance_policies')
+        .insert([policyData])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Insurance Policy Created!",
+        description: `Policy "${policyName}" has been saved and is now available for your shipments.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['user-insurance-policies'] });
+      
+      // Reset form
+      setPolicyName('');
+      setDelayThreshold([48]);
+      setPayoutAmount(1000);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create insurance policy",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleMintPolicy = () => {
-    toast({
-      title: "Insurance Policy Created!",
-      description: `Policy "${policyName}" has been minted as an NFT and attached to your shipment.`,
-    });
+    if (!isConnected || !address) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your wallet to create insurance policies",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!policyName.trim()) {
+      toast({
+        title: "Policy Name Required",
+        description: "Please enter a name for your insurance policy",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const policyData = {
+      wallet_address: address,
+      policy_name: policyName,
+      description: `Custom parametric insurance policy with ${delayThreshold[0]}h delay threshold`,
+      delay_threshold_hours: delayThreshold[0],
+      payout_amount_eth: payoutAmount,
+      premium_eth: premium,
+      trigger_condition: `Shipment delay exceeds ${delayThreshold[0]} hours`,
+      data_source: 'PortAuthorityAPI',
+      is_active: true,
+      policy_type: 'custom',
+    };
+
+    createPolicyMutation.mutate(policyData);
   };
 
   return (
@@ -90,6 +155,14 @@ const ContractBuilder = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {!isConnected && (
+                  <div className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/30 rounded-lg p-4">
+                    <p className="text-[#FF6B6B] font-serif text-sm">
+                      Please connect your wallet to create insurance policies
+                    </p>
+                  </div>
+                )}
+
                 {/* Step 1: Policy Name */}
                 <div className="space-y-2">
                   <Label className="text-[#CCD6F6] font-serif">Policy Name</Label>
@@ -98,6 +171,7 @@ const ContractBuilder = () => {
                     onChange={(e) => setPolicyName(e.target.value)}
                     placeholder="e.g., Shanghai-LA Container Protection"
                     className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
+                    disabled={createPolicyMutation.isPending || !isConnected}
                   />
                 </div>
 
@@ -115,6 +189,7 @@ const ContractBuilder = () => {
                       min={12}
                       step={12}
                       className="w-full"
+                      disabled={createPolicyMutation.isPending || !isConnected}
                     />
                     <div className="flex justify-between text-xs text-[#CCD6F6]/70 mt-2 font-serif">
                       <span>12h</span>
@@ -131,6 +206,7 @@ const ContractBuilder = () => {
                     value={payoutAmount}
                     onChange={(e) => setPayoutAmount(Number(e.target.value))}
                     className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] font-serif"
+                    disabled={createPolicyMutation.isPending || !isConnected}
                   />
                 </div>
 
@@ -150,18 +226,18 @@ const ContractBuilder = () => {
                   <AlertTriangle className="w-5 h-5 text-[#FF6B6B] mt-0.5" />
                   <div>
                     <p className="text-[#FF6B6B] font-serif text-sm">
-                      Once minted, this policy cannot be modified. Please review all parameters carefully.
+                      This will create a custom parametric insurance policy that you can apply to any of your shipments.
                     </p>
                   </div>
                 </div>
 
-                {/* Mint Button */}
+                {/* Create Button */}
                 <Button
                   onClick={handleMintPolicy}
-                  disabled={!policyName}
+                  disabled={!policyName || createPolicyMutation.isPending || !isConnected}
                   className="w-full golden-button maritime-button font-serif font-semibold py-3 text-lg"
                 >
-                  Mint Insurance Policy NFT
+                  {createPolicyMutation.isPending ? 'Creating Policy...' : 'Create Insurance Policy'}
                 </Button>
               </CardContent>
             </Card>
