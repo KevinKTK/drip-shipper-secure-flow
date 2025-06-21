@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -284,7 +283,7 @@ const ContractBuilder = () => {
                         <Slider
                           value={damageThreshold}
                           onValueChange={setDamageThreshold}
-                          max={50}
+                          max={100}
                           min={5}
                           step={5}
                           className="w-full"
@@ -292,7 +291,7 @@ const ContractBuilder = () => {
                         />
                         <div className="flex justify-between text-xs text-[#CCD6F6]/70 mt-2 font-serif">
                           <span>5%</span>
-                          <span>50%</span>
+                          <span>100%</span>
                         </div>
                       </>
                     )}
