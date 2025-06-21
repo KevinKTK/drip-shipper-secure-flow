@@ -146,6 +146,17 @@ const Marketplace = () => {
           )}
         </div>
         
+        {/* Mandatory Platform Protection Footer */}
+        <div className="bg-[#D4AF37]/10 p-3 rounded-lg border border-[#D4AF37]/30 mt-4">
+          <div className="flex items-center justify-center gap-2">
+            <Shield className="w-4 h-4 text-[#D4AF37]" />
+            <span className="text-[#D4AF37] font-serif font-medium text-sm">Automated Delay Penalties Active</span>
+          </div>
+          <p className="text-xs text-[#CCD6F6] text-center mt-1 font-serif">
+            10% refund per 24h delay • Built-in protection
+          </p>
+        </div>
+        
         {order.nft_token_id && order.nft_contract_address && (
           <a
             href={`https://explorer-sepolia.inkonchain.com/token/${order.nft_contract_address}/instance/${order.nft_token_id}`}
@@ -267,7 +278,7 @@ const Marketplace = () => {
       <div className="container mx-auto px-6 py-8 relative z-10">
         <div className="text-center mb-8 page-enter">
           <h1 className="text-4xl font-serif font-medium text-[#FFFFFF] mb-2">Maritime Marketplace</h1>
-          <p className="text-[#CCD6F6] font-serif font-light">Discover shipping opportunities and secure your cargo with parametric insurance</p>
+          <p className="text-[#CCD6F6] font-serif font-light">Discover shipping opportunities with built-in delay penalty protection</p>
         </div>
 
         <div className="page-enter" style={{ animationDelay: '0.2s' }}>
@@ -363,6 +374,16 @@ const Marketplace = () => {
                     <div><b>IMO Number:</b> {detailsModal.order.imo_number}</div>
                   </>
                 )}
+                {/* Display penalty protection info */}
+                <div className="border-t border-[#CCD6F6]/20 pt-2 mt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-4 h-4 text-[#D4AF37]" />
+                    <b className="text-[#D4AF37]">Platform Protection:</b>
+                  </div>
+                  <div><b>Penalty Rate:</b> {detailsModal.order.penalty_rate_per_day || 10}% per day</div>
+                  <div><b>Max Penalty:</b> {detailsModal.order.max_penalty_percentage || 100}%</div>
+                  <div><b>Expected Delivery:</b> {detailsModal.order.expected_delivery_timestamp ? new Date(detailsModal.order.expected_delivery_timestamp).toLocaleDateString() : 'TBD'}</div>
+                </div>
               </>
             )}
           </div>

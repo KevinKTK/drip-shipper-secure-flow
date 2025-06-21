@@ -219,6 +219,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          actual_delivery_timestamp: string | null
           arrival_date: string | null
           brokerage_contract_address: string | null
           cargo_nft_contract_address: string | null
@@ -227,14 +228,19 @@ export type Database = {
           departure_date: string
           description: string | null
           destination_port: string
+          expected_delivery_timestamp: string | null
           id: string
           insurance_manager_contract_address: string | null
           is_insured: boolean | null
+          is_penalty_applied: boolean | null
           journey_manager_contract_address: string | null
+          max_penalty_percentage: number | null
           nft_contract_address: string | null
           nft_token_id: string | null
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
+          penalty_amount_eth: number | null
+          penalty_rate_per_day: number | null
           price_eth: number
           selected_insurance_policy_id: string | null
           status: Database["public"]["Enums"]["order_status"] | null
@@ -249,6 +255,7 @@ export type Database = {
           weight_tons: number | null
         }
         Insert: {
+          actual_delivery_timestamp?: string | null
           arrival_date?: string | null
           brokerage_contract_address?: string | null
           cargo_nft_contract_address?: string | null
@@ -257,14 +264,19 @@ export type Database = {
           departure_date: string
           description?: string | null
           destination_port: string
+          expected_delivery_timestamp?: string | null
           id?: string
           insurance_manager_contract_address?: string | null
           is_insured?: boolean | null
+          is_penalty_applied?: boolean | null
           journey_manager_contract_address?: string | null
+          max_penalty_percentage?: number | null
           nft_contract_address?: string | null
           nft_token_id?: string | null
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
+          penalty_amount_eth?: number | null
+          penalty_rate_per_day?: number | null
           price_eth: number
           selected_insurance_policy_id?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
@@ -279,6 +291,7 @@ export type Database = {
           weight_tons?: number | null
         }
         Update: {
+          actual_delivery_timestamp?: string | null
           arrival_date?: string | null
           brokerage_contract_address?: string | null
           cargo_nft_contract_address?: string | null
@@ -287,14 +300,19 @@ export type Database = {
           departure_date?: string
           description?: string | null
           destination_port?: string
+          expected_delivery_timestamp?: string | null
           id?: string
           insurance_manager_contract_address?: string | null
           is_insured?: boolean | null
+          is_penalty_applied?: boolean | null
           journey_manager_contract_address?: string | null
+          max_penalty_percentage?: number | null
           nft_contract_address?: string | null
           nft_token_id?: string | null
           order_type?: Database["public"]["Enums"]["order_type"]
           origin_port?: string
+          penalty_amount_eth?: number | null
+          penalty_rate_per_day?: number | null
           price_eth?: number
           selected_insurance_policy_id?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null

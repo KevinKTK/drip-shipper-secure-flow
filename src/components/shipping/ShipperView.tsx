@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,14 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Package, Ship, AlertCircle, Wallet } from 'lucide-react';
-import { format } from 'date-fns';
+import { CalendarIcon, Package, Ship, AlertCircle, Wallet, Shield } from 'lucide-react';
+import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import InsurancePolicyModal from './InsurancePolicyModal';
+import PlatformProtectionCard from './PlatformProtectionCard';
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { parseAbiItem } from 'viem';
 import { decodeEventLog } from 'viem';
@@ -158,6 +158,10 @@ const ShipperView = () => {
       }
 
       if (mintedTokenId) {
+        // Calculate expected delivery timestamp (departure + estimated transit time)
+        const estimatedTransitDays = 14; // Default 14 days for international shipping
+        const expectedDeliveryDate = addDays(departureDate!, estimatedTransitDays);
+        
         const orderData = {
           order_type: 'cargo',
           title,
@@ -177,6 +181,12 @@ const ShipperView = () => {
           wallet_address: address,
           nft_token_id: mintedTokenId, // *** Storing the new token ID ***
           nft_contract_address: cargoNFTAddress, // *** Storing the contract address ***
+          // Mandatory penalty system fields
+          penalty_rate_per_day: 10,
+          max_penalty_percentage: 100,
+          expected_delivery_timestamp: expectedDeliveryDate.toISOString(),
+          penalty_amount_eth: 0,
+          is_penalty_applied: false,
         };
         // Trigger the database mutation with the complete data
         createOrderMutation.mutate(orderData);
@@ -316,7 +326,7 @@ const ShipperView = () => {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-[#CCD6F6] font-serif">Insurance Coverage</Label>
+                <Label className="text-[#CCD6F6] font-serif">Optional Insurance Coverage</Label>
                 <Button type="button" variant="outline" size="sm" onClick={() => setShowInsuranceModal(true)} className="maritime-button-outline" disabled={isProcessing || !isConnected}>
                   Browse Policies
                 </Button>
@@ -346,98 +356,121 @@ const ShipperView = () => {
         </Card>
 
         {/* Order Summary (No changes needed here) */}
-        <Card className="maritime-card maritime-card-glow">
-          <CardHeader>
-            <CardTitle className="text-[#FFFFFF] font-serif font-medium">Your Shipping Order</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3 text-[#CCD6F6] font-serif">
-              <div className="flex justify-between">
-                <span>Route:</span>
-                <span className="text-[#FFFFFF]">{originPort || 'Origin'} → {destinationPort || 'Destination'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Departure:</span>
-                <span className="text-[#FFFFFF]">
-                {departureDate ? format(departureDate, 'MMM dd, yyyy') : 'Not selected'}
-              </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Cargo Type:</span>
-                <span className="text-[#FFFFFF]">
-                {cargoType ? cargoType.replace('_', ' ').toUpperCase() : 'Not selected'}
-              </span>
-              </div>
-              {weight && (
-                  <div className="flex justify-between">
-                    <span>Weight:</span>
-                    <span className="text-[#FFFFFF]">{weight} tons</span>
-                  </div>
-              )}
-              {volume && (
-                  <div className="flex justify-between">
-                    <span>Volume:</span>
-                    <span className="text-[#FFFFFF]">{volume} CBM</span>
-                  </div>
-              )}
-            </div>
-
-            <div className="border-t border-[#CCD6F6]/20 pt-4 space-y-3">
-              <div className="flex justify-between text-[#CCD6F6] font-serif">
-                <span>Base Price:</span>
-                <span className="text-[#FFFFFF]">{price || '0'} ETH</span>
-              </div>
-              {selectedInsurance && (
-                  <div className="flex justify-between text-[#CCD6F6] font-serif">
-                    <span>Insurance Premium:</span>
-                    <span className="text-[#64FFDA]">{selectedInsurance.premium_eth} ETH</span>
-                  </div>
-              )}
-              <div className="flex justify-between text-lg font-medium pt-3 border-t border-[#CCD6F6]/20">
-                <span className="text-[#CCD6F6] font-serif">Total Cost:</span>
-                <span className="text-[#D4AF37]">{calculateTotal()} ETH</span>
-              </div>
-            </div>
-            {selectedInsurance && (
-                <div className="bg-[#1E3A5F] p-4 rounded-lg border border-[#64FFDA]/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Ship className="w-4 h-4 text-[#64FFDA]" />
-                    <span className="text-[#64FFDA] font-serif font-medium">Insurance Coverage</span>
-                    {!selectedInsurance.isTemplate && (
-                      <Badge className="bg-[#64FFDA] text-[#0A192F] text-xs">Custom Policy</Badge>
-                    )}
-                  </div>
-                  <div className="space-y-2 text-sm text-[#CCD6F6] font-serif">
-                    <div className="flex justify-between">
-                      <span>Coverage:</span>
-                      <span className="text-[#FFFFFF]">{selectedInsurance.payout_amount_eth} ETH</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Trigger:</span>
-                      <span className="text-[#FFFFFF]">{selectedInsurance.trigger_condition}</span>
-                    </div>
-                    {selectedInsurance.delay_threshold_hours && (
-                        <div className="flex justify-between">
-                          <span>Threshold:</span>
-                          <span className="text-[#FFFFFF]">{selectedInsurance.delay_threshold_hours}h delay</span>
-                        </div>
-                    )}
-                  </div>
+        <div className="space-y-6">
+          {/* Platform Protection Card */}
+          <PlatformProtectionCard />
+          
+          {/* Order Summary */}
+          <Card className="maritime-card maritime-card-glow">
+            <CardHeader>
+              <CardTitle className="text-[#FFFFFF] font-serif font-medium">Your Shipping Order</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-3 text-[#CCD6F6] font-serif">
+                <div className="flex justify-between">
+                  <span>Route:</span>
+                  <span className="text-[#FFFFFF]">{originPort || 'Origin'} → {destinationPort || 'Destination'}</span>
                 </div>
-            )}
-            {/* See Details Button (only if NFT minted) */}
-            {createOrderMutation.data?.nft_token_id && createOrderMutation.data?.nft_contract_address && (
-              <Button
-                variant="outline"
-                className="w-full maritime-button border-[#64FFDA] text-[#64FFDA] hover:bg-[#64FFDA]/10 font-serif mt-4"
-                onClick={() => setDetailsModal({ open: true, tokenId: createOrderMutation.data.nft_token_id, contract: createOrderMutation.data.nft_contract_address })}
-              >
-                See Details
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+                <div className="flex justify-between">
+                  <span>Departure:</span>
+                  <span className="text-[#FFFFFF]">
+                  {departureDate ? format(departureDate, 'MMM dd, yyyy') : 'Not selected'}
+                </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Cargo Type:</span>
+                  <span className="text-[#FFFFFF]">
+                  {cargoType ? cargoType.replace('_', ' ').toUpperCase() : 'Not selected'}
+                </span>
+                </div>
+                {weight && (
+                    <div className="flex justify-between">
+                      <span>Weight:</span>
+                      <span className="text-[#FFFFFF]">{weight} tons</span>
+                    </div>
+                )}
+                {volume && (
+                    <div className="flex justify-between">
+                      <span>Volume:</span>
+                      <span className="text-[#FFFFFF]">{volume} CBM</span>
+                    </div>
+                )}
+              </div>
 
+              <div className="border-t border-[#CCD6F6]/20 pt-4 space-y-3">
+                <div className="flex justify-between text-[#CCD6F6] font-serif">
+                  <span>Base Price:</span>
+                  <span className="text-[#FFFFFF]">{price || '0'} ETH</span>
+                </div>
+                {selectedInsurance && (
+                    <div className="flex justify-between text-[#CCD6F6] font-serif">
+                      <span>Insurance Premium:</span>
+                      <span className="text-[#64FFDA]">{selectedInsurance.premium_eth} ETH</span>
+                    </div>
+                )}
+                <div className="flex justify-between text-lg font-medium pt-3 border-t border-[#CCD6F6]/20">
+                  <span className="text-[#CCD6F6] font-serif">Total Cost:</span>
+                  <span className="text-[#D4AF37]">{calculateTotal()} ETH</span>
+                </div>
+              </div>
+              
+              {/* Mandatory Penalty Protection Summary */}
+              <div className="bg-[#D4AF37]/10 p-4 rounded-lg border border-[#D4AF37]/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="w-4 h-4 text-[#D4AF37]" />
+                  <span className="text-[#D4AF37] font-serif font-medium">Automatic Penalty Protection</span>
+                  <Badge className="bg-[#D4AF37] text-[#0A192F] text-xs">Included</Badge>
+                </div>
+                <div className="space-y-1 text-xs text-[#CCD6F6] font-serif">
+                  <p>• 10% refund per 24h delay (up to 100%)</p>
+                  <p>• Automatic deduction from carrier payout</p>
+                  <p>• No additional fees or deposits required</p>
+                </div>
+              </div>
+
+              {selectedInsurance && (
+                  <div className="bg-[#1E3A5F] p-4 rounded-lg border border-[#64FFDA]/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Ship className="w-4 h-4 text-[#64FFDA]" />
+                      <span className="text-[#64FFDA] font-serif font-medium">Insurance Coverage</span>
+                      {!selectedInsurance.isTemplate && (
+                        <Badge className="bg-[#64FFDA] text-[#0A192F] text-xs">Custom Policy</Badge>
+                      )}
+                    </div>
+                    <div className="space-y-2 text-sm text-[#CCD6F6] font-serif">
+                      <div className="flex justify-between">
+                        <span>Coverage:</span>
+                        <span className="text-[#FFFFFF]">{selectedInsurance.payout_amount_eth} ETH</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Trigger:</span>
+                        <span className="text-[#FFFFFF]">{selectedInsurance.trigger_condition}</span>
+                      </div>
+                      {selectedInsurance.delay_threshold_hours && (
+                          <div className="flex justify-between">
+                            <span>Threshold:</span>
+                            <span className="text-[#FFFFFF]">{selectedInsurance.delay_threshold_hours}h delay</span>
+                          </div>
+                      )}
+                    </div>
+                  </div>
+              )}
+              
+              {/* See Details Button (only if NFT minted) */}
+              {createOrderMutation.data?.nft_token_id && createOrderMutation.data?.nft_contract_address && (
+                <Button
+                  variant="outline"
+                  className="w-full maritime-button border-[#64FFDA] text-[#64FFDA] hover:bg-[#64FFDA]/10 font-serif mt-4"
+                  onClick={() => setDetailsModal({ open: true, tokenId: createOrderMutation.data.nft_token_id, contract: createOrderMutation.data.nft_contract_address })}
+                >
+                  See Details
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Modals - keep existing code */}
         <InsurancePolicyModal
             isOpen={showInsuranceModal}
             onClose={() => setShowInsuranceModal(false)}
@@ -455,9 +488,7 @@ const ShipperView = () => {
                 Contract: <span className="font-mono break-all">{detailsModal.contract}</span>
               </DialogDescription>
             </DialogHeader>
-            {/* Placeholder for on-chain data, e.g. owner, metadata, etc. */}
             <div className="mt-4 text-sm text-[#CCD6F6]">
-              {/* You can fetch and display more on-chain data here using viem/ethers if desired */}
               <a
                 href={`https://explorer-sepolia.inkonchain.com/token/${detailsModal.contract}/instance/${detailsModal.tokenId}`}
                 target="_blank"
