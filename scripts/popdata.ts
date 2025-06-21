@@ -63,7 +63,13 @@ const MOCK_ORDERS = [
     cargo_nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'CargoNFT')?.contract_address ?? "",
     nft_token_id: null,
     selected_insurance_policy_id: null,
-    user_insurance_policy_id: null
+    user_insurance_policy_id: null,
+    penalty_rate_per_day: 10,
+    max_penalty_percentage: 100,
+    expected_delivery_timestamp: '2024-03-01T12:00:00Z',
+    actual_delivery_timestamp: null,
+    penalty_amount_eth: 0,
+    is_penalty_applied: false
   },
   {
     order_type: 'vessel',
@@ -83,7 +89,13 @@ const MOCK_ORDERS = [
     vessel_nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'VesselNFT')?.contract_address ?? "",
     nft_token_id: null,
     selected_insurance_policy_id: null,
-    user_insurance_policy_id: null
+    user_insurance_policy_id: null,
+    penalty_rate_per_day: 10,
+    max_penalty_percentage: 100,
+    expected_delivery_timestamp: '2024-03-05T12:00:00Z',
+    actual_delivery_timestamp: null,
+    penalty_amount_eth: 0,
+    is_penalty_applied: false
   },
   {
     order_type: 'cargo',
@@ -103,7 +115,13 @@ const MOCK_ORDERS = [
     cargo_nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'CargoNFT')?.contract_address ?? "",
     nft_token_id: null,
     selected_insurance_policy_id: null,
-    user_insurance_policy_id: null
+    user_insurance_policy_id: null,
+    penalty_rate_per_day: 10,
+    max_penalty_percentage: 100,
+    expected_delivery_timestamp: '2024-03-10T12:00:00Z',
+    actual_delivery_timestamp: null,
+    penalty_amount_eth: 0,
+    is_penalty_applied: false
   },
   {
     order_type: 'vessel',
@@ -123,7 +141,13 @@ const MOCK_ORDERS = [
     vessel_nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'VesselNFT')?.contract_address ?? "",
     nft_token_id: null,
     selected_insurance_policy_id: null,
-    user_insurance_policy_id: null
+    user_insurance_policy_id: null,
+    penalty_rate_per_day: 10,
+    max_penalty_percentage: 100,
+    expected_delivery_timestamp: '2024-03-15T12:00:00Z',
+    actual_delivery_timestamp: null,
+    penalty_amount_eth: 0,
+    is_penalty_applied: false
   }
 ];
 
@@ -321,10 +345,12 @@ async function clearDatabase() {
     const tables = [
       'insurance_policies',
       'order_matches',
+      'carrier_routes',
       'orders',
       'user_insurance_policies',
       'smart_contracts',
-      'insurance_templates'
+      'insurance_templates',
+      'profiles'
     ];
     
     for (const table of tables) {
