@@ -17,7 +17,7 @@ const VesselCard = ({ vessel, onLogJourney, style }: VesselCardProps) => {
   };
 
   return (
-    <Card className="maritime-card maritime-card-glow hover:scale-105 transition-all duration-300 page-enter-stagger" style={style}>
+    <Card className="maritime-card maritime-card-glow hover:shadow-lg transition-shadow duration-300 page-enter-stagger cursor-pointer" style={style}>
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -50,24 +50,9 @@ const VesselCard = ({ vessel, onLogJourney, style }: VesselCardProps) => {
             <Package className="w-4 h-4 text-[#D4AF37]" />
             <span>Capacity: {vessel.weight_tons || 0} tons</span>
           </div>
-          
-          <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-sm">
-            <MapPin className="w-4 h-4 text-[#D4AF37]" />
-            <span>{vessel.origin_port} → {vessel.destination_port}</span>
-          </div>
-          
-          <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-sm">
-            <Calendar className="w-4 h-4 text-[#D4AF37]" />
-            <span>{new Date(vessel.departure_date).toLocaleDateString()}</span>
-          </div>
         </div>
 
         <div className="pt-4 border-t border-[#CCD6F6]/20">
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-[#CCD6F6] font-serif text-sm">Rate:</span>
-            <span className="text-[#D4AF37] font-semibold font-serif">{vessel.price_eth} ETH</span>
-          </div>
-          
           <Button
             onClick={onLogJourney}
             className="w-full golden-button maritime-button font-serif font-semibold"
