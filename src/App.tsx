@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { inkSepolia } from "wagmi/chains";
 import { fetchWalletSecrets } from "@/lib/walletSecrets"
@@ -47,17 +48,19 @@ const App = () => {
         <RainbowKitProvider>
           <AuthProvider>
             <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/marketplace" element={<Marketplace />} />
-                <Route path="/shipping" element={<Shipping />} />
-                <Route path="/contract-builder" element={<ContractBuilder />} />
-                <Route path="/portfolio" element={<Portfolio />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <BrowserRouter>
+                <Toaster />
+                <Sonner />
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/shipping" element={<Shipping />} />
+                  <Route path="/contract-builder" element={<ContractBuilder />} />
+                  <Route path="/portfolio" element={<Portfolio />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
             </TooltipProvider>
           </AuthProvider>
         </RainbowKitProvider>
