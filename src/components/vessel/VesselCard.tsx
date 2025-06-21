@@ -21,19 +21,19 @@ const VesselCard = ({ vessel, onLogJourney, style }: VesselCardProps) => {
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-[#D4AF37] flex items-center justify-center">
-              <Ship className="w-6 h-6 text-[#0A192F]" />
+            <div className="w-12 h-12 rounded-full bg-cyan-400 flex items-center justify-center">
+              <Ship className="w-6 h-6 text-slate-900" />
             </div>
             <div>
-              <CardTitle className="text-[#FFFFFF] font-serif font-medium text-lg">
+              <CardTitle className="text-white font-serif font-medium text-lg">
                 {vessel.title}
               </CardTitle>
-              <p className="text-[#D4AF37] font-serif text-sm">
+              <p className="text-cyan-400 font-serif text-sm">
                 IMO: {vessel.description?.split('IMO: ')[1]?.split('\n')[0] || 'N/A'}
               </p>
             </div>
           </div>
-          <Badge className="bg-[#64FFDA]/20 text-[#64FFDA] border-[#64FFDA]/30">
+          <Badge className="bg-emerald-400/20 text-emerald-400 border-emerald-400/30">
             {vessel.status}
           </Badge>
         </div>
@@ -41,21 +41,21 @@ const VesselCard = ({ vessel, onLogJourney, style }: VesselCardProps) => {
       
       <CardContent className="space-y-4">
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-sm">
-            <Package className="w-4 h-4 text-[#D4AF37]" />
+          <div className="flex items-center gap-2 text-slate-200 font-serif text-sm">
+            <Package className="w-4 h-4 text-cyan-400" />
             <span>Type: {getVesselTypeDisplay(vessel.vessel_type || 'general_cargo')}</span>
           </div>
           
-          <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-sm">
-            <Package className="w-4 h-4 text-[#D4AF37]" />
+          <div className="flex items-center gap-2 text-slate-200 font-serif text-sm">
+            <Package className="w-4 h-4 text-cyan-400" />
             <span>Capacity: {vessel.weight_tons || 0} tons</span>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-[#CCD6F6]/20">
+        <div className="pt-4 border-t border-slate-500/20">
           <Button
             onClick={onLogJourney}
-            className="w-full golden-button maritime-button font-serif font-semibold"
+            className="w-full bg-cyan-400 hover:bg-cyan-500 text-slate-900 maritime-button font-serif font-semibold"
           >
             <Package className="w-4 h-4 mr-2" />
             Log Journey
