@@ -25,12 +25,7 @@ const RegisterVessel = () => {
     imoNumber: '',
     vesselType: '',
     capacity: '',
-    priceEth: '',
     description: '',
-    originPort: '',
-    destinationPort: '',
-    departureDate: '',
-    arrivalDate: '',
   });
 
   const createVesselMutation = useMutation({
@@ -43,11 +38,11 @@ const RegisterVessel = () => {
           order_type: 'vessel',
           vessel_type: data.vesselType,
           weight_tons: parseInt(data.capacity),
-          price_eth: parseFloat(data.priceEth),
-          origin_port: data.originPort,
-          destination_port: data.destinationPort,
-          departure_date: data.departureDate,
-          arrival_date: data.arrivalDate,
+          price_eth: 0, // Default value since pricing is determined elsewhere
+          origin_port: 'TBD', // To be determined when logging journeys
+          destination_port: 'TBD', // To be determined when logging journeys
+          departure_date: new Date().toISOString().split('T')[0], // Default to current date
+          arrival_date: new Date().toISOString().split('T')[0], // Default to current date
           wallet_address: address,
           status: 'pending',
         }])
@@ -86,7 +81,7 @@ const RegisterVessel = () => {
       return;
     }
 
-    if (!formData.vesselName || !formData.vesselType || !formData.capacity || !formData.priceEth) {
+    if (!formData.vesselName || !formData.vesselType || !formData.capacity) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
@@ -207,19 +202,6 @@ const RegisterVessel = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[#CCD6F6] font-serif">Rate (ETH) *</Label>
-                  <Input
-                    type="number"
-                    step="0.001"
-                    value={formData.priceEth}
-                    onChange={(e) => handleInputChange('priceEth', e.target.value)}
-                    placeholder="e.g., 2.5"
-                    className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
-                    disabled={createVesselMutation.isPending}
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label className="text-[#CCD6F6] font-serif">Description</Label>
                   <Textarea
                     value={formData.description}
@@ -229,54 +211,6 @@ const RegisterVessel = () => {
                     className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
                     disabled={createVesselMutation.isPending}
                   />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[#CCD6F6] font-serif">Origin Port</Label>
-                    <Input
-                      value={formData.originPort}
-                      onChange={(e) => handleInputChange('originPort', e.target.value)}
-                      placeholder="e.g., Port of Shanghai"
-                      className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
-                      disabled={createVesselMutation.isPending}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[#CCD6F6] font-serif">Destination Port</Label>
-                    <Input
-                      value={formData.destinationPort}
-                      onChange={(e) => handleInputChange('destinationPort', e.target.value)}
-                      placeholder="e.g., Port of Los Angeles"
-                      className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
-                      disabled={createVesselMutation.isPending}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[#CCD6F6] font-serif">Departure Date</Label>
-                    <Input
-                      type="date"
-                      value={formData.departureDate}
-                      onChange={(e) => handleInputChange('departureDate', e.target.value)}
-                      className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] font-serif"
-                      disabled={createVesselMutation.isPending}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[#CCD6F6] font-serif">Arrival Date</Label>
-                    <Input
-                      type="date"
-                      value={formData.arrivalDate}
-                      onChange={(e) => handleInputChange('arrivalDate', e.target.value)}
-                      className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] font-serif"
-                      disabled={createVesselMutation.isPending}
-                    />
-                  </div>
                 </div>
 
                 <Button
