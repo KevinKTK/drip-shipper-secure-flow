@@ -93,12 +93,14 @@ const Marketplace = () => {
           </a>
         )}
 
-        <Button 
-          className="w-full maritime-button bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] font-serif border border-[#CCD6F6]/30"
-          onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}
-        >
-          Create Insurance Policy
-        </Button>
+        {!(order.is_insured) && (
+          <Button 
+            className="w-full maritime-button bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] font-serif border border-[#CCD6F6]/30"
+            onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}
+          >
+            Create Insurance Policy
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
