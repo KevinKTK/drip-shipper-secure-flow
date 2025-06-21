@@ -9,9 +9,11 @@ import { Ship, Package, Shield, Calendar, MapPin, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { SkeletonOrderCard } from '@/components/ui/maritime-skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 const Marketplace = () => {
   const navigate = useNavigate();
+  const [detailsModal, setDetailsModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
   
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders'],
@@ -101,6 +103,13 @@ const Marketplace = () => {
             Create Insurance Policy
           </Button>
         )}
+        <Button
+          variant="outline"
+          className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif mt-2"
+          onClick={() => setDetailsModal({ open: true, order })}
+        >
+          See Details
+        </Button>
       </CardContent>
     </Card>
   );
@@ -182,6 +191,48 @@ const Marketplace = () => {
           </Tabs>
         </div>
       </div>
+      <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, order: open ? detailsModal.order : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Order Metadata Details</DialogTitle>
+            <DialogDescription>
+              Below are the input values for this {detailsModal.order?.order_type === 'cargo' ? 'Shipping Order' : 'Vessel Registration'}:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 text-sm text-[#CCD6F6] space-y-2">
+            {detailsModal.order && (
+              <>
+                <div><b>Title:</b> {detailsModal.order.title}</div>
+                <div><b>Description:</b> {detailsModal.order.description}</div>
+                <div><b>Origin Port:</b> {detailsModal.order.origin_port}</div>
+                <div><b>Destination Port:</b> {detailsModal.order.destination_port}</div>
+                <div><b>Departure Date:</b> {detailsModal.order.departure_date && new Date(detailsModal.order.departure_date).toLocaleDateString()}</div>
+                {detailsModal.order.order_type === 'cargo' && (
+                  <>
+                    <div><b>Cargo Type:</b> {detailsModal.order.cargo_type && detailsModal.order.cargo_type.replace('_', ' ').toUpperCase()}</div>
+                    <div><b>Weight (tons):</b> {detailsModal.order.weight_tons}</div>
+                    <div><b>Volume (CBM):</b> {detailsModal.order.volume_cbm}</div>
+                    <div><b>Budget (ETH):</b> {detailsModal.order.price_eth}</div>
+                  </>
+                )}
+                {detailsModal.order.order_type === 'vessel' && (
+                  <>
+                    <div><b>Vessel Type:</b> {detailsModal.order.vessel_type && detailsModal.order.vessel_type.replace('_', ' ').toUpperCase()}</div>
+                    <div><b>Capacity (tons):</b> {detailsModal.order.weight_tons}</div>
+                    <div><b>Price (ETH):</b> {detailsModal.order.price_eth}</div>
+                    <div><b>IMO Number:</b> {detailsModal.order.imo_number}</div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setDetailsModal({ open: false, order: null })}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

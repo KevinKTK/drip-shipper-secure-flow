@@ -20,6 +20,7 @@ import { parseAbiItem } from 'viem';
 import { decodeEventLog } from 'viem';
 import CargoNFT from '@/../contracts/ABI/CargoNFT.json';
 import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 const ShipperView = () => {
   // --- STATE MANAGEMENT ---
@@ -34,6 +35,7 @@ const ShipperView = () => {
   const [price, setPrice] = useState('');
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
+  const [detailsModal, setDetailsModal] = useState<{ open: boolean, tokenId?: string, contract?: string }>({ open: false });
 
   // --- HOOKS INITIALIZATION ---
   const { isConnected, address, loading: authLoading } = useAuth();
@@ -396,6 +398,16 @@ const ShipperView = () => {
                   </div>
                 </div>
             )}
+            {/* See Details Button (only if NFT minted) */}
+            {createOrderMutation.data?.nft_token_id && createOrderMutation.data?.nft_contract_address && (
+              <Button
+                variant="outline"
+                className="w-full maritime-button border-[#64FFDA] text-[#64FFDA] hover:bg-[#64FFDA]/10 font-serif mt-4"
+                onClick={() => setDetailsModal({ open: true, tokenId: createOrderMutation.data.nft_token_id, contract: createOrderMutation.data.nft_contract_address })}
+              >
+                See Details
+              </Button>
+            )}
           </CardContent>
         </Card>
 
@@ -405,6 +417,36 @@ const ShipperView = () => {
             onSelectPolicy={handleInsuranceSelect}
             policyType="shipper"
         />
+
+        {/* NFT Details Modal */}
+        <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, tokenId: open ? detailsModal.tokenId : undefined, contract: open ? detailsModal.contract : undefined })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>NFT On-Chain Details</DialogTitle>
+              <DialogDescription>
+                Token ID: <span className="font-mono">{detailsModal.tokenId}</span><br />
+                Contract: <span className="font-mono break-all">{detailsModal.contract}</span>
+              </DialogDescription>
+            </DialogHeader>
+            {/* Placeholder for on-chain data, e.g. owner, metadata, etc. */}
+            <div className="mt-4 text-sm text-[#CCD6F6]">
+              {/* You can fetch and display more on-chain data here using viem/ethers if desired */}
+              <a
+                href={`https://explorer-sepolia.inkonchain.com/token/${detailsModal.contract}/instance/${detailsModal.tokenId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#64FFDA] underline"
+              >
+                View on Block Explorer
+              </a>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setDetailsModal({ open: false })}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
   );
 };

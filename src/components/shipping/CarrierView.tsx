@@ -18,6 +18,7 @@ import { parseAbiItem, decodeEventLog } from 'viem';
 import VesselNFT from '@/../contracts/ABI/VesselNFT.json';
 import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 interface RouteForm {
   originPort: string;
@@ -191,6 +192,10 @@ const CarrierView = () => {
     }
   };
 
+  // State for details modal
+  const [detailsModal, setDetailsModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
+  const [imoError, setImoError] = useState<string | null>(null);
+
   const OrderCard = ({ order }: { order: any }) => (
     <Card className="maritime-card maritime-card-glow">
       <CardHeader className="pb-3">
@@ -228,12 +233,23 @@ const CarrierView = () => {
           )}
         </div>
 
+        <div className="flex flex-col gap-2 pt-2">
         <Button 
           className="w-full maritime-button bg-[#64FFDA] hover:bg-[#4FD1C7] text-[#0A192F] font-serif"
           onClick={() => handleAcceptJob(order.id)}
         >
           Accept Job
         </Button>
+          {(order.nft_token_id && order.nft_contract_address) && (
+            <Button
+              variant="outline"
+              className="w-full maritime-button border-[#64FFDA] text-[#64FFDA] hover:bg-[#64FFDA]/10 font-serif"
+              onClick={() => setDetailsModal({ open: true, order })}
+            >
+              See Details
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -546,7 +562,25 @@ const CarrierView = () => {
             </div>
             <div className="space-y-2">
               <Label className="text-[#CCD6F6] font-serif">IMO Number *</Label>
-              <Input value={imoNumber} onChange={e => setImoNumber(e.target.value)} className="maritime-input" disabled={isRegistering} />
+              <Input
+                value={imoNumber}
+                onChange={e => {
+                  setImoNumber(e.target.value);
+                  if (!/^\d{7}$/.test(e.target.value)) {
+                    setImoError('IMO number must be exactly 7 digits, e.g., 1234567');
+                  } else {
+                    setImoError(null);
+                  }
+                }}
+                className="maritime-input"
+                disabled={isRegistering}
+                maxLength={7}
+                pattern="\\d{7}"
+                inputMode="numeric"
+                placeholder="e.g., 1234567"
+              />
+              <p className="text-xs text-[#64FFDA] font-serif mt-1">The IMO number is a 7-digit identifier, e.g., 1234567</p>
+              {imoError && <p className="text-xs text-red-500 font-serif mt-1">{imoError}</p>}
             </div>
             <div className="space-y-2">
               <Label className="text-[#CCD6F6] font-serif">Vessel Type *</Label>
@@ -591,6 +625,36 @@ const CarrierView = () => {
           </Button>
         </CardContent>
       </Card>
+
+      {/* NFT Details Modal */}
+      <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, order: open ? detailsModal.order : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>NFT On-Chain Details</DialogTitle>
+            <DialogDescription>
+              Token ID: <span className="font-mono">{detailsModal.order?.nft_token_id}</span><br />
+              Contract: <span className="font-mono break-all">{detailsModal.order?.nft_contract_address}</span>
+            </DialogDescription>
+          </DialogHeader>
+          {/* Placeholder for on-chain data, e.g. owner, metadata, etc. */}
+          <div className="mt-4 text-sm text-[#CCD6F6]">
+            {/* You can fetch and display more on-chain data here using viem/ethers if desired */}
+            <a
+              href={`https://explorer-sepolia.inkonchain.com/token/${detailsModal.order?.nft_contract_address}/instance/${detailsModal.order?.nft_token_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#64FFDA] underline"
+            >
+              View on Block Explorer
+            </a>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setDetailsModal({ open: false, order: null })}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
