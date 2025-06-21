@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 const Marketplace = () => {
   const navigate = useNavigate();
   const [detailsModal, setDetailsModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
+  const [insuranceModal, setInsuranceModal] = useState<{ open: boolean, policy: any | null }>({ open: false, policy: null });
   
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders'],
@@ -40,10 +41,17 @@ const Marketplace = () => {
             {order.title}
           </CardTitle>
           {order.is_insured && (
-            <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium">
-              <Shield className="w-3 h-3 mr-1" />
-              Insured
-            </Badge>
+            <button
+              type="button"
+              className="focus:outline-none"
+              onClick={() => setInsuranceModal({ open: true, policy: order })}
+              title="View Insurance Policy Details"
+            >
+              <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium cursor-pointer hover:underline">
+                <Shield className="w-3 h-3 mr-1" />
+                Insured
+              </Badge>
+            </button>
           )}
         </div>
       </CardHeader>
@@ -228,6 +236,39 @@ const Marketplace = () => {
           </div>
           <DialogFooter>
             <Button onClick={() => setDetailsModal({ open: false, order: null })}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Insurance Policy Modal */}
+      <Dialog open={insuranceModal.open} onOpenChange={open => setInsuranceModal({ open, policy: open ? insuranceModal.policy : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insurance Policy Details</DialogTitle>
+            <DialogDescription>
+              Below are the details of the insurance policy for this order:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 text-sm text-[#CCD6F6] space-y-2">
+            {insuranceModal.policy && (
+              <>
+                <div><b>Policy Name:</b> {insuranceModal.policy.policy_name || 'N/A'}</div>
+                <div><b>Description:</b> {insuranceModal.policy.policy_description || insuranceModal.policy.description || 'N/A'}</div>
+                <div><b>Premium:</b> {insuranceModal.policy.premium_eth || insuranceModal.policy.premium_ink || 'N/A'} ETH</div>
+                <div><b>Payout:</b> {insuranceModal.policy.payout_amount_eth || insuranceModal.policy.payout_amount_ink || 'N/A'} ETH</div>
+                <div><b>Status:</b> {insuranceModal.policy.is_insured ? 'Active' : 'Inactive'}</div>
+                {insuranceModal.policy.trigger_condition && (
+                  <div><b>Trigger Condition:</b> {insuranceModal.policy.trigger_condition}</div>
+                )}
+                {insuranceModal.policy.delay_threshold_hours && (
+                  <div><b>Delay Threshold:</b> {insuranceModal.policy.delay_threshold_hours} hours</div>
+                )}
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setInsuranceModal({ open: false, policy: null })}>
               Close
             </Button>
           </DialogFooter>
