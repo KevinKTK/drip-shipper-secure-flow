@@ -24,6 +24,7 @@ interface RouteForm {
   originPort: string;
   destinationPort: string;
   departureDate: string;
+  arrivalDate: string;
   availableCapacity: string;
 }
 
@@ -43,6 +44,7 @@ const CarrierView = () => {
     originPort: '',
     destinationPort: '',
     departureDate: '',
+    arrivalDate: '',
     availableCapacity: ''
   });
   const [hasSearched, setHasSearched] = useState(false);
@@ -118,7 +120,17 @@ const CarrierView = () => {
     if (!routeForm.originPort || !routeForm.destinationPort || !routeForm.departureDate) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all route details",
+        description: "Please fill in origin port, destination port, and departure date",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate arrival date is after departure date if provided
+    if (routeForm.arrivalDate && routeForm.departureDate && new Date(routeForm.arrivalDate) <= new Date(routeForm.departureDate)) {
+      toast({
+        title: "Invalid Date Range",
+        description: "Arrival date must be after departure date",
         variant: "destructive"
       });
       return;
@@ -136,6 +148,7 @@ const CarrierView = () => {
           origin_port: routeForm.originPort,
           destination_port: routeForm.destinationPort,
           departure_date: routeForm.departureDate,
+          arrival_date: routeForm.arrivalDate || null,
           available_capacity_kg: capacityInKg
         }]);
       
@@ -160,6 +173,7 @@ const CarrierView = () => {
       originPort: journey.origin_port,
       destinationPort: journey.destination_port,
       departureDate: journey.departure_date,
+      arrivalDate: journey.arrival_date || '',
       availableCapacity: journey.available_capacity_kg ? journey.available_capacity_kg.toLocaleString() + ' kg' : ''
     });
     
@@ -226,7 +240,7 @@ const CarrierView = () => {
         <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20">
           <div className="flex items-center gap-1">
             <Coins className="w-4 h-4 text-[#D4AF37]" />
-            <span className="text-[#D4AF37] font-medium">{order.price_ink} ETH</span>
+            <span className="text-[#D4AF37] font-medium">{order.price_eth} ETH</span>
           </div>
           {order.weight_tons && (
             <span className="text-xs text-[#CCD6F6]/70">{order.weight_tons} tons</span>
@@ -264,8 +278,8 @@ const CarrierView = () => {
         
         <div className="flex justify-between items-center">
           <div>
-            <div className="text-[#D4AF37] font-medium">Premium: {policy.premium_ink} ETH</div>
-            <div className="text-[#64FFDA] font-medium">Payout: {policy.payout_amount_ink} ETH</div>
+            <div className="text-[#D4AF37] font-medium">Premium: {policy.premium_eth} ETH</div>
+            <div className="text-[#64FFDA] font-medium">Payout: {policy.payout_amount_eth} ETH</div>
           </div>
         </div>
 
@@ -290,6 +304,7 @@ const CarrierView = () => {
   const [vesselOrigin, setVesselOrigin] = useState('');
   const [vesselDestination, setVesselDestination] = useState('');
   const [vesselDeparture, setVesselDeparture] = useState('');
+  const [vesselArrival, setVesselArrival] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
 
   const { isConnected, address, loading: authLoading } = useAuth();
@@ -306,9 +321,20 @@ const CarrierView = () => {
       return;
     }
     if (!vesselName || !imoNumber || !vesselType || !capacity || !vesselPrice || !vesselDescription || !vesselOrigin || !vesselDestination || !vesselDeparture) {
-      toast({ title: 'Please fill in all vessel details', variant: 'destructive' });
+      toast({ title: 'Please fill in all required vessel details', variant: 'destructive' });
       return;
     }
+
+    // Validate arrival date is after departure date if provided
+    if (vesselArrival && vesselDeparture && new Date(vesselArrival) <= new Date(vesselDeparture)) {
+      toast({
+        title: "Invalid Date Range",
+        description: "Arrival date must be after departure date",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsRegistering(true);
     toast({ title: 'Minting Vessel NFT, please confirm in your wallet...' });
     writeContract({
@@ -342,6 +368,7 @@ const CarrierView = () => {
           origin_port: vesselOrigin,
           destination_port: vesselDestination,
           departure_date: vesselDeparture,
+          arrival_date: vesselArrival || null,
           vessel_type: vesselType as any,
           weight_tons: parseInt(capacity),
           price_eth: parseFloat(vesselPrice),
@@ -355,7 +382,7 @@ const CarrierView = () => {
           } else {
             toast({ title: 'Vessel registered and NFT minted successfully!' });
             // Reset form
-            setVesselName(''); setImoNumber(''); setVesselType(''); setCapacity(''); setVesselPrice(''); setVesselDescription(''); setVesselOrigin(''); setVesselDestination(''); setVesselDeparture('');
+            setVesselName(''); setImoNumber(''); setVesselType(''); setCapacity(''); setVesselPrice(''); setVesselDescription(''); setVesselOrigin(''); setVesselDestination(''); setVesselDeparture(''); setVesselArrival('');
           }
           setIsRegistering(false);
         });
@@ -384,7 +411,7 @@ const CarrierView = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
             <div className="maritime-form-group">
               <Label htmlFor="originPort" className="maritime-label">Origin Port</Label>
               <Input
@@ -414,6 +441,17 @@ const CarrierView = () => {
                 type="date"
                 value={routeForm.departureDate}
                 onChange={(e) => setRouteForm(prev => ({ ...prev, departureDate: e.target.value }))}
+                className="maritime-input"
+              />
+            </div>
+
+            <div className="maritime-form-group">
+              <Label htmlFor="arrivalDate" className="maritime-label">Arrival Date</Label>
+              <Input
+                id="arrivalDate"
+                type="date"
+                value={routeForm.arrivalDate}
+                onChange={(e) => setRouteForm(prev => ({ ...prev, arrivalDate: e.target.value }))}
                 className="maritime-input"
               />
             </div>
@@ -618,6 +656,10 @@ const CarrierView = () => {
             <div className="space-y-2">
               <Label className="text-[#CCD6F6] font-serif">Departure Date *</Label>
               <Input type="date" value={vesselDeparture} onChange={e => setVesselDeparture(e.target.value)} className="maritime-input" disabled={isRegistering} />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[#CCD6F6] font-serif">Arrival Date</Label>
+              <Input type="date" value={vesselArrival} onChange={e => setVesselArrival(e.target.value)} className="maritime-input" disabled={isRegistering} />
             </div>
           </div>
           <Button onClick={handleRegisterVessel} disabled={isRegistering || !isConnected} className="w-full maritime-button bg-[#D4AF37] hover:bg-[#B8860B] text-[#0A192F] font-serif mt-6">
