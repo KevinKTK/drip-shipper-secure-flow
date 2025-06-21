@@ -7,19 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Ship, Search, MapPin, Calendar, Package, Shield, Coins, History } from 'lucide-react';
+import { Ship, Search, MapPin, Calendar, Package, Shield, Coins, History, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import InsurancePolicyModal from './InsurancePolicyModal';
 import JourneyCard from './JourneyCard';
 import { useAuth } from '@/contexts/AuthContext';
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
-import { parseAbiItem, decodeEventLog } from 'viem';
-import VesselNFT from '@/../contracts/ABI/VesselNFT.json';
-import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 
 interface RouteForm {
   originPort: string;
@@ -29,32 +26,10 @@ interface RouteForm {
   availableCapacity: string;
 }
 
-type VesselType = 'container_ship' | 'bulk_carrier' | 'tanker' | 'ro_ro' | 'general_cargo' | 'lng_carrier' | 'lpg_carrier';
-
-const VESSEL_TYPE_OPTIONS = [
-  { value: 'container_ship', label: 'Container Ship' },
-  { value: 'bulk_carrier', label: 'Bulk Carrier' },
-  { value: 'tanker', label: 'Tanker' },
-  { value: 'ro_ro', label: 'Ro-Ro' },
-  { value: 'general_cargo', label: 'General Cargo' },
-  { value: 'lng_carrier', label: 'LNG Carrier' },
-  { value: 'lpg_carrier', label: 'LPG Carrier' },
-];
-
-interface VesselMintedEventArgs {
-  tokenId: bigint;
-  owner: string;
-  name: string;
-  capacity: bigint;
-}
-
-interface VesselMintedEvent {
-  eventName: 'VesselMinted';
-  args: VesselMintedEventArgs;
-}
-
 const CarrierView = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [selectedVesselId, setSelectedVesselId] = useState<string>('');
   const [routeForm, setRouteForm] = useState<RouteForm>({
     originPort: '',
     destinationPort: '',
@@ -64,6 +39,27 @@ const CarrierView = () => {
   });
   const [hasSearched, setHasSearched] = useState(false);
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
+
+  const { isConnected, address } = useAuth();
+
+  // Query for user's vessels
+  const { data: userVessels, isLoading: loadingVessels } = useQuery({
+    queryKey: ['user-vessels', address],
+    queryFn: async () => {
+      if (!address) return [];
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('order_type', 'vessel')
+        .eq('wallet_address', address)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!address
+  });
 
   // Query for logged journeys
   const { data: loggedJourneys, isLoading: loadingJourneys, refetch: refetchJourneys } = useQuery({
@@ -131,7 +127,35 @@ const CarrierView = () => {
     }
   });
 
+  const selectedVessel = userVessels?.find(vessel => vessel.id === selectedVesselId);
+
+  const handleVesselSelect = (vesselId: string) => {
+    setSelectedVesselId(vesselId);
+    const vessel = userVessels?.find(v => v.id === vesselId);
+    if (vessel) {
+      // Pre-fill capacity from selected vessel
+      setRouteForm(prev => ({
+        ...prev,
+        availableCapacity: vessel.weight_tons ? `${vessel.weight_tons * 1000} kg` : ''
+      }));
+      
+      toast({
+        title: "Vessel Selected",
+        description: `${vessel.title} selected for journey logging`,
+      });
+    }
+  };
+
   const handleSearch = async () => {
+    if (!selectedVesselId) {
+      toast({
+        title: "No Vessel Selected",
+        description: "Please select a vessel from your fleet first",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!routeForm.originPort || !routeForm.destinationPort || !routeForm.departureDate) {
       toast({
         title: "Missing Information",
@@ -151,7 +175,7 @@ const CarrierView = () => {
       return;
     }
 
-    // Log the route
+    // Log the route with vessel association
     try {
       // Convert capacity string to number for database, default to 0 if empty
       const capacityInKg = routeForm.availableCapacity ? 
@@ -160,6 +184,7 @@ const CarrierView = () => {
       await supabase
         .from('carrier_routes')
         .insert([{
+          vessel_id: selectedVesselId,
           origin_port: routeForm.originPort,
           destination_port: routeForm.destinationPort,
           departure_date: routeForm.departureDate,
@@ -191,6 +216,11 @@ const CarrierView = () => {
       arrivalDate: journey.arrival_date || '',
       availableCapacity: journey.available_capacity_kg ? journey.available_capacity_kg.toLocaleString() + ' kg' : ''
     });
+    
+    // Select the vessel associated with this journey if available
+    if (journey.vessel_id) {
+      setSelectedVesselId(journey.vessel_id);
+    }
     
     toast({
       title: "Route Selected",
@@ -306,130 +336,76 @@ const CarrierView = () => {
     </Card>
   );
 
-  // Vessel Registration State
-  const [vesselName, setVesselName] = useState('');
-  const [imoNumber, setImoNumber] = useState('');
-  const [vesselType, setVesselType] = useState<VesselType>('container_ship');
-  const [capacity, setCapacity] = useState('');
-  const [vesselPrice, setVesselPrice] = useState('');
-  const [vesselDescription, setVesselDescription] = useState('');
-  const [vesselOrigin, setVesselOrigin] = useState('');
-  const [vesselDestination, setVesselDestination] = useState('');
-  const [vesselDeparture, setVesselDeparture] = useState('');
-  const [vesselArrival, setVesselArrival] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  const { isConnected, address, loading: authLoading } = useAuth();
-  const { address: wagmiAddress, chain } = useAccount();
-  const vesselNFTAddress = CONTRACT_ADDRESSES.vesselNFT as `0x${string}`;
-
-  const { data: mintTxHash, isPending: isMintingPending, writeContract, error: mintError } = useWriteContract();
-  const { data: mintTxReceipt, isLoading: isMintingTxLoading, isSuccess: isMintingTxSuccess } = useWaitForTransactionReceipt({ hash: mintTxHash });
-
-  // Vessel Registration Handler
-  const handleRegisterVessel = () => {
-    if (!isConnected || !wagmiAddress) {
-      toast({ title: 'Please connect your wallet to register a vessel', variant: 'destructive' });
-      return;
-    }
-    if (!vesselName || !imoNumber || !vesselType || !capacity || !vesselPrice || !vesselDescription || !vesselOrigin || !vesselDestination || !vesselDeparture) {
-      toast({ title: 'Please fill in all required vessel details', variant: 'destructive' });
-      return;
-    }
-
-    // Validate arrival date is after departure date if provided
-    if (vesselArrival && vesselDeparture && new Date(vesselArrival) <= new Date(vesselDeparture)) {
-      toast({
-        title: "Invalid Date Range",
-        description: "Arrival date must be after departure date",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsRegistering(true);
-    toast({ title: 'Minting Vessel NFT, please confirm in your wallet...' });
-    writeContract({
-      address: vesselNFTAddress,
-      abi: VesselNFT.abi,
-      functionName: 'mintVessel',
-      args: [wagmiAddress, vesselName, imoNumber, BigInt(capacity)],
-      account: wagmiAddress,
-      chain,
-    });
-  };
-
-  // Effect: After minting, save to Supabase
-  React.useEffect(() => {
-    if (isMintingTxSuccess && mintTxReceipt) {
-      let mintedTokenId = null;
-      const eventAbi = parseAbiItem('event VesselMinted(uint256 indexed tokenId, address indexed owner, string name, uint256 capacity)');
-      for (const log of mintTxReceipt.logs) {
-        try {
-          const decodedLog = decodeEventLog({ 
-            abi: [eventAbi], 
-            data: log.data, 
-            topics: log.topics 
-          }) as VesselMintedEvent;
-          
-          if (decodedLog.eventName === 'VesselMinted') {
-            mintedTokenId = decodedLog.args.tokenId.toString();
-            break;
-          }
-        } catch (e) {}
-      }
-      if (mintedTokenId) {
-        // Save to Supabase orders table
-        supabase.from('orders').insert([{
-          order_type: 'vessel',
-          title: vesselName,
-          description: vesselDescription,
-          origin_port: vesselOrigin,
-          destination_port: vesselDestination,
-          departure_date: vesselDeparture,
-          arrival_date: vesselArrival || null,
-          vessel_type: vesselType as any,
-          weight_tons: parseInt(capacity),
-          price_eth: parseFloat(vesselPrice),
-          status: 'pending',
-          wallet_address: address,
-          nft_token_id: mintedTokenId,
-          nft_contract_address: vesselNFTAddress,
-        }]).then(({ error }) => {
-          if (error) {
-            toast({ title: 'NFT minted, but failed to save vessel to database', description: error.message, variant: 'destructive' });
-          } else {
-            toast({ title: 'Vessel registered and NFT minted successfully!' });
-            // Reset form
-            setVesselName(''); 
-            setImoNumber(''); 
-            setVesselType('container_ship'); 
-            setCapacity(''); 
-            setVesselPrice(''); 
-            setVesselDescription(''); 
-            setVesselOrigin(''); 
-            setVesselDestination(''); 
-            setVesselDeparture(''); 
-            setVesselArrival('');
-          }
-          setIsRegistering(false);
-        });
-      } else {
-        toast({ title: 'Could not extract Token ID from minting transaction', variant: 'destructive' });
-        setIsRegistering(false);
-      }
-    }
-  }, [isMintingTxSuccess, mintTxReceipt]);
-
-  React.useEffect(() => {
-    if (mintError) {
-      toast({ title: (mintError as any).message || 'An error occurred during minting.', variant: 'destructive' });
-      setIsRegistering(false);
-    }
-  }, [mintError]);
-
   return (
     <div className="space-y-8">
+      {/* Vessel Selection */}
+      <Card className="maritime-card maritime-card-glow">
+        <CardHeader>
+          <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
+            <Ship className="w-5 h-5 text-[#D4AF37]" />
+            Select Your Vessel
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!isConnected ? (
+            <div className="text-center py-8">
+              <p className="text-[#CCD6F6] font-serif mb-4">Please connect your wallet to access your vessel fleet</p>
+            </div>
+          ) : loadingVessels ? (
+            <div className="text-center py-8 text-[#CCD6F6]">Loading your vessels...</div>
+          ) : !userVessels || userVessels.length === 0 ? (
+            <div className="text-center py-8">
+              <Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+              <p className="text-[#CCD6F6] font-serif mb-4">No vessels found in your fleet</p>
+              <Button
+                onClick={() => navigate('/register-vessel')}
+                className="maritime-button bg-[#D4AF37] hover:bg-[#B8860B] text-[#0A192F] font-serif"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Register Your First Vessel
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="maritime-form-group">
+                <Label htmlFor="vesselSelect" className="maritime-label">Choose Vessel</Label>
+                <Select value={selectedVesselId} onValueChange={handleVesselSelect}>
+                  <SelectTrigger className="maritime-input">
+                    <SelectValue placeholder="Select a vessel from your fleet" />
+                  </SelectTrigger>
+                  <SelectContent className="maritime-card bg-[#1E3A5F] border-[#CCD6F6]/30">
+                    {userVessels.map((vessel) => (
+                      <SelectItem key={vessel.id} value={vessel.id} className="text-[#FFFFFF] font-serif">
+                        {vessel.title} - {vessel.weight_tons || 0} tons
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedVessel && (
+                <div className="bg-[#1E3A5F]/30 p-4 rounded-lg border border-[#CCD6F6]/20">
+                  <h4 className="text-[#D4AF37] font-serif font-medium mb-2">Selected Vessel Details</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-[#CCD6F6]/70">Type:</span>
+                      <span className="text-[#FFFFFF] ml-2">{selectedVessel.vessel_type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#CCD6F6]/70">Capacity:</span>
+                      <span className="text-[#FFFFFF] ml-2">{selectedVessel.weight_tons || 0} tons</span>
+                    </div>
+                  </div>
+                  {selectedVessel.description && (
+                    <p className="text-[#CCD6F6] text-sm mt-2">{selectedVessel.description}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Route Input Form */}
       <Card className="maritime-card maritime-card-glow">
         <CardHeader>
@@ -448,6 +424,7 @@ const CarrierView = () => {
                 onChange={(e) => setRouteForm(prev => ({ ...prev, originPort: e.target.value }))}
                 placeholder="e.g., Shanghai"
                 className="maritime-input"
+                disabled={!selectedVesselId}
               />
             </div>
 
@@ -459,6 +436,7 @@ const CarrierView = () => {
                 onChange={(e) => setRouteForm(prev => ({ ...prev, destinationPort: e.target.value }))}
                 placeholder="e.g., Long Beach"
                 className="maritime-input"
+                disabled={!selectedVesselId}
               />
             </div>
 
@@ -470,6 +448,7 @@ const CarrierView = () => {
                 value={routeForm.departureDate}
                 onChange={(e) => setRouteForm(prev => ({ ...prev, departureDate: e.target.value }))}
                 className="maritime-input"
+                disabled={!selectedVesselId}
               />
             </div>
 
@@ -481,11 +460,12 @@ const CarrierView = () => {
                 value={routeForm.arrivalDate}
                 onChange={(e) => setRouteForm(prev => ({ ...prev, arrivalDate: e.target.value }))}
                 className="maritime-input"
+                disabled={!selectedVesselId}
               />
             </div>
 
             <div className="maritime-form-group">
-              <Label htmlFor="availableCapacity" className="maritime-label">Capacity</Label>
+              <Label htmlFor="availableCapacity" className="maritime-label">Available Capacity</Label>
               <Input
                 id="availableCapacity"
                 type="text"
@@ -493,17 +473,25 @@ const CarrierView = () => {
                 onChange={(e) => setRouteForm(prev => ({ ...prev, availableCapacity: e.target.value }))}
                 placeholder="e.g., 50,000 kg"
                 className="maritime-input"
+                disabled={!selectedVesselId}
               />
             </div>
 
             <Button
               onClick={handleSearch}
+              disabled={!selectedVesselId}
               className="maritime-button bg-[#D4AF37] hover:bg-[#B8860B] text-[#0A192F] font-serif mt-6"
             >
               <Search className="w-4 h-4 mr-2" />
               Find Freight
             </Button>
           </div>
+          
+          {!selectedVesselId && (
+            <p className="text-[#CCD6F6]/70 text-sm mt-2 font-serif">
+              Please select a vessel first to log journey details
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -612,82 +600,6 @@ const CarrierView = () => {
         </Card>
       )}
 
-      {/* Vessel Registration Form */}
-      <Card className="maritime-card maritime-card-glow mb-8">
-        <CardHeader>
-          <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
-            <Ship className="w-5 h-5 text-[#D4AF37]" />
-            Register Your Vessel
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">Vessel Name *</Label>
-              <Input value={vesselName} onChange={e => setVesselName(e.target.value)} className="maritime-input" disabled={isRegistering} />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">IMO Number *</Label>
-              <Input
-                value={imoNumber}
-                onChange={e => setImoNumber(e.target.value)}
-                className="maritime-input"
-                disabled={isRegistering}
-                maxLength={7}
-                pattern="\\d{7}"
-                inputMode="numeric"
-                placeholder="e.g., 1234567"
-              />
-              <p className="text-xs text-[#64FFDA] font-serif mt-1">The IMO number is a 7-digit identifier, e.g., 1234567</p>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">Vessel Type *</Label>
-              <Select value={vesselType} onValueChange={(value: VesselType) => setVesselType(value)} disabled={isRegistering}>
-                <SelectTrigger className="maritime-input">
-                  <SelectValue placeholder="Select vessel type" />
-                </SelectTrigger>
-                <SelectContent className="maritime-card">
-                  {VESSEL_TYPE_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">Capacity (tons) *</Label>
-              <Input type="number" value={capacity} onChange={e => setCapacity(e.target.value)} className="maritime-input" disabled={isRegistering} />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">Price (ETH) *</Label>
-              <Input type="number" value={vesselPrice} onChange={e => setVesselPrice(e.target.value)} className="maritime-input" disabled={isRegistering} />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label className="text-[#CCD6F6] font-serif">Description *</Label>
-              <Input value={vesselDescription} onChange={e => setVesselDescription(e.target.value)} className="maritime-input" disabled={isRegistering} />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">Origin Port *</Label>
-              <Input value={vesselOrigin} onChange={e => setVesselOrigin(e.target.value)} className="maritime-input" disabled={isRegistering} />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">Destination Port *</Label>
-              <Input value={vesselDestination} onChange={e => setVesselDestination(e.target.value)} className="maritime-input" disabled={isRegistering} />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">Departure Date *</Label>
-              <Input type="date" value={vesselDeparture} onChange={e => setVesselDeparture(e.target.value)} className="maritime-input" disabled={isRegistering} />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">Arrival Date</Label>
-              <Input type="date" value={vesselArrival} onChange={e => setVesselArrival(e.target.value)} className="maritime-input" disabled={isRegistering} />
-            </div>
-          </div>
-          <Button onClick={handleRegisterVessel} disabled={isRegistering || !isConnected} className="w-full maritime-button bg-[#D4AF37] hover:bg-[#B8860B] text-[#0A192F] font-serif mt-6">
-            {isRegistering ? 'Registering...' : 'Register Vessel & Mint NFT'}
-          </Button>
-        </CardContent>
-      </Card>
-
       {/* NFT Details Modal */}
       <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, order: open ? detailsModal.order : null })}>
         <DialogContent>
@@ -698,9 +610,7 @@ const CarrierView = () => {
               Contract: <span className="font-mono break-all">{detailsModal.order?.nft_contract_address}</span>
             </DialogDescription>
           </DialogHeader>
-          {/* Placeholder for on-chain data, e.g. owner, metadata, etc. */}
           <div className="mt-4 text-sm text-[#CCD6F6]">
-            {/* You can fetch and display more on-chain data here using viem/ethers if desired */}
             <a
               href={`https://explorer-sepolia.inkonchain.com/token/${detailsModal.order?.nft_contract_address}/instance/${detailsModal.order?.nft_token_id}`}
               target="_blank"
