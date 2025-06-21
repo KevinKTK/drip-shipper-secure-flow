@@ -14,6 +14,7 @@ const Navigation = () => {
   const navItems = [
     { path: '/marketplace', label: 'Marketplace' },
     { path: '/shipping', label: 'Shipping' },
+    { path: '/vessels', label: 'My Vessels' },
     { path: '/contract-builder', label: 'Build Policy' },
     { path: '/portfolio', label: 'My Portfolio' },
   ];
@@ -38,11 +39,11 @@ const Navigation = () => {
             {navItems.map(({ path, label }) => (
               <Button
                 key={path}
-                variant={location.pathname === path ? "default" : "ghost"}
+                variant={location.pathname === path || (path === '/vessels' && location.pathname.startsWith('/vessels')) ? "default" : "ghost"}
                 onClick={() => navigate(path)}
                 className={`
                   maritime-nav-glow font-serif font-normal
-                  ${location.pathname === path 
+                  ${location.pathname === path || (path === '/vessels' && location.pathname.startsWith('/vessels'))
                     ? 'bg-[#D4AF37] text-[#0A192F] hover:bg-[#B8860B]' 
                     : 'text-[#CCD6F6] hover:text-[#D4AF37] hover:bg-[#1E3A5F]'
                   }

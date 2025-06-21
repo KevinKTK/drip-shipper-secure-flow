@@ -11,6 +11,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Landing from "./pages/Landing";
 import Marketplace from "./pages/Marketplace";
 import Shipping from "./pages/Shipping";
+import VesselDashboard from "./pages/VesselDashboard";
+import RegisterVessel from "./pages/RegisterVessel";
+import LogJourney from "./pages/LogJourney";
 import ContractBuilder from "./pages/ContractBuilder";
 import Portfolio from "./pages/Portfolio";
 import NotFound from "./pages/NotFound";
@@ -55,6 +58,9 @@ const App = () => {
                   <Route path="/" element={<Landing />} />
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/shipping" element={<Shipping />} />
+                  <Route path="/vessels" element={<VesselDashboard />} />
+                  <Route path="/vessels/register" element={<RegisterVessel />} />
+                  <Route path="/vessels/:vesselId/log-journey" element={<LogJourney />} />
                   <Route path="/contract-builder" element={<ContractBuilder />} />
                   <Route path="/portfolio" element={<Portfolio />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

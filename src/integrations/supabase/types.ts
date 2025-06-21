@@ -21,6 +21,7 @@ export type Database = {
           origin_port: string
           updated_at: string | null
           user_id: string | null
+          vessel_id: string | null
         }
         Insert: {
           arrival_date?: string | null
@@ -33,6 +34,7 @@ export type Database = {
           origin_port: string
           updated_at?: string | null
           user_id?: string | null
+          vessel_id?: string | null
         }
         Update: {
           arrival_date?: string | null
@@ -45,8 +47,17 @@ export type Database = {
           origin_port?: string
           updated_at?: string | null
           user_id?: string | null
+          vessel_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_carrier_routes_vessel_id"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       insurance_policies: {
         Row: {
