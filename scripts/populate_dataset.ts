@@ -23,13 +23,13 @@ const SMART_CONTRACTS = [
     abi_hash: 'cargo_nft_abi_v1'
   },
   {
-    contract_name: 'InsuranceManager',
+    contract_name: 'InsurancePolicyNFT',
     contract_address: '0x942088Ca56CA4e98ac33855cA25481a09E05fBCA',
     network: 'ink-sepolia',
     abi_hash: 'insurance_manager_abi_v1'
   },
   {
-    contract_name: 'JourneyManager',
+    contract_name: 'JourneyNFT',
     contract_address: '0xe71b13b0D639BdfBe8dFF5d07d396852984f333B',
     network: 'ink-sepolia',
     abi_hash: 'journey_manager_abi_v1'
@@ -331,7 +331,7 @@ const MOCK_ORDER_MATCHES = [
     vessel_order_id: null, // Will be set dynamically
     match_price_ink: 18000.00,
     status: 'pending',
-    journey_manager_contract_address: '0xe71b13b0D639BdfBe8dFF5d07d396852984f333B',
+    journey_nft_contract_address: '0xe71b13b0D639BdfBe8dFF5d07d396852984f333B',
     brokerage_contract_address: '0x9660AF590d7fF2cAB99174970fC0911577eE23a3'
   },
   {
@@ -339,7 +339,7 @@ const MOCK_ORDER_MATCHES = [
     vessel_order_id: null, // Will be set dynamically
     match_price_ink: 22000.00,
     status: 'active',
-    journey_manager_contract_address: '0xe71b13b0D639BdfBe8dFF5d07d396852984f333B',
+    journey_nft_contract_address: '0xe71b13b0D639BdfBe8dFF5d07d396852984f333B',
     brokerage_contract_address: '0x9660AF590d7fF2cAB99174970fC0911577eE23a3'
   }
 ];
@@ -429,8 +429,8 @@ async function populateDataset() {
         .from('orders')
         .update({ 
           cargo_nft_contract_address: contractMap['CargoNFT'],
-          insurance_manager_contract_address: contractMap['InsuranceManager'],
-          journey_manager_contract_address: contractMap['JourneyManager'],
+          insurance_policy_nft_contract_address: contractMap['InsurancePolicyNFT'],
+          journey_nft_contract_address: contractMap['JourneyNFT'],
           brokerage_contract_address: contractMap['Brokerage']
         })
         .eq('order_type', 'cargo');
@@ -444,8 +444,8 @@ async function populateDataset() {
         .from('orders')
         .update({ 
           vessel_nft_contract_address: contractMap['VesselNFT'],
-          insurance_manager_contract_address: contractMap['InsuranceManager'],
-          journey_manager_contract_address: contractMap['JourneyManager'],
+          insurance_policy_nft_contract_address: contractMap['InsurancePolicyNFT'],
+          journey_nft_contract_address: contractMap['JourneyNFT'],
           brokerage_contract_address: contractMap['Brokerage']
         })
         .eq('order_type', 'vessel');
@@ -467,7 +467,7 @@ async function populateDataset() {
               vessel_order_id: vesselOrders[0].id,
               match_price_ink: 18000.00,
               status: 'pending',
-              journey_manager_contract_address: contractMap['JourneyManager'],
+              journey_nft_contract_address: contractMap['JourneyNFT'],
               brokerage_contract_address: contractMap['Brokerage']
             },
             {
@@ -475,7 +475,7 @@ async function populateDataset() {
               vessel_order_id: vesselOrders[1]?.id,
               match_price_ink: 22000.00,
               status: 'active',
-              journey_manager_contract_address: contractMap['JourneyManager'],
+              journey_nft_contract_address: contractMap['JourneyNFT'],
               brokerage_contract_address: contractMap['Brokerage']
             }
           ].filter(match => match.cargo_order_id && match.vessel_order_id);

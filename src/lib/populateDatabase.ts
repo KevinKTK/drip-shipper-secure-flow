@@ -30,8 +30,8 @@ export interface Order {
   is_insured?: boolean;
   vessel_nft_contract_address?: string;
   cargo_nft_contract_address?: string;
-  insurance_manager_contract_address?: string;
-  journey_manager_contract_address?: string;
+  insurance_policy_nft_contract_address?: string;
+  journey_nft_contract_address?: string;
   brokerage_contract_address?: string;
 }
 
@@ -41,7 +41,7 @@ export interface OrderMatch {
   vessel_order_id: string;
   match_price_ink: number;
   status?: string;
-  journey_manager_contract_address?: string;
+  journey_nft_contract_address?: string;
   brokerage_contract_address?: string;
 }
 
@@ -58,7 +58,7 @@ export interface InsurancePolicy {
   data_source?: string;
   is_active?: boolean;
   nft_token_id?: string;
-  insurance_manager_contract_address?: string;
+  insurance_policy_nft_contract_address?: string;
 }
 
 export interface SmartContract {
@@ -88,8 +88,8 @@ export const mockCargoOrders: Order[] = [
     nft_token_id: 'NFT-CARGO-001',
     is_insured: true,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -108,7 +108,7 @@ export const mockCargoOrders: Order[] = [
     nft_token_id: 'NFT-CARGO-002',
     is_insured: false,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -126,8 +126,8 @@ export const mockCargoOrders: Order[] = [
     nft_token_id: 'NFT-CARGO-003',
     is_insured: true,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -145,7 +145,7 @@ export const mockCargoOrders: Order[] = [
     status: 'pending',
     is_insured: false,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -163,8 +163,8 @@ export const mockCargoOrders: Order[] = [
     nft_token_id: 'NFT-CARGO-005',
     is_insured: true,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -182,8 +182,8 @@ export const mockCargoOrders: Order[] = [
     nft_token_id: 'NFT-CARGO-006',
     is_insured: true,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -201,7 +201,7 @@ export const mockCargoOrders: Order[] = [
     nft_token_id: 'NFT-CARGO-007',
     is_insured: false,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -218,7 +218,7 @@ export const mockCargoOrders: Order[] = [
     status: 'pending',
     is_insured: false,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -237,8 +237,8 @@ export const mockCargoOrders: Order[] = [
     nft_token_id: 'NFT-CARGO-009',
     is_insured: true,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -257,7 +257,7 @@ export const mockCargoOrders: Order[] = [
     nft_token_id: 'NFT-CARGO-010',
     is_insured: false,
     cargo_nft_contract_address: contractAddresses.cargoNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
 ];
@@ -279,7 +279,7 @@ export const mockVesselOrders: Order[] = [
     nft_token_id: 'NFT-VESSEL-001',
     is_insured: false,
     vessel_nft_contract_address: contractAddresses.vesselNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -297,8 +297,8 @@ export const mockVesselOrders: Order[] = [
     nft_token_id: 'NFT-VESSEL-002',
     is_insured: true,
     vessel_nft_contract_address: contractAddresses.vesselNFT,
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -315,7 +315,7 @@ export const mockVesselOrders: Order[] = [
     status: 'pending',
     is_insured: false,
     vessel_nft_contract_address: contractAddresses.vesselNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -333,8 +333,8 @@ export const mockVesselOrders: Order[] = [
     nft_token_id: 'NFT-VESSEL-004',
     is_insured: true,
     vessel_nft_contract_address: contractAddresses.vesselNFT,
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -352,7 +352,7 @@ export const mockVesselOrders: Order[] = [
     nft_token_id: 'NFT-VESSEL-005',
     is_insured: false,
     vessel_nft_contract_address: contractAddresses.vesselNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -370,8 +370,8 @@ export const mockVesselOrders: Order[] = [
     nft_token_id: 'NFT-VESSEL-006',
     is_insured: true,
     vessel_nft_contract_address: contractAddresses.vesselNFT,
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -388,7 +388,7 @@ export const mockVesselOrders: Order[] = [
     status: 'pending',
     is_insured: false,
     vessel_nft_contract_address: contractAddresses.vesselNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -406,7 +406,7 @@ export const mockVesselOrders: Order[] = [
     nft_token_id: 'NFT-VESSEL-008',
     is_insured: false,
     vessel_nft_contract_address: contractAddresses.vesselNFT,
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
 ];
@@ -418,7 +418,7 @@ export const mockOrderMatches: OrderMatch[] = [
     vessel_order_id: '770e8400-e29b-41d4-a716-446655440004', // Product Tanker
     match_price_ink: 31500.00,
     status: 'active',
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -426,7 +426,7 @@ export const mockOrderMatches: OrderMatch[] = [
     vessel_order_id: '770e8400-e29b-41d4-a716-446655440002', // Bulk Carrier
     match_price_ink: 26500.00,
     status: 'pending',
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
   {
@@ -434,7 +434,7 @@ export const mockOrderMatches: OrderMatch[] = [
     vessel_order_id: '770e8400-e29b-41d4-a716-446655440005', // General Cargo Vessel
     match_price_ink: 18500.00,
     status: 'pending',
-    journey_manager_contract_address: contractAddresses.journeyManager,
+    journey_nft_contract_address: contractAddresses.journeyNFT,
     brokerage_contract_address: contractAddresses.brokerage,
   },
 ];
@@ -451,7 +451,7 @@ export const mockInsurancePolicies: InsurancePolicy[] = [
     data_source: 'PortAuthorityAPI',
     is_active: true,
     nft_token_id: 'NFT-POLICY-001',
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
   },
   {
     order_id: '660e8400-e29b-41d4-a716-446655440003', // Grain Bulk Export
@@ -463,7 +463,7 @@ export const mockInsurancePolicies: InsurancePolicy[] = [
     data_source: 'WeatherOracle',
     is_active: true,
     nft_token_id: 'NFT-POLICY-002',
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
   },
   {
     order_id: '660e8400-e29b-41d4-a716-446655440005', // Steel Coils Transport
@@ -475,7 +475,7 @@ export const mockInsurancePolicies: InsurancePolicy[] = [
     data_source: 'PortAuthorityAPI',
     is_active: true,
     nft_token_id: 'NFT-POLICY-003',
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
   },
   {
     order_id: '660e8400-e29b-41d4-a716-446655440006', // Crude Oil Shipment
@@ -487,7 +487,7 @@ export const mockInsurancePolicies: InsurancePolicy[] = [
     data_source: 'GeopoliticalOracle',
     is_active: true,
     nft_token_id: 'NFT-POLICY-004',
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
   },
   {
     order_id: '660e8400-e29b-41d4-a716-446655440009', // Luxury Vehicles
@@ -499,7 +499,7 @@ export const mockInsurancePolicies: InsurancePolicy[] = [
     data_source: 'SecurityOracle',
     is_active: true,
     nft_token_id: 'NFT-POLICY-005',
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
   },
   {
     order_id: '770e8400-e29b-41d4-a716-446655440002', // Bulk Carrier
@@ -511,7 +511,7 @@ export const mockInsurancePolicies: InsurancePolicy[] = [
     data_source: 'VesselTrackingAPI',
     is_active: true,
     nft_token_id: 'NFT-POLICY-006',
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
   },
   {
     order_id: '770e8400-e29b-41d4-a716-446655440006', // LNG Carrier
@@ -523,7 +523,7 @@ export const mockInsurancePolicies: InsurancePolicy[] = [
     data_source: 'SafetyMonitoringAPI',
     is_active: true,
     nft_token_id: 'NFT-POLICY-007',
-    insurance_manager_contract_address: contractAddresses.insuranceManager,
+    insurance_policy_nft_contract_address: contractAddresses.insurancePolicyNFT,
   },
 ];
 
@@ -542,14 +542,14 @@ export const mockSmartContracts: SmartContract[] = [
     is_active: true,
   },
   {
-    contract_name: 'InsuranceManager',
-    contract_address: contractAddresses.insuranceManager,
+    contract_name: 'InsurancePolicyNFT',
+    contract_address: contractAddresses.insurancePolicyNFT,
     network: 'ink-sepolia',
     is_active: true,
   },
   {
-    contract_name: 'JourneyManager',
-    contract_address: contractAddresses.journeyManager,
+    contract_name: 'JourneyNFT',
+    contract_address: contractAddresses.journeyNFT,
     network: 'ink-sepolia',
     is_active: true,
   },

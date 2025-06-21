@@ -24,13 +24,13 @@ const SMART_CONTRACTS = [
     abi_hash: 'cargo_nft_abi_v1'
   },
   {
-    contract_name: 'InsuranceManager',
+    contract_name: 'InsurancePolicyNFT',
     contract_address: '0x942088Ca56CA4e98ac33855cA25481a09E05fBCA',
     network: 'sepolia',
     abi_hash: 'insurance_manager_abi_v1'
   },
   {
-    contract_name: 'JourneyManager',
+    contract_name: 'JourneyNFT',
     contract_address: '0xe71b13b0D639BdfBe8dFF5d07d396852984f333B',
     network: 'sepolia',
     abi_hash: 'journey_manager_abi_v1'
@@ -269,8 +269,8 @@ async function populateDatabase() {
         .from('orders')
         .update({ 
           cargo_nft_contract_address: contractMap['CargoNFT'],
-          insurance_manager_contract_address: contractMap['InsuranceManager'],
-          journey_manager_contract_address: contractMap['JourneyManager'],
+          insurance_policy_nft_contract_address: contractMap['InsurancePolicyNFT'],
+          journey_nft_contract_address: contractMap['JourneyNFT'],
           brokerage_contract_address: contractMap['Brokerage']
         })
         .eq('order_type', 'cargo');
@@ -284,8 +284,8 @@ async function populateDatabase() {
         .from('orders')
         .update({ 
           vessel_nft_contract_address: contractMap['VesselNFT'],
-          insurance_manager_contract_address: contractMap['InsuranceManager'],
-          journey_manager_contract_address: contractMap['JourneyManager'],
+          insurance_policy_nft_contract_address: contractMap['InsurancePolicyNFT'],
+          journey_nft_contract_address: contractMap['JourneyNFT'],
           brokerage_contract_address: contractMap['Brokerage']
         })
         .eq('order_type', 'vessel');
