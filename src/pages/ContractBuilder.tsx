@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +33,6 @@ const ContractBuilder = () => {
   const [aiRiskAssessment, setAiRiskAssessment] = useState<string>('');
   const [isLoadingRiskAssessment, setIsLoadingRiskAssessment] = useState(false);
 
-  // Calculate premium based on policy type and force majeure coverage
   const basePremium = policyType === 'shipper' 
     ? Math.round(payoutAmount * 0.05) 
     : Math.round(payoutAmount * 0.08);
@@ -288,21 +286,6 @@ const ContractBuilder = () => {
                     </p>
                   </div>
                 )}
-
-                {/* Historical Risk Data */}
-                <div className="text-[#CCD6F6] font-serif">
-                  <p className="text-sm mb-3">
-                    Historical {policyType === 'shipper' ? 'delay' : 'damage'} probability:
-                  </p>
-                  <div className="space-y-2">
-                    {getRiskData().map((item, index) => (
-                      <div key={index} className="flex justify-between text-sm">
-                        <span>{item.label}</span>
-                        <span className="text-[#D4AF37]">{item.probability}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
