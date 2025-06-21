@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,7 +22,7 @@ const Marketplace = () => {
   const queryClient = useQueryClient();
   
   const [detailsModal, setDetailsModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
-  const [insuranceModal, setInsuranceModal] = useState<{ open: boolean, policy: any | null }>({ open: false, policy: null });
+  const [insuranceModal, setInsuranceModal] = useState<{ open: boolean, policy: any | null, loading: boolean }>({ open: false, policy: null, loading: false });
   const [selectInsuranceModal, setSelectInsuranceModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
   
   const { data: orders, isLoading } = useQuery({
@@ -40,6 +41,55 @@ const Marketplace = () => {
   const cargoOrders = orders?.filter(order => order.order_type === 'cargo') || [];
   const vesselOrders = orders?.filter(order => order.order_type === 'vessel') || [];
 
+  const fetchInsurancePolicyDetails = async (order: any) => {
+    setInsuranceModal({ open: false, policy: null, loading: true });
+    
+    try {
+      let policyData = null;
+      
+      if (order.selected_insurance_policy_id) {
+        // Fetch from insurance_templates table
+        const { data, error } = await supabase
+          .from('insurance_templates')
+          .select('*')
+          .eq('id', order.selected_insurance_policy_id)
+          .single();
+        
+        if (error) throw error;
+        policyData = { ...data, isTemplate: true };
+      } else if (order.user_insurance_policy_id) {
+        // Fetch from user_insurance_policies table
+        const { data, error } = await supabase
+          .from('user_insurance_policies')
+          .select('*')
+          .eq('id', order.user_insurance_policy_id)
+          .single();
+        
+        if (error) throw error;
+        policyData = { ...data, isTemplate: false };
+      }
+      
+      if (policyData) {
+        setInsuranceModal({ open: true, policy: policyData, loading: false });
+      } else {
+        toast({
+          title: "Error",
+          description: "Insurance policy details not found",
+          variant: "destructive",
+        });
+        setInsuranceModal({ open: false, policy: null, loading: false });
+      }
+    } catch (error: any) {
+      console.error('Error fetching insurance policy:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load insurance policy details",
+        variant: "destructive",
+      });
+      setInsuranceModal({ open: false, policy: null, loading: false });
+    }
+  };
+
   const OrderCard = ({ order }: { order: any }) => (
     <Card className="maritime-card maritime-card-glow">
       <CardHeader className="pb-3">
@@ -52,7 +102,7 @@ const Marketplace = () => {
             <button
               type="button"
               className="focus:outline-none"
-              onClick={() => setInsuranceModal({ open: true, policy: order })}
+              onClick={() => fetchInsurancePolicyDetails(order)}
               title="View Insurance Policy Details"
             >
               <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium cursor-pointer hover:underline">
@@ -325,33 +375,43 @@ const Marketplace = () => {
       </Dialog>
 
       {/* Insurance Policy Details Modal */}
-      <Dialog open={insuranceModal.open} onOpenChange={open => setInsuranceModal({ open, policy: open ? insuranceModal.policy : null })}>
+      <Dialog open={insuranceModal.open || insuranceModal.loading} onOpenChange={open => {
+        if (!insuranceModal.loading) {
+          setInsuranceModal({ open, policy: open ? insuranceModal.policy : null, loading: false });
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Insurance Policy Details</DialogTitle>
             <DialogDescription>
-              Below are the details of the insurance policy for this order:
+              {insuranceModal.loading ? 'Loading insurance policy details...' : 'Below are the details of the insurance policy for this order:'}
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 text-sm text-[#CCD6F6] space-y-2">
-            {insuranceModal.policy && (
-              <>
-                <div><b>Policy Name:</b> {insuranceModal.policy.policy_name || 'N/A'}</div>
-                <div><b>Description:</b> {insuranceModal.policy.policy_description || insuranceModal.policy.description || 'N/A'}</div>
-                <div><b>Premium:</b> {insuranceModal.policy.premium_eth || insuranceModal.policy.premium_ink || 'N/A'} ETH</div>
-                <div><b>Payout:</b> {insuranceModal.policy.payout_amount_eth || insuranceModal.policy.payout_amount_ink || 'N/A'} ETH</div>
-                <div><b>Status:</b> {insuranceModal.policy.is_insured ? 'Active' : 'Inactive'}</div>
-                {insuranceModal.policy.trigger_condition && (
+          {insuranceModal.loading ? (
+            <div className="mt-4 text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37] mx-auto"></div>
+              <p className="text-[#CCD6F6] mt-2">Loading...</p>
+            </div>
+          ) : (
+            <div className="mt-4 text-sm text-[#CCD6F6] space-y-2">
+              {insuranceModal.policy && (
+                <>
+                  <div><b>Policy Name:</b> {insuranceModal.policy.policy_name}</div>
+                  <div><b>Description:</b> {insuranceModal.policy.description}</div>
+                  <div><b>Premium:</b> {insuranceModal.policy.premium_eth} ETH</div>
+                  <div><b>Payout:</b> {insuranceModal.policy.payout_amount_eth} ETH</div>
+                  <div><b>Policy Type:</b> {insuranceModal.policy.isTemplate ? 'Template Policy' : 'Custom Policy'}</div>
                   <div><b>Trigger Condition:</b> {insuranceModal.policy.trigger_condition}</div>
-                )}
-                {insuranceModal.policy.delay_threshold_hours && (
-                  <div><b>Delay Threshold:</b> {insuranceModal.policy.delay_threshold_hours} hours</div>
-                )}
-              </>
-            )}
-          </div>
+                  {insuranceModal.policy.delay_threshold_hours && (
+                    <div><b>Delay Threshold:</b> {insuranceModal.policy.delay_threshold_hours} hours</div>
+                  )}
+                  <div><b>Status:</b> Active</div>
+                </>
+              )}
+            </div>
+          )}
           <DialogFooter>
-            <Button onClick={() => setInsuranceModal({ open: false, policy: null })}>
+            <Button onClick={() => setInsuranceModal({ open: false, policy: null, loading: false })} disabled={insuranceModal.loading}>
               Close
             </Button>
           </DialogFooter>
@@ -368,5 +428,13 @@ const Marketplace = () => {
     </div>
   );
 };
+
+const SkeletonGrid = ({ count }: { count: number }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {Array.from({ length: count }).map((_, index) => (
+      <SkeletonOrderCard key={index} />
+    ))}
+  </div>
+);
 
 export default Marketplace;
