@@ -59,7 +59,8 @@ const MOCK_ORDERS = [
     price_ink: 15000.00,
     status: 'pending',
     is_insured: true,
-    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'CargoNFT')?.contract_address ?? ""
   },
   {
     order_type: 'cargo',
@@ -75,7 +76,8 @@ const MOCK_ORDERS = [
     price_ink: 8000.00,
     status: 'active',
     is_insured: true,
-    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'CargoNFT')?.contract_address ?? ""
   },
   {
     order_type: 'cargo',
@@ -91,7 +93,8 @@ const MOCK_ORDERS = [
     price_ink: 25000.00,
     status: 'matched',
     is_insured: true,
-    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3'
+    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'CargoNFT')?.contract_address ?? ""
   },
   {
     order_type: 'cargo',
@@ -107,7 +110,8 @@ const MOCK_ORDERS = [
     price_ink: 18000.00,
     status: 'pending',
     is_insured: false,
-    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'CargoNFT')?.contract_address ?? ""
   },
   {
     order_type: 'cargo',
@@ -123,7 +127,8 @@ const MOCK_ORDERS = [
     price_ink: 12000.00,
     status: 'active',
     is_insured: true,
-    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3'
+    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'CargoNFT')?.contract_address ?? ""
   },
   {
     order_type: 'cargo',
@@ -139,7 +144,8 @@ const MOCK_ORDERS = [
     price_ink: 9000.00,
     status: 'pending',
     is_insured: true,
-    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'CargoNFT')?.contract_address ?? ""
   },
 
   // Vessel Orders
@@ -157,7 +163,8 @@ const MOCK_ORDERS = [
     price_ink: 25000.00,
     status: 'pending',
     is_insured: false,
-    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3'
+    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'VesselNFT')?.contract_address ?? ""
   },
   {
     order_type: 'vessel',
@@ -173,7 +180,8 @@ const MOCK_ORDERS = [
     price_ink: 12000.00,
     status: 'active',
     is_insured: true,
-    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3'
+    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'VesselNFT')?.contract_address ?? ""
   },
   {
     order_type: 'vessel',
@@ -189,7 +197,8 @@ const MOCK_ORDERS = [
     price_ink: 35000.00,
     status: 'matched',
     is_insured: true,
-    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'VesselNFT')?.contract_address ?? ""
   },
   {
     order_type: 'vessel',
@@ -205,7 +214,8 @@ const MOCK_ORDERS = [
     price_ink: 20000.00,
     status: 'pending',
     is_insured: true,
-    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3'
+    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'VesselNFT')?.contract_address ?? ""
   },
   {
     order_type: 'vessel',
@@ -221,7 +231,8 @@ const MOCK_ORDERS = [
     price_ink: 15000.00,
     status: 'active',
     is_insured: false,
-    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'VesselNFT')?.contract_address ?? ""
   },
   {
     order_type: 'vessel',
@@ -237,7 +248,8 @@ const MOCK_ORDERS = [
     price_ink: 10000.00,
     status: 'pending',
     is_insured: true,
-    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3'
+    wallet_address: '0x8ba1f109551bD432803012645Hac136c772c3c3',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'VesselNFT')?.contract_address ?? ""
   },
   {
     order_type: 'vessel',
@@ -253,7 +265,8 @@ const MOCK_ORDERS = [
     price_ink: 18000.00,
     status: 'pending',
     is_insured: true,
-    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+    wallet_address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+    nft_contract_address: SMART_CONTRACTS.find(c => c.contract_name === 'VesselNFT')?.contract_address ?? ""
   }
 ];
 

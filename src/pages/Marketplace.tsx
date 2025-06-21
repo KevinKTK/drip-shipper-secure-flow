@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,6 +77,21 @@ const Marketplace = () => {
             <span className="text-xs text-[#CCD6F6]/70">NFT #{order.nft_token_id}</span>
           )}
         </div>
+        {order.nft_token_id && order.nft_contract_address && (
+          <a
+            href={`https://explorer-sepolia.inkonchain.com/token/${order.nft_contract_address}/instance/${order.nft_token_id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block mt-2 w-full"
+          >
+            <Button
+              variant="outline"
+              className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif"
+            >
+              See NFT contract (ink-scan)
+            </Button>
+          </a>
+        )}
 
         <Button 
           className="w-full maritime-button bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] font-serif border border-[#CCD6F6]/30"

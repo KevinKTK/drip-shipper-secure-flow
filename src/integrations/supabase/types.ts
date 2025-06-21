@@ -202,6 +202,7 @@ export type Database = {
           id: string
           is_insured: boolean | null
           nft_token_id: string | null
+          nft_contract_address: string | null
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
           price_eth: number
@@ -225,6 +226,7 @@ export type Database = {
           id?: string
           is_insured?: boolean | null
           nft_token_id?: string | null
+          nft_contract_address?: string | null
           order_type: Database["public"]["Enums"]["order_type"]
           origin_port: string
           price_eth: number
@@ -248,6 +250,7 @@ export type Database = {
           id?: string
           is_insured?: boolean | null
           nft_token_id?: string | null
+          nft_contract_address?: string | null
           order_type?: Database["public"]["Enums"]["order_type"]
           origin_port?: string
           price_eth?: number
