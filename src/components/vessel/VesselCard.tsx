@@ -23,6 +23,15 @@ const VesselCard = ({ vessel, onLogJourney, style }: VesselCardProps) => {
     return null;
   };
 
+  const extractVesselDetails = () => {
+    const description = vessel.description || '';
+    const flagState = description.split('Flag State: ')[1]?.split('\n')[0] || 'N/A';
+    const yearBuilt = description.split('Year Built: ')[1]?.split('\n')[0] || 'N/A';
+    return { flagState, yearBuilt };
+  };
+
+  const { flagState, yearBuilt } = extractVesselDetails();
+
   return (
     <Card 
       className="maritime-card bg-slate-800/50 border-slate-600/50 hover:border-cyan-400/50 hover:shadow-cyan-400/20 hover:shadow-lg transition-all duration-300 page-enter-stagger" 
@@ -59,6 +68,16 @@ const VesselCard = ({ vessel, onLogJourney, style }: VesselCardProps) => {
           <div className="flex items-center gap-2 text-slate-200 font-serif text-sm">
             <Package className="w-4 h-4 text-cyan-400 flex-shrink-0" />
             <span>Capacity: {vessel.weight_tons || 0} tons</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-slate-200 font-serif text-sm">
+            <Calendar className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+            <span>Year Built: {yearBuilt}</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-slate-200 font-serif text-sm">
+            <MapPin className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+            <span>Flag State: {flagState}</span>
           </div>
 
           {vessel.nft_token_id && (
