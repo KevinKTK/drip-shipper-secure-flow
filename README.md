@@ -10,7 +10,7 @@ DripShippa connects shippers and carriers in a decentralized marketplace, enabli
 
 - **NFT-based Orders:** Every shipping order, vessel, cargo, and journey is represented as a unique NFT on-chain.
 - **Parametric Insurance:** Smart contracts provide customizable, automated insurance policies for shipments, with instant payouts based on real-world data triggers.
-- **AI-Powered Routing & Risk:** Google Gemini agents (invoked via Supabase Edge Functions) suggest optimal shipping routes and assess risk for insurance, making logistics smarter and safer.
+- **AI-Powered Routing & Risk:** Google Gemini agents (invoked via Supabase Edge Functions) suggest optimal shipping routes and assess risk for insurance, making logistics smarter and safer. Route optimization results are visualized interactively on Google Maps.
 - **Transparent Brokerage:** All order matching, insurance, and journey logs are recorded on the Polygon zkEVM blockchain for full transparency.
 
 ---
@@ -39,7 +39,7 @@ DripShippa connects shippers and carriers in a decentralized marketplace, enabli
 
 ### 3. AI-Driven Logistics
 
-- **Route Optimization:** Google Gemini agents (via Supabase Edge Functions) suggest optimal shipping routes and visualize them on interactive maps.
+- **Route Optimization:** Google Gemini agents (via Supabase Edge Functions) suggest optimal shipping routes, which are visualized interactively on Google Maps within the app.
 - **Risk Assessment:** AI agents analyze routes and conditions to recommend insurance coverage and premiums.
 
 ### 4. Supabase Integration
@@ -84,7 +84,7 @@ npm run dev
 
 ## 🧠 AI Agents: Google Gemini (via Supabase Edge Functions)
 
-- **Route Planning:** The `AiRouteModal` component invokes a Supabase Edge Function (`gemini-maps-handler`) that uses Google Gemini to suggest and visualize optimal shipping routes.
+- **Route Planning:** The `AiRouteModal` component invokes a Supabase Edge Function (`gemini-maps-handler`) that uses Google Gemini to suggest and visualize optimal shipping routes. These routes are displayed interactively on Google Maps within the app, allowing users to see the AI-optimized path and milestones.
 - **Risk Analysis:** The `ContractBuilder` page uses an AI agent (`ai-risk-assessor`), also powered by Supabase Edge Functions, to analyze risk and recommend insurance parameters.
 - **Supabase Edge Functions** serve as the secure integration layer between the app and Google Gemini, ensuring privacy and scalability.
 
