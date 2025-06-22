@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Ship, Package, Calendar, MapPin } from 'lucide-react';
+import { ArrowLeft, Ship, Package, Calendar, MapPin, ExternalLink, DollarSign } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,6 +30,8 @@ const LogJourney = () => {
   });
 
   const [pendingJourneyData, setPendingJourneyData] = useState<any>(null);
+  const [pricingJourneyId, setPricingJourneyId] = useState<string | null>(null);
+  const [priceInput, setPriceInput] = useState('');
 
   // Handle NFT minting confirmation
   useEffect(() => {
@@ -171,6 +173,35 @@ const LogJourney = () => {
     },
   });
 
+  const setPriceMutation = useMutation({
+    mutationFn: async ({ journeyId, price }: { journeyId: string; price: number }) => {
+      const { data, error } = await supabase
+        .from('carrier_routes')
+        .update({ price_eth: price })
+        .eq('id', journeyId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Journey Published!', {
+        description: 'Your journey is now available on the marketplace.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['vessel-journeys'] });
+      queryClient.invalidateQueries({ queryKey: ['carrier-routes'] });
+      setPricingJourneyId(null);
+      setPriceInput('');
+    },
+    onError: (error: any) => {
+      console.error('Error setting journey price:', error);
+      toast.error('Failed to publish journey', {
+        description: error.message || 'Please try again.',
+      });
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -247,6 +278,21 @@ const LogJourney = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePublishToMarketplace = (journeyId: string) => {
+    setPricingJourneyId(journeyId);
+  };
+
+  const handleSetPrice = (journeyId: string) => {
+    const price = parseFloat(priceInput);
+    if (isNaN(price) || price <= 0) {
+      toast.error('Invalid Price', {
+        description: 'Please enter a valid price in ETH.',
+      });
+      return;
+    }
+    setPriceMutation.mutate({ journeyId, price });
   };
 
   const isProcessing = isMinting || isConfirming || createJourneyMutation.isPending;
@@ -446,22 +492,97 @@ const LogJourney = () => {
               <CardContent>
                 {journeys && journeys.length > 0 ? (
                   <div className="space-y-4">
-                    {journeys.slice(0, 5).map((journey, index) => (
-                      <div key={journey.id} className="border-b border-[#CCD6F6]/20 pb-4 last:border-b-0">
-                        <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-sm mb-1">
-                          <MapPin className="w-3 h-3 text-[#D4AF37]" />
-                          <span>{journey.origin_port} → {journey.destination_port}</span>
+                    {journeys.slice(0, 5).map((journey, index) => {
+                      const isPastJourney = new Date(journey.departure_date) < new Date();
+                      const isPriced = journey.price_eth !== null && journey.price_eth !== undefined;
+                      
+                      return (
+                        <div key={journey.id} className="border border-[#CCD6F6]/20 rounded-lg p-4 space-y-3">
+                          <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-sm mb-1">
+                            <MapPin className="w-3 h-3 text-[#D4AF37]" />
+                            <span>{journey.origin_port} → {journey.destination_port}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-xs">
+                            <Calendar className="w-3 h-3 text-[#D4AF37]" />
+                            <span>{new Date(journey.departure_date).toLocaleDateString()}</span>
+                            {isPastJourney && <span className="text-[#CCD6F6]/50 ml-1">(Past)</span>}
+                          </div>
+                          <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-xs">
+                            <Package className="w-3 h-3 text-[#D4AF37]" />
+                            <span>{Math.round((journey.available_capacity_kg || 0) / 1000)} tons available</span>
+                          </div>
+
+                          {/* Price Display */}
+                          {isPriced && (
+                            <div className="flex items-center gap-2 text-[#D4AF37]">
+                              <DollarSign className="w-3 h-3" />
+                              <span className="font-serif text-xs font-medium">{journey.price_eth} ETH</span>
+                              <span className="text-xs text-[#64FFDA] bg-[#64FFDA]/20 px-2 py-0.5 rounded">On Marketplace</span>
+                            </div>
+                          )}
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-2 pt-2">
+                            {/* Smart Contract Link (Emoji Button) */}
+                            {journey.nft_transaction_hash && (
+                              <a 
+                                href={`https://cardona-zkevm.polygonscan.com/tx/${journey.nft_transaction_hash}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-lg hover:scale-110 transition-transform"
+                                title="View on Blockchain"
+                              >
+                                ⛓️
+                              </a>
+                            )}
+
+                            {/* Publish to Marketplace Button */}
+                            {!isPriced && !isPastJourney && (
+                              <div className="flex-1">
+                                {pricingJourneyId === journey.id ? (
+                                  <div className="flex gap-1">
+                                    <Input
+                                      type="number"
+                                      step="0.001"
+                                      min="0"
+                                      placeholder="ETH"
+                                      value={priceInput}
+                                      onChange={(e) => setPriceInput(e.target.value)}
+                                      className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif text-xs h-6"
+                                    />
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleSetPrice(journey.id)}
+                                      disabled={setPriceMutation.isPending}
+                                      className="h-6 px-2 text-xs golden-button maritime-button font-serif"
+                                    >
+                                      {setPriceMutation.isPending ? '...' : '✓'}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setPricingJourneyId(null)}
+                                      className="h-6 px-2 text-xs text-[#CCD6F6] hover:text-[#D4AF37] font-serif"
+                                    >
+                                      ✕
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handlePublishToMarketplace(journey.id)}
+                                    className="h-6 px-2 text-xs maritime-button bg-[#D4AF37]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#D4AF37] font-serif border border-[#D4AF37]/30"
+                                  >
+                                    <DollarSign className="w-3 h-3 mr-1" />
+                                    Publish
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-xs">
-                          <Calendar className="w-3 h-3 text-[#D4AF37]" />
-                          <span>{new Date(journey.departure_date).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[#CCD6F6] font-serif text-xs">
-                          <Package className="w-3 h-3 text-[#D4AF37]" />
-                          <span>{Math.round((journey.available_capacity_kg || 0) / 1000)} tons available</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-[#CCD6F6] font-serif text-sm text-center py-8">
