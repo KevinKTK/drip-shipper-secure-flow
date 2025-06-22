@@ -1,4 +1,4 @@
-# Pitch Videe: https://youtu.be/bHavwJNRg3U
+# Pitch Video: https://youtu.be/bHavwJNRg3U
 
 
 # DripShippa: Decentralized Shipping Brokerage on Polygon zkEVM
