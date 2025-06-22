@@ -63,11 +63,11 @@ const RegisterVessel = () => {
       
       const { data: result, error } = await supabase
         .from('orders')
-        .insert([{
+        .insert({
           title: vesselData.vesselName,
           description: `IMO: ${vesselData.imoNumber}\nFlag State: ${vesselData.flagState}\nYear Built: ${vesselData.yearBuilt}\n${vesselData.description}`,
-          order_type: 'vessel',
-          vessel_type: vesselData.vesselType,
+          order_type: 'vessel' as const,
+          vessel_type: vesselData.vesselType as 'container_ship' | 'bulk_carrier' | 'tanker' | 'ro_ro' | 'general_cargo' | 'lng_carrier' | 'lpg_carrier',
           weight_tons: parseInt(vesselData.capacity) || 0,
           price_eth: 0,
           origin_port: 'TBD',
@@ -75,10 +75,10 @@ const RegisterVessel = () => {
           departure_date: new Date().toISOString().split('T')[0],
           arrival_date: new Date().toISOString().split('T')[0],
           wallet_address: address,
-          status: 'pending',
+          status: 'pending' as const,
           nft_token_id: vesselData.tokenId,
           nft_contract_address: vesselNFTAddress,
-        }])
+        })
         .select()
         .single();
       
