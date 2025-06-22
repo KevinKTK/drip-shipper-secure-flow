@@ -28,7 +28,7 @@ const Marketplace = () => {
   const { toast } = useToast();
   const { isConnected, address } = useAuth();
   const queryClient = useQueryClient();
-  
+
   const [detailsModal, setDetailsModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
   const [insuranceModal, setInsuranceModal] = useState<{ open: boolean, policy: any | null, loading: boolean }>({ open: false, policy: null, loading: false });
   const [selectInsuranceModal, setSelectInsuranceModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
@@ -54,7 +54,7 @@ const Marketplace = () => {
           )
         `)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
@@ -67,10 +67,10 @@ const Marketplace = () => {
 
   const fetchInsurancePolicyDetails = async (order: any) => {
     setInsuranceModal({ open: false, policy: null, loading: true });
-    
+
     try {
       let policyData = null;
-      
+
       if (order.selected_insurance_policy_id) {
         const { data, error } = await supabase.from('insurance_templates').select('*').eq('id', order.selected_insurance_policy_id).single();
         if (error) throw error;
@@ -80,7 +80,7 @@ const Marketplace = () => {
         if (error) throw error;
         policyData = { ...data, isTemplate: false };
       }
-      
+
       if (policyData) {
         setInsuranceModal({ open: true, policy: policyData, loading: false });
       } else {
@@ -184,9 +184,21 @@ const Marketplace = () => {
 
           {!order.is_insured && (<div className="space-y-2"><Button className="w-full maritime-button bg-[#64FFDA]/20 hover:bg-[#64FFDA] hover:text-[#0A192F] text-[#64FFDA] font-serif border border-[#64FFDA]/30" onClick={() => setSelectInsuranceModal({ open: true, order })} disabled={!isConnected}><Shield className="w-4 h-4 mr-2" />Select Insurance Policy</Button><Button className="w-full maritime-button bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] font-serif border border-[#CCD6F6]/30" onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}>Create Custom Policy</Button></div>)}
           <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif mt-2" onClick={() => setDetailsModal({ open: true, order: displayJourney ? { ...order, ...displayJourney, vessel: order } : order })}>See Details</Button>
-          <Button variant="outline" className="w-full maritime-button bg-transparent hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#D4AF37] border border-[#D4AF37]/50 font-serif mt-2" onClick={() => {
-            setAiRouteModal({ open: true, order });}}
-            ><Wand2 className="w-4 h-4 mr-2" />Ask AI for Route</Button>
+          <Button
+              variant="outline"
+              className="w-full maritime-button bg-transparent hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#D4AF37] border border-[#D4AF37]/50 font-serif mt-2"
+              onClick={() => {
+                // Create a consistent object with the route info for the AI
+                const routeInfo = {
+                  origin_port: displayJourney?.origin_port || order.origin_port,
+                  destination_port: displayJourney?.destination_port || order.destination_port,
+                };
+                setAiRouteModal({ open: true, order: routeInfo });
+              }}
+          >
+            <Wand2 className="w-4 h-4 mr-2" />
+            Ask AI for Route
+          </Button>
         </CardContent>
       </Card>
     )
@@ -238,7 +250,7 @@ const Marketplace = () => {
                 Available Vessels ({isLoading ? '...' : vesselOrders.length})
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="cargo" className="mt-6">
               {isLoading ? (
                 <SkeletonGrid count={6} />
@@ -258,7 +270,7 @@ const Marketplace = () => {
                 </div>
               )}
             </TabsContent>
-            
+
             <TabsContent value="vessel" className="mt-6">
               {isLoading ? (
                 <SkeletonGrid count={6} />
@@ -291,7 +303,7 @@ const Marketplace = () => {
           </Tabs>
         </div>
       </div>
-      
+
       <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, order: open ? detailsModal.order : null })}>
         <DialogContent className="maritime-modal max-w-2xl">
           <DialogHeader>
@@ -353,10 +365,10 @@ const Marketplace = () => {
                       <span className="text-lg text-[#FFFFFF] font-semibold">{detailsModal.order.price_eth || 'Contact for pricing'} ETH</span>
                     </div>
                   </DetailItem>
-                  
+
                   <div className="space-y-2">
                      <p className="text-sm text-[#CCD6F6]/70">On-Chain Assets</p>
-                    
+
                     {/* Journey NFT */}
                     {detailsModal.order.nft_transaction_hash && (
                          <Button
@@ -407,7 +419,7 @@ const Marketplace = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       <Dialog open={insuranceModal.open || insuranceModal.loading} onOpenChange={open => { if (!insuranceModal.loading) { setInsuranceModal({ open, policy: open ? insuranceModal.policy : null, loading: false }); } }}>
         <DialogContent className="maritime-modal">
           <DialogHeader>
@@ -440,11 +452,11 @@ const Marketplace = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      <InsurancePolicyModal 
-        isOpen={selectInsuranceModal.open} 
-        onClose={() => setSelectInsuranceModal({ open: false, order: null })} 
-        onSelectPolicy={handleApplyInsurance} 
+
+      <InsurancePolicyModal
+        isOpen={selectInsuranceModal.open}
+        onClose={() => setSelectInsuranceModal({ open: false, order: null })}
+        onSelectPolicy={handleApplyInsurance}
         policyType={selectInsuranceModal.order?.order_type === 'cargo' ? 'shipper' : 'carrier'}
       />
       <AiRouteModal isOpen={aiRouteModal.open} onClose={() => setAiRouteModal({ open: false, order: null })} order={aiRouteModal.order} />
