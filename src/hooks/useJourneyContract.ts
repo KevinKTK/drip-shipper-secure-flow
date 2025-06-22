@@ -38,6 +38,29 @@ export const useJourneyContract = () => {
     expectedArrivalTimestamp: number;
   }) => {
     try {
+      console.log('Minting Journey NFT with params:', {
+        to: params.to,
+        vesselTokenId: params.vesselTokenId,
+        originPort: params.originPort,
+        destinationPort: params.destinationPort,
+        departureTimestamp: params.departureTimestamp,
+        expectedArrivalTimestamp: params.expectedArrivalTimestamp,
+        contractAddress: contractAddresses.journeyNFT
+      });
+
+      // Validate parameters before sending
+      if (!params.to || !params.vesselTokenId || !params.originPort || !params.destinationPort) {
+        throw new Error('Missing required parameters for Journey NFT minting');
+      }
+
+      if (params.departureTimestamp <= 0 || params.expectedArrivalTimestamp <= 0) {
+        throw new Error('Invalid timestamp values');
+      }
+
+      if (params.expectedArrivalTimestamp <= params.departureTimestamp) {
+        throw new Error('Expected arrival must be after departure');
+      }
+
       await writeContract({
         address: contractAddresses.journeyNFT as `0x${string}`,
         abi: JOURNEY_NFT_ABI,
@@ -52,6 +75,7 @@ export const useJourneyContract = () => {
         ],
         chain: polygonZkEvmCardona,
         account: address,
+        gas: BigInt(500000), // Set reasonable gas limit
       });
     } catch (error) {
       console.error('Error minting journey NFT:', error);
