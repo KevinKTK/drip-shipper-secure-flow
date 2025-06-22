@@ -162,7 +162,7 @@ const ShipperView = () => {
       if (mintedTokenId) {
         // Calculate expected delivery timestamp (departure + estimated transit time)
         const estimatedTransitDays = 14; // Default 14 days for international shipping
-        const expectedDeliveryDate = addDays(departureDate!, estimatedTransitDays);
+        const expectedDeliveryDate = departureDate ? addDays(departureDate, estimatedTransitDays) : new Date();
         
         const orderData = {
           order_type: 'cargo',
@@ -178,7 +178,7 @@ const ShipperView = () => {
           is_insured: !!selectedInsurance,
           // Handle both template and custom policies
           selected_insurance_policy_id: selectedInsurance?.isTemplate ? selectedInsurance.id : null,
-          user_insurance_policy_id: selectedInsurance?.isTemplate ? null : selectedInsurance.id,
+          user_insurance_policy_id: (selectedInsurance && !selectedInsurance.isTemplate) ? selectedInsurance.id : null,
           status: 'pending',
           wallet_address: address,
           nft_token_id: mintedTokenId,
