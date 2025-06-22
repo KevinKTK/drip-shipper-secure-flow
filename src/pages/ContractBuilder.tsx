@@ -96,7 +96,7 @@ const ContractBuilder = () => {
       toast.success("Policy Saved to Database!", {
         description: `Policy "${policy.policy_name}" (NFT #${policy.nft_token_id}) is now in your portfolio.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['user-insurance-policies'] });
+      queryClient.invalidateQueries({ queryKey: ['user-insurance-policies', address, policyType] });
     },
     onError: (error: any) => {
       console.error('Policy creation error:', error);

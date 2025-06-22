@@ -15,6 +15,14 @@ import AiRouteModal from '@/components/shipping/AiRouteModal';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
+const DetailItem = ({ label, value, children }: { label: string; value?: string | React.ReactNode; children?: React.ReactNode }) => (
+  <div>
+    <span className="text-sm text-[#CCD6F6]/70">{label}</span>
+    {value && <p className="text-md text-[#FFFFFF]">{value}</p>}
+    {children}
+  </div>
+);
+
 const Marketplace = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -295,38 +303,101 @@ const Marketplace = () => {
             </DialogDescription>
           </DialogHeader>
           {detailsModal.order && (
-            <div className="space-y-4 text-[#CCD6F6] font-serif">
-              <div className="grid grid-cols-2 gap-4">
-                <div><strong>Origin:</strong> {detailsModal.order.origin_port}</div>
-                <div><strong>Destination:</strong> {detailsModal.order.destination_port}</div>
-                <div><strong>Departure:</strong> {new Date(detailsModal.order.departure_date).toLocaleDateString()}</div>
+            <div className="space-y-6 text-[#CCD6F6] font-serif py-4">
+
+              {/* Route Information */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-medium text-[#D4AF37] border-b border-[#D4AF37]/20 pb-2">Route Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <DetailItem label="Origin Port" value={detailsModal.order.origin_port} />
+                  <DetailItem label="Destination Port" value={detailsModal.order.destination_port} />
+                  <DetailItem label="Departure Date" value={new Date(detailsModal.order.departure_date).toLocaleDateString()} />
                 {detailsModal.order.arrival_date && (
-                  <div><strong>Arrival:</strong> {new Date(detailsModal.order.arrival_date).toLocaleDateString()}</div>
+                    <DetailItem label="Estimated Arrival" value={new Date(detailsModal.order.arrival_date).toLocaleDateString()} />
                 )}
+                </div>
               </div>
-              {detailsModal.order.description && (
-                <div><strong>Description:</strong> {detailsModal.order.description}</div>
+
+              {/* Cargo/Vessel Specs */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-medium text-[#D4AF37] border-b border-[#D4AF37]/20 pb-2">Specifications</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(detailsModal.order.vessel_type || detailsModal.order.vessel?.vessel_type) && (
+                    <DetailItem label="Vessel Type" value={(detailsModal.order.vessel_type || detailsModal.order.vessel?.vessel_type).replace(/_/g, ' ').toUpperCase()} />
               )}
               {detailsModal.order.cargo_type && (
-                <div><strong>Cargo Type:</strong> {detailsModal.order.cargo_type.replace('_', ' ').toUpperCase()}</div>
-              )}
-              {(detailsModal.order.vessel_type || detailsModal.order.vessel?.vessel_type) && (
-                <div><strong>Vessel Type:</strong> {(detailsModal.order.vessel_type || detailsModal.order.vessel?.vessel_type).replace('_', ' ').toUpperCase()}</div>
+                    <DetailItem label="Cargo Type" value={detailsModal.order.cargo_type.replace(/_/g, ' ').toUpperCase()} />
               )}
               {(detailsModal.order.weight_tons || detailsModal.order.vessel?.weight_tons) && (
-                <div><strong>Weight:</strong> {detailsModal.order.weight_tons || detailsModal.order.vessel?.weight_tons} tons</div>
+                    <DetailItem label="Weight" value={`${detailsModal.order.weight_tons || detailsModal.order.vessel?.weight_tons} tons`} />
               )}
               {detailsModal.order.volume_cbm && (
-                <div><strong>Volume:</strong> {detailsModal.order.volume_cbm} CBM</div>
+                    <DetailItem label="Volume" value={`${detailsModal.order.volume_cbm} CBM`} />
               )}
               {detailsModal.order.available_capacity_kg && (
-                <div><strong>Available Capacity:</strong> {Math.round(detailsModal.order.available_capacity_kg / 1000)} tons</div>
+                    <DetailItem label="Available Capacity" value={`${Math.round(detailsModal.order.available_capacity_kg / 1000)} tons`} />
+                  )}
+                </div>
+                {detailsModal.order.description && (
+                  <DetailItem label="Description" value={detailsModal.order.description} />
               )}
-              <div><strong>Price:</strong> {detailsModal.order.price_eth || 'Contact for pricing'} ETH</div>
-              <div><strong>Status:</strong> <Badge variant="outline">{detailsModal.order.status || 'Active'}</Badge></div>
-              {(detailsModal.order.vessel?.nft_token_id || detailsModal.order.nft_token_id) && (
-                <div><strong>NFT Token ID:</strong> #{detailsModal.order.vessel?.nft_token_id || detailsModal.order.nft_token_id}</div>
+              </div>
+
+              {/* Pricing & NFTs */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-medium text-[#D4AF37] border-b border-[#D4AF37]/20 pb-2">Financials & Verification</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                  <DetailItem label="Price">
+                    <div className="flex items-center gap-2">
+                      <Coins className="w-5 h-5 text-[#D4AF37]" />
+                      <span className="text-lg text-[#FFFFFF] font-semibold">{detailsModal.order.price_eth || 'Contact for pricing'} ETH</span>
+                    </div>
+                  </DetailItem>
+                  
+                  <div className="space-y-2">
+                     <p className="text-sm text-[#CCD6F6]/70">On-Chain Assets</p>
+                    
+                    {/* Journey NFT */}
+                    {detailsModal.order.nft_transaction_hash && (
+                         <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`https://cardona-zkevm.polygonscan.com/tx/${detailsModal.order.nft_transaction_hash}`, '_blank')}
+                            className="w-full maritime-button bg-transparent hover:bg-[#64FFDA] hover:text-[#0A192F] text-[#64FFDA] border border-[#64FFDA]/50 font-serif"
+                        >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            View Journey NFT
+                        </Button>
+                    )}
+
+                    {/* Vessel NFT */}
+                    {(detailsModal.order.vessel?.vessel_nft_contract_address || detailsModal.order.vessel_nft_contract_address) && (detailsModal.order.vessel?.nft_token_id || detailsModal.order.nft_token_id) && (
+                         <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`https://cardona-zkevm.polygonscan.com/token/${detailsModal.order.vessel?.vessel_nft_contract_address || detailsModal.order.vessel_nft_contract_address}?a=${detailsModal.order.vessel?.nft_token_id || detailsModal.order.nft_token_id}`, '_blank')}
+                            className="w-full maritime-button bg-transparent hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#D4AF37] border border-[#D4AF37]/50 font-serif"
+                        >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            View Vessel NFT
+                        </Button>
+                    )}
+
+                    {/* Cargo NFT */}
+                    {detailsModal.order.order_type === 'cargo' && detailsModal.order.nft_contract_address && detailsModal.order.nft_token_id && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`https://cardona-zkevm.polygonscan.com/token/${detailsModal.order.nft_contract_address}?a=${detailsModal.order.nft_token_id}`, '_blank')}
+                            className="w-full maritime-button bg-transparent hover:bg-[#64FFDA] hover:text-[#0A192F] text-[#64FFDA] border border-[#64FFDA]/50 font-serif"
+                        >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            View Cargo NFT
+                        </Button>
               )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
