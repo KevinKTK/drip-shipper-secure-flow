@@ -19,37 +19,15 @@ import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagm
 import { parseEther, parseAbiItem, decodeEventLog, stringToHex } from 'viem';
 import InsurancePolicyNFT from '@/../contracts/ABI/InsurancePolicyNFT.json';
 import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 // --- Type Definitions ---
-interface RiskProbability {
-  threshold: number;
-  probability: number;
-}
-interface RiskAssessmentData {
-  type: 'delay' | 'damage';
-  summary: string;
-  probabilities: RiskProbability[];
-}
-
-interface PolicyMintedEventArgs {
-  policyTokenId: bigint;
-}
-
-interface PolicyMintedEvent {
-  eventName: 'PolicyMinted';
-  args: PolicyMintedEventArgs;
-}
-
-enum SolidityPolicyType {
-  Vessel = 0,
-  Cargo = 1,
-}
-enum SolidityTriggerCondition {
-  None = 0,
-  ArrivalDelay = 1,
-  TemperatureFluctuation = 2,
-  WeatherDamage = 3,
-}
+interface RiskProbability { threshold: number; probability: number; }
+interface RiskAssessmentData { type: 'delay' | 'damage'; summary: string; probabilities: RiskProbability[]; }
+interface PolicyMintedEventArgs { policyTokenId: bigint; }
+interface PolicyMintedEvent { eventName: 'PolicyMinted'; args: PolicyMintedEventArgs; }
+enum SolidityPolicyType { Vessel = 0, Cargo = 1 }
+enum SolidityTriggerCondition { None = 0, ArrivalDelay = 1, TemperatureFluctuation = 2, WeatherDamage = 3 }
 
 // --- Component ---
 const ContractBuilder = () => {
@@ -61,9 +39,7 @@ const ContractBuilder = () => {
 
   // Wagmi hooks
   const { data: mintTxHash, isPending: isMintingPending, writeContract, error: mintError, reset: resetWriteContract } = useWriteContract();
-  const { data: mintTxReceipt, isLoading: isMintingTxLoading, isSuccess: isMintingTxSuccess } = useWaitForTransactionReceipt({
-    hash: mintTxHash,
-  });
+  const { data: mintTxReceipt, isLoading: isMintingTxLoading, isSuccess: isMintingTxSuccess } = useWaitForTransactionReceipt({ hash: mintTxHash });
 
   // Component State
   const [policyType, setPolicyType] = useState<'shipper' | 'carrier'>('shipper');
@@ -77,6 +53,7 @@ const ContractBuilder = () => {
   const [aiRiskAssessment, setAiRiskAssessment] = useState<RiskAssessmentData | null>(null);
   const [isLoadingRiskAssessment, setIsLoadingRiskAssessment] = useState(false);
   const policyDataForDb = useRef<any>(null);
+  const [successModal, setSuccessModal] = useState<{ open: boolean, policyName?: string, tokenId?: string, contract?: string }>({ open: false });
 
   const calculatedPremium = (() => {
     const payout = parseFloat(payoutAmount) || 0;
@@ -84,6 +61,7 @@ const ContractBuilder = () => {
     const forceMajeureRate = includeForceMajeure ? 1.2 : 1.0;
     return payout * baseRate * forceMajeureRate;
   })();
+
 
   const createPolicyMutation = useMutation({
     mutationFn: async (policyData: any) => {
@@ -96,43 +74,36 @@ const ContractBuilder = () => {
       toast.success("Policy Saved to Database!", {
         description: `Policy "${policy.policy_name}" (NFT #${policy.nft_token_id}) is now in your portfolio.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['user-insurance-policies', address, policyType] });
+      queryClient.invalidateQueries({ queryKey: ['user-insurance-policies', address] });
+      setSuccessModal({
+        open: true,
+        policyName: policy.policy_name,
+        tokenId: policy.nft_token_id,
+        contract: policy.nft_contract_address
+      });
+      resetWriteContract();
     },
     onError: (error: any) => {
-      console.error('Policy creation error:', error);
-      toast.error("Database Error", { description: `NFT was minted but failed to save. Please contact support. Tx: ${mintTxHash}` });
+      console.error('Policy creation database error:', error);
+      toast.error("Database Save Failed", { description: `The NFT was minted, but saving it failed. Please contact support. Tx Hash: ${mintTxHash}` });
     },
   });
 
+  // The single source of truth for the button's loading state
+  const isProcessing = isMintingPending || isMintingTxLoading || createPolicyMutation.isPending;
+
   const handleMintPolicy = async () => {
-    // Validation checks
-    if (!isConnected || !address) {
-      toast.error("Wallet Required", { description: "Please connect your wallet." });
-      return;
-    }
-    if (!policyName.trim()) {
-      toast.error("Policy Name Required", { description: "Please enter a name for your policy." });
-      return;
-    }
+    if (isProcessing) return; // Prevent multiple clicks
+    // ... validation checks ...
+    if (!isConnected || !address) { toast.error("Wallet Required", { description: "Please connect your wallet." }); return; }
+    if (!policyName.trim()) { toast.error("Policy Name Required", { description: "Please enter a name for your policy." }); return; }
     const payoutInEth = parseFloat(payoutAmount);
-    if (isNaN(payoutInEth) || payoutInEth <= 0) {
-      toast.error("Invalid Payout", { description: "Payout amount must be a positive number." });
-      return;
-    }
+    if (isNaN(payoutInEth) || payoutInEth <= 0) { toast.error("Invalid Payout", { description: "Payout amount must be a positive number." }); return; }
 
     try {
-      const basePolicyData = {
-        wallet_address: address,
-        policy_name: policyName,
-        payout_amount_eth: payoutInEth,
-        premium_eth: calculatedPremium,
-        is_active: true,
-        policy_type: policyType
-      };
-
+      const basePolicyData = { wallet_address: address, policy_name: policyName, payout_amount_eth: payoutInEth, premium_eth: calculatedPremium, is_active: true, policy_type: policyType };
       let policyData;
       let contractArgs: (string | bigint | `0x${string}`)[];
-
       const payoutAmountWei = parseEther(payoutAmount);
       const expiryTimestamp = BigInt(Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60);
 
@@ -141,47 +112,31 @@ const ContractBuilder = () => {
         const triggerConditionEnum = BigInt(includeForceMajeure ? SolidityTriggerCondition.WeatherDamage : SolidityTriggerCondition.ArrivalDelay);
         const dataSource = stringToHex(includeForceMajeure ? 'PortAuthority_Weather' : 'PortAuthority', { size: 32 });
         const threshold = BigInt(delayThreshold[0]);
-
         policyData = { ...basePolicyData, delay_threshold_hours: delayThreshold[0] };
         contractArgs = [policyTypeEnum, BigInt(0), payoutAmountWei, triggerConditionEnum, dataSource, threshold, expiryTimestamp];
-
       } else { // carrier
         const policyTypeEnum = BigInt(SolidityPolicyType.Vessel);
         const triggerConditionEnum = BigInt(includeForceMajeure ? SolidityTriggerCondition.WeatherDamage : SolidityTriggerCondition.TemperatureFluctuation);
         const dataSource = stringToHex(includeForceMajeure ? 'CargoInspect_Weather' : 'CargoInspect', { size: 32 });
         const threshold = BigInt(damageThreshold[0]);
-
         policyData = { ...basePolicyData, cargo_damage_threshold_percentage: damageThreshold[0] };
         contractArgs = [policyTypeEnum, BigInt(0), payoutAmountWei, triggerConditionEnum, dataSource, threshold, expiryTimestamp];
       }
 
       policyDataForDb.current = policyData;
-      toast.info("Minting Policy NFT", { description: "Please confirm in your wallet..." });
+      toast.info("Minting Policy NFT", { description: "Please confirm the transaction in your wallet..." });
 
-      console.log("Submitting transaction with arguments:", contractArgs);
-
-      writeContract({
-        address: insurancePolicyNFTAddress,
-        abi: InsurancePolicyNFT.abi,
-        functionName: 'mintPolicy',
-        args: contractArgs,
-        // value: premiumWei, // REMOVED FOR DEMO PURPOSES
-        account: address,
-        chain,
-        gas: BigInt(500000),
-      });
-
+      writeContract({ address: insurancePolicyNFTAddress, abi: InsurancePolicyNFT.abi, functionName: 'mintPolicy', args: contractArgs, account: address, chain, gas: BigInt(500000) });
     } catch (e) {
-      console.error("Error during argument preparation:", e);
+      console.error("Error preparing transaction:", e);
       toast.error("Client Error", { description: "Failed to prepare the transaction. Check console for details."});
     }
   };
 
   // --- EFFECT HOOKS for Transaction Lifecycle ---
-
-  // 1. When the transaction is successfully mined
   useEffect(() => {
-    if (isMintingTxSuccess && mintTxReceipt) {
+    // Only proceed if the transaction is successful, a receipt is available, AND the database save isn't already in progress.
+    if (isMintingTxSuccess && mintTxReceipt && !createPolicyMutation.isPending) {
       let mintedTokenId: string | null = null;
       const eventAbi = parseAbiItem('event PolicyMinted(uint256 indexed policyTokenId, address indexed policyHolder, uint8 triggerCondition, uint256 payoutAmount)');
 
@@ -193,43 +148,24 @@ const ContractBuilder = () => {
               mintedTokenId = decodedLog.args.policyTokenId.toString();
               break;
             }
-          } catch (e) { /* Ignore decoding errors for other events */ }
+          } catch (e) { /* ignore other events */ }
         }
       }
 
       if (mintedTokenId && policyDataForDb.current) {
-        toast.success('NFT Minted Successfully!', {
-          description: `Policy NFT with Token ID #${mintedTokenId} has been created on-chain. Saving to database...`,
-        });
+        toast.success('NFT Minted Successfully!', { description: `Policy NFT #${mintedTokenId} created. Saving to database...` });
         const finalPolicyData = { ...policyDataForDb.current, nft_token_id: mintedTokenId, nft_contract_address: insurancePolicyNFTAddress };
+        // Trigger the database save. The `isSubmitting` state will be reset in `onSuccess` or `onError` of this mutation.
         createPolicyMutation.mutate(finalPolicyData);
       } else {
-        toast.error('Could not extract Token ID from transaction.', { description: `Tx Hash: ${mintTxHash}` });
+        toast.error('Could not verify mint in transaction.', { description: `Tx succeeded but event could not be read. Tx: ${mintTxHash}` });
       }
-
-      policyDataForDb.current = null;
-      resetWriteContract();
     }
-  }, [isMintingTxSuccess, mintTxReceipt]);
-  
-  // 2. When the transaction is sent to the wallet
-  useEffect(() => {
-    if (mintTxHash) {
-      toast.info("Transaction Sent!", {
-        description: "Waiting for blockchain confirmation...",
-        action: {
-          label: "View on Explorer",
-          onClick: () => window.open(`https://cardona-zkevm.polygonscan.com/tx/${mintTxHash}`, '_blank'),
-        },
-      });
-    }
-  }, [mintTxHash]);
+  }, [isMintingTxSuccess, mintTxReceipt, createPolicyMutation.isPending]);
 
-  // 3. When there is a wallet/network error
   useEffect(() => {
     if (mintError) {
       toast.error("Minting Error", { description: (mintError as any).shortMessage || mintError.message });
-      resetWriteContract();
     }
   }, [mintError]);
 
@@ -253,8 +189,6 @@ const ContractBuilder = () => {
       setIsLoadingRiskAssessment(false);
     }
   };
-
-  const isProcessing = isMintingPending || isMintingTxLoading || createPolicyMutation.isPending;
 
   return (
       <div className="min-h-screen bg-[#0A192F] maritime-background">
@@ -298,7 +232,9 @@ const ContractBuilder = () => {
             {/* Policy Builder Column */}
             <div className="lg:col-span-2 page-enter-stagger" style={{ animationDelay: '0.4s' }}>
               <Card className="maritime-card maritime-card-glow">
-                <CardHeader><CardTitle className="text-[#FFFFFF] font-serif font-medium">Build Your Policy</CardTitle></CardHeader>
+                <CardHeader>
+                  <CardTitle className="text-[#FFFFFF] font-serif font-medium">Build Your Policy</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-6">
                   {!isConnected && (<div className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/30 rounded-lg p-4"><p className="text-[#FF6B6B] font-serif text-sm">Please connect your wallet to create insurance policies</p></div>)}
                   <div className="space-y-3">
@@ -343,13 +279,57 @@ const ContractBuilder = () => {
                     <AlertTriangle className="w-5 h-5 text-[#FF6B6B] mt-0.5" /><p className="text-[#FF6B6B] font-serif text-sm">This will create a parametric policy that you can apply to your shipments.</p>
                   </div>
                   <Button onClick={handleMintPolicy} disabled={!policyName || isProcessing || !isConnected} className="w-full golden-button maritime-button font-serif font-semibold py-3 text-lg">
-                    {isProcessing ? (isMintingPending ? 'Waiting for signature...' : isMintingTxLoading ? 'Minting NFT...' : 'Saving to database...') : 'Create & Mint Policy NFT'}
+                    {isMintingPending ? 'Awaiting Confirmation...' :
+                     isMintingTxLoading ? 'Processing Transaction...' :
+                     createPolicyMutation.isPending ? 'Saving Policy...' :
+                     'Create & Mint Policy NFT'
+                    }
                   </Button>
                 </CardContent>
               </Card>
             </div>
           </div>
         </div>
+
+        <Dialog open={successModal.open} onOpenChange={open => setSuccessModal({ ...successModal, open })}>
+          <DialogContent className="maritime-card">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-serif text-white">Policy Created Successfully!</DialogTitle>
+              <DialogDescription className="text-[#CCD6F6] font-serif pt-2">
+                Your new insurance policy NFT has been minted and is ready to use.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-[#CCD6F6]">Policy Name:</span>
+                <span className="font-semibold text-white">{successModal.policyName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#CCD6F6]">NFT Token ID:</span>
+                <span className="font-mono text-white">{successModal.tokenId}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#CCD6F6]">Contract:</span>
+                <span className="font-mono text-white truncate w-48 text-right">{successModal.contract}</span>
+              </div>
+              <div className="pt-2">
+                <a
+                  href={`https://cardona-zkevm.polygonscan.com/token/${successModal.contract}?a=${successModal.tokenId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#64FFDA] underline hover:text-white transition-colors"
+                >
+                  View on Block Explorer
+                </a>
+              </div>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button onClick={() => setSuccessModal({ open: false })} className="w-full golden-button maritime-button">
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
   );
 };
