@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -18,17 +17,6 @@ import { parseAbiItem, decodeEventLog } from 'viem';
 import VesselNFT from '@/../contracts/ABI/VesselNFT.json';
 import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-
-interface VesselMintedEventArgs {
-  tokenId: bigint;
-  owner: string;
-  vesselName: string;
-}
-
-interface VesselMintedEvent {
-  eventName: 'VesselMinted';
-  args: VesselMintedEventArgs;
-}
 
 const RegisterVessel = () => {
   const navigate = useNavigate();
@@ -163,26 +151,23 @@ const RegisterVessel = () => {
       
       toast.success('Vessel NFT Minted! Saving vessel details...');
 
-      // Parse the transaction logs to find the minted token ID
+      // Extract token ID from Transfer event (ERC-721 standard)
       let mintedTokenId: string | null = null;
-      const eventAbi = parseAbiItem('event VesselMinted(uint256 indexed tokenId, address indexed owner, string vesselName)');
-
+      
+      // Look for Transfer event logs from our contract
       for (const log of mintTxReceipt.logs) {
-        try {
-          const decodedLog = decodeEventLog({ 
-            abi: [eventAbi], 
-            data: log.data, 
-            topics: log.topics 
-          }) as VesselMintedEvent;
+        console.log('Processing log:', log);
+        
+        // Check if this log is from our contract and is a Transfer event
+        if (log.address.toLowerCase() === vesselNFTAddress.toLowerCase() && 
+            log.topics[0] === '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
           
-          if (decodedLog.eventName === 'VesselMinted') {
-            mintedTokenId = decodedLog.args.tokenId.toString();
-            console.log('Successfully extracted token ID:', mintedTokenId);
+          // Extract token ID from topics[3] (Transfer event: from, to, tokenId)
+          if (log.topics[3]) {
+            mintedTokenId = BigInt(log.topics[3]).toString();
+            console.log('Successfully extracted token ID from Transfer event:', mintedTokenId);
             break;
           }
-        } catch (e) {
-          console.log('Log parsing attempt failed (expected for non-matching logs):', e);
-          // This log was not the one we were looking for, ignore error
         }
       }
 
