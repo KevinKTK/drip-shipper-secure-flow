@@ -72,7 +72,7 @@ const ShipperView = () => {
     hash: mintTxHash,
   });
 
-  // --- DATABASE MUTATION (Now handles both template and custom policies) ---
+  // --- DATABASE MUTATION ---
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
       const { data, error } = await supabase.from('orders').insert([orderData]).select().single();
@@ -102,7 +102,7 @@ const ShipperView = () => {
     },
   });
 
-  // --- SUBMIT HANDLER (Now triggers on-chain action first) ---
+  // --- SUBMIT HANDLER ---
   const handleCreateOrder = () => {
     if (!isConnected || !wagmiAddress) {
       toast.error('Please connect your wallet to create an order');
@@ -179,8 +179,8 @@ const ShipperView = () => {
           user_insurance_policy_id: selectedInsurance?.isTemplate ? null : selectedInsurance.id,
           status: 'pending',
           wallet_address: address,
-          nft_token_id: mintedTokenId, // *** Storing the new token ID ***
-          nft_contract_address: cargoNFTAddress, // *** Storing the contract address ***
+          nft_token_id: mintedTokenId,
+          nft_contract_address: cargoNFTAddress,
           // Mandatory penalty system fields
           penalty_rate_per_day: 10,
           max_penalty_percentage: 100,
@@ -188,7 +188,6 @@ const ShipperView = () => {
           penalty_amount_eth: 0,
           is_penalty_applied: false,
         };
-        // Trigger the database mutation with the complete data
         createOrderMutation.mutate(orderData);
       } else {
         toast.error('Could not extract Token ID from minting transaction. Please contact support.', {
@@ -331,6 +330,15 @@ const ShipperView = () => {
                   Browse Policies
                 </Button>
               </div>
+              
+              {/* Note about insurance being optional */}
+              <div className="bg-[#D4AF37]/10 p-3 rounded-lg border border-[#D4AF37]/30">
+                <p className="text-xs text-[#CCD6F6] font-serif">
+                  <Shield className="w-3 h-3 inline mr-1" />
+                  Insurance is optional. Your order includes automatic penalty protection for delays.
+                </p>
+              </div>
+              
               {selectedInsurance && (
                   <div className="bg-[#1E3A5F] p-3 rounded-lg border border-[#64FFDA]/30">
                     <div className="flex items-center gap-2 mb-2">
@@ -355,12 +363,10 @@ const ShipperView = () => {
           </CardContent>
         </Card>
 
-        {/* Order Summary (No changes needed here) */}
+        {/* Order Summary */}
         <div className="space-y-6">
-          {/* Platform Protection Card */}
           <PlatformProtectionCard />
           
-          {/* Order Summary */}
           <Card className="maritime-card maritime-card-glow">
             <CardHeader>
               <CardTitle className="text-[#FFFFFF] font-serif font-medium">Your Shipping Order</CardTitle>
@@ -470,7 +476,7 @@ const ShipperView = () => {
           </Card>
         </div>
 
-        {/* Modals - keep existing code */}
+        {/* Modals */}
         <InsurancePolicyModal
             isOpen={showInsuranceModal}
             onClose={() => setShowInsuranceModal(false)}

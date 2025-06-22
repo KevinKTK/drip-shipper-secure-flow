@@ -1,5 +1,5 @@
+
 import {SUPABASE_PUBLISHABLE_KEY} from '@/integrations/supabase/client';
-import { contractAddresses } from './contract-addresses';
 
 export async function fetchWalletSecrets() {
     // --- IMPORTANT ---
