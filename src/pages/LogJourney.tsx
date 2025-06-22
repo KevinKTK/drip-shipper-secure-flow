@@ -26,6 +26,7 @@ const LogJourney = () => {
     departureDate: '',
     arrivalDate: '',
     availableCapacity: '',
+    priceEth: '', // New price field
   });
 
   const [pendingJourneyData, setPendingJourneyData] = useState<any>(null);
@@ -111,6 +112,7 @@ const LogJourney = () => {
         departure_date: data.departureDate,
         arrival_date: data.arrivalDate,
         available_capacity_kg: parseInt(data.availableCapacity) * 1000,
+        price_eth: parseFloat(data.priceEth), // Store price in database
         carrier_wallet_address: address,
         nft_transaction_hash: data.nft_transaction_hash,
         journey_nft_contract_address: data.journey_nft_contract_address,
@@ -125,6 +127,7 @@ const LogJourney = () => {
           departure_date: data.departureDate,
           arrival_date: data.arrivalDate,
           available_capacity_kg: parseInt(data.availableCapacity) * 1000,
+          price_eth: parseFloat(data.priceEth), // Store price in database
           carrier_wallet_address: address,
           nft_transaction_hash: data.nft_transaction_hash,
           journey_nft_contract_address: data.journey_nft_contract_address,
@@ -151,6 +154,7 @@ const LogJourney = () => {
         departureDate: '',
         arrivalDate: '',
         availableCapacity: '',
+        priceEth: '',
       });
     },
     onError: (error: any) => {
@@ -180,7 +184,7 @@ const LogJourney = () => {
       return;
     }
 
-    if (!formData.originPort || !formData.destinationPort || !formData.departureDate || !formData.availableCapacity) {
+    if (!formData.originPort || !formData.destinationPort || !formData.departureDate || !formData.availableCapacity || !formData.priceEth) {
       toast.error('Missing Information', {
         description: 'Please fill in all required fields',
       });
@@ -192,6 +196,15 @@ const LogJourney = () => {
     if (isNaN(capacity) || capacity <= 0) {
       toast.error('Invalid Capacity', {
         description: 'Please enter a valid capacity in tons',
+      });
+      return;
+    }
+
+    // Validate price is a positive number
+    const price = parseFloat(formData.priceEth);
+    if (isNaN(price) || price <= 0) {
+      toast.error('Invalid Price', {
+        description: 'Please enter a valid price in ETH',
       });
       return;
     }
@@ -225,16 +238,14 @@ const LogJourney = () => {
         expectedArrivalTimestamp = departureTimestamp + (14 * 24 * 60 * 60);
       }
 
-// Mint the Journey NFT with all required parameters
+      // Mint the Journey NFT with all required parameters
       await mintJourney({
+        to: address,
         vesselTokenId: vessel.nft_token_id,
         originPort: formData.originPort,
         destinationPort: formData.destinationPort,
         departureTimestamp: departureTimestamp,
         expectedArrivalTimestamp: expectedArrivalTimestamp,
-        // CORRECTED: Added the required 'availableCapacity' parameter.
-        // Make sure 'formData' contains this value.
-        availableCapacity: formData.availableCapacity,
       });
 
     } catch (error) {
@@ -393,17 +404,33 @@ const LogJourney = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-[#CCD6F6] font-serif">Available Capacity (tons) *</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={formData.availableCapacity}
-                      onChange={(e) => handleInputChange('availableCapacity', e.target.value)}
-                      placeholder="e.g., 15000"
-                      className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
-                      disabled={isProcessing}
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[#CCD6F6] font-serif">Available Capacity (tons) *</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={formData.availableCapacity}
+                        onChange={(e) => handleInputChange('availableCapacity', e.target.value)}
+                        placeholder="e.g., 15000"
+                        className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
+                        disabled={isProcessing}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[#CCD6F6] font-serif">Price (ETH) *</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        value={formData.priceEth}
+                        onChange={(e) => handleInputChange('priceEth', e.target.value)}
+                        placeholder="e.g., 5.25"
+                        className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
+                        disabled={isProcessing}
+                      />
+                    </div>
                   </div>
 
                   <Button
@@ -461,6 +488,11 @@ const LogJourney = () => {
                           <Package className="w-3 h-3 text-[#D4AF37]" />
                           <span>{Math.round((journey.available_capacity_kg || 0) / 1000)} tons available</span>
                         </div>
+                        {journey.price_eth && (
+                          <div className="flex items-center gap-2 text-[#D4AF37] font-serif text-xs">
+                            <span>💰 {journey.price_eth} ETH</span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

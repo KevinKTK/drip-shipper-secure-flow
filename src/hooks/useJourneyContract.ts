@@ -1,11 +1,8 @@
+
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets.ts';
 import { polygonZkEvmCardona } from 'wagmi/chains';
 import JourneyNFT from '../../contracts/ABI/JourneyNFT.json';
-
-// The 'mintJourney' function in the contract
-// NOTE: The full ABI is now imported from the JSON file. This is more robust.
-// const JOURNEY_NFT_ABI = [ ... ]
 
 export const useJourneyContract = () => {
   const { address } = useAccount();
@@ -16,21 +13,26 @@ export const useJourneyContract = () => {
   });
 
   const mintJourney = async (params: {
+    to: string;
     vesselTokenId: string;
     originPort: string;
     destinationPort: string;
     departureTimestamp: number;
     expectedArrivalTimestamp: number;
-    availableCapacity: string;
   }) => {
     try {
       console.log('Minting Journey NFT with params:', {
-        ...params,
+        to: params.to,
+        vesselTokenId: params.vesselTokenId,
+        originPort: params.originPort,
+        destinationPort: params.destinationPort,
+        departureTimestamp: params.departureTimestamp,
+        expectedArrivalTimestamp: params.expectedArrivalTimestamp,
         contractAddress: CONTRACT_ADDRESSES.journeyNFT
       });
 
-      // Updated validation logic
-      if (!params.vesselTokenId || !params.originPort || !params.destinationPort || !params.availableCapacity) {
+      // Validate parameters before sending
+      if (!params.to || !params.vesselTokenId || !params.originPort || !params.destinationPort) {
         throw new Error('Missing required parameters for Journey NFT minting');
       }
 
@@ -48,12 +50,12 @@ export const useJourneyContract = () => {
         abi: JourneyNFT.abi,
         functionName: 'mintJourney',
         args: [
-          BigInt(params.vesselTokenId),
-          params.originPort,
-          params.destinationPort,
-          BigInt(params.departureTimestamp),
-          BigInt(params.expectedArrivalTimestamp),
-          BigInt(params.availableCapacity)
+          params.to as `0x${string}`, // _to
+          BigInt(params.vesselTokenId), // _vesselTokenId
+          params.originPort, // _originPort
+          params.destinationPort, // _destinationPort
+          BigInt(params.departureTimestamp), // _departureTimestamp
+          BigInt(params.expectedArrivalTimestamp) // _expectedArrivalTimestamp
         ],
         chain: polygonZkEvmCardona,
         account: address, // The connected user's account, must be the vessel owner
