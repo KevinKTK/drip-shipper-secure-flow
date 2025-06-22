@@ -37,14 +37,14 @@ const LogJourney = () => {
       toast.success('NFT Minted!', {
         description: 'Journey NFT has been minted successfully. Now saving to database...',
       });
-      
+
       // Now save to Supabase with the transaction hash
       const dataWithNFT = {
         ...pendingJourneyData,
         nft_transaction_hash: hash,
         journey_nft_contract_address: contractAddresses.journeyNFT,
       };
-      
+
       createJourneyMutation.mutate(dataWithNFT);
       setPendingJourneyData(null);
     }
@@ -66,14 +66,14 @@ const LogJourney = () => {
     queryKey: ['vessel', vesselId],
     queryFn: async () => {
       if (!vesselId) throw new Error('Vessel ID is required');
-      
+
       const { data, error } = await supabase
         .from('orders')
         .select('*')
         .eq('id', vesselId)
         .eq('order_type', 'vessel')
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -85,13 +85,13 @@ const LogJourney = () => {
     queryKey: ['vessel-journeys', vesselId],
     queryFn: async () => {
       if (!vesselId) return [];
-      
+
       const { data, error } = await supabase
         .from('carrier_routes')
         .select('*')
         .eq('vessel_id', vesselId)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
@@ -131,12 +131,12 @@ const LogJourney = () => {
         }])
         .select()
         .single();
-      
+
       if (error) {
         console.error('Database insert error:', error);
         throw error;
       }
-      
+
       console.log('Journey created successfully:', result);
       return result;
     },
@@ -155,15 +155,15 @@ const LogJourney = () => {
     },
     onError: (error: any) => {
       console.error('Journey creation error:', error);
-      
+
       let errorMessage = 'Failed to log journey';
       let errorDescription = error.message || 'An unexpected error occurred';
-      
+
       if (error.message?.includes('row-level security policy')) {
         errorMessage = 'Access denied';
         errorDescription = 'You do not have permission to create journeys. Please ensure your wallet is connected.';
       }
-      
+
       toast.error(errorMessage, {
         description: errorDescription,
       });
@@ -172,7 +172,7 @@ const LogJourney = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isConnected || !address) {
       toast.error('Wallet Required', {
         description: 'Please connect your wallet to log a journey',
@@ -207,14 +207,14 @@ const LogJourney = () => {
     try {
       // Store form data for later use after NFT confirmation
       setPendingJourneyData(formData);
-      
+
       toast.info('Minting Journey NFT...', {
         description: 'Please confirm the transaction in your wallet.',
       });
 
       // Convert departure date to Unix timestamp
       const departureTimestamp = Math.floor(new Date(formData.departureDate).getTime() / 1000);
-      
+
       // Calculate expected arrival timestamp
       let expectedArrivalTimestamp: number;
       if (formData.arrivalDate) {
@@ -225,16 +225,18 @@ const LogJourney = () => {
         expectedArrivalTimestamp = departureTimestamp + (14 * 24 * 60 * 60);
       }
 
-      // Mint the Journey NFT with all required parameters
+// Mint the Journey NFT with all required parameters
       await mintJourney({
-        to: address,
         vesselTokenId: vessel.nft_token_id,
         originPort: formData.originPort,
         destinationPort: formData.destinationPort,
         departureTimestamp: departureTimestamp,
         expectedArrivalTimestamp: expectedArrivalTimestamp,
+        // CORRECTED: Added the required 'availableCapacity' parameter.
+        // Make sure 'formData' contains this value.
+        availableCapacity: formData.availableCapacity,
       });
-      
+
     } catch (error) {
       console.error('Error starting journey creation process:', error);
       setPendingJourneyData(null);
@@ -298,7 +300,7 @@ const LogJourney = () => {
   return (
     <div className="min-h-screen bg-[#0A192F] maritime-background">
       <Navigation />
-      
+
       <div className="container mx-auto px-6 py-8 relative z-10">
         <div className="mb-6 page-enter">
           <Button
@@ -414,13 +416,13 @@ const LogJourney = () => {
                     {createJourneyMutation.isPending && 'Saving to Database...'}
                     {!isProcessing && 'Log Journey & Mint NFT'}
                   </Button>
-                  
+
                   {!vessel?.nft_token_id && (
                     <p className="text-center text-[#CCD6F6]/70 font-serif text-sm">
                       This vessel needs an NFT token ID to log journeys
                     </p>
                   )}
-                  
+
                   {isProcessing && (
                     <div className="text-center text-[#CCD6F6] font-serif text-sm">
                       {isMinting && "Please confirm the transaction in your wallet..."}
