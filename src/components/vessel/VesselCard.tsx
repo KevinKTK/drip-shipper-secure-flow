@@ -17,7 +17,10 @@ const VesselCard = ({ vessel, onLogJourney, style }: VesselCardProps) => {
   };
 
   return (
-    <Card className="maritime-card maritime-card-glow hover:shadow-lg transition-shadow duration-300 page-enter-stagger" style={style}>
+    <Card 
+      className="maritime-card bg-slate-800/50 border-slate-600/50 hover:border-cyan-400/50 hover:shadow-cyan-400/20 hover:shadow-lg transition-all duration-300 page-enter-stagger" 
+      style={style}
+    >
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">

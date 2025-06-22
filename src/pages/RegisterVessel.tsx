@@ -58,15 +58,17 @@ const RegisterVessel = () => {
 
   // --- DATABASE MUTATION ---
   const createVesselMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (vesselData: typeof formData & { tokenId: string }) => {
+      console.log('Creating vessel with data:', vesselData);
+      
       const { data: result, error } = await supabase
         .from('orders')
         .insert([{
-          title: data.vesselName,
-          description: `IMO: ${data.imoNumber}\n${data.description}`,
+          title: vesselData.vesselName,
+          description: `IMO: ${vesselData.imoNumber}\nFlag State: ${vesselData.flagState}\nYear Built: ${vesselData.yearBuilt}\n${vesselData.description}`,
           order_type: 'vessel',
-          vessel_type: data.vesselType,
-          weight_tons: parseInt(data.capacity),
+          vessel_type: vesselData.vesselType,
+          weight_tons: parseInt(vesselData.capacity) || 0,
           price_eth: 0,
           origin_port: 'TBD',
           destination_port: 'TBD',
@@ -74,19 +76,44 @@ const RegisterVessel = () => {
           arrival_date: new Date().toISOString().split('T')[0],
           wallet_address: address,
           status: 'pending',
-          nft_token_id: data.tokenId,
+          nft_token_id: vesselData.tokenId,
           nft_contract_address: vesselNFTAddress,
         }])
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Database insert error:', error);
+        throw error;
+      }
+      
+      console.log('Vessel created successfully:', result);
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Vessel registration successful:', data);
       toast.success('Vessel registered successfully!');
       queryClient.invalidateQueries({ queryKey: ['user-vessels'] });
-      navigate('/vessels');
+      
+      // Show details modal
+      if (data.nft_token_id && data.nft_contract_address) {
+        setDetailsModal({ 
+          open: true, 
+          tokenId: data.nft_token_id, 
+          contract: data.nft_contract_address 
+        });
+      }
+      
+      // Reset form
+      setFormData({
+        vesselName: '',
+        imoNumber: '',
+        vesselType: '',
+        capacity: '',
+        description: '',
+        flagState: '',
+        yearBuilt: '',
+      });
     },
     onError: (error: any) => {
       console.error('Database save error:', error);
@@ -109,7 +136,9 @@ const RegisterVessel = () => {
       return;
     }
 
+    console.log('Starting vessel minting process...');
     toast.info('Minting Vessel NFT, please confirm in your wallet...');
+    
     writeContract({
       address: vesselNFTAddress,
       abi: VesselNFT.abi,
@@ -129,6 +158,9 @@ const RegisterVessel = () => {
   // --- EFFECT to handle the workflow AFTER minting is successful ---
   useEffect(() => {
     if (isMintingTxSuccess && mintTxReceipt) {
+      console.log('Minting transaction successful, extracting token ID...');
+      console.log('Transaction receipt:', mintTxReceipt);
+      
       toast.success('Vessel NFT Minted! Saving vessel details...');
 
       // Parse the transaction logs to find the minted token ID
@@ -145,26 +177,32 @@ const RegisterVessel = () => {
           
           if (decodedLog.eventName === 'VesselMinted') {
             mintedTokenId = decodedLog.args.tokenId.toString();
+            console.log('Successfully extracted token ID:', mintedTokenId);
             break;
           }
         } catch (e) {
+          console.log('Log parsing attempt failed (expected for non-matching logs):', e);
           // This log was not the one we were looking for, ignore error
         }
       }
 
       if (mintedTokenId) {
+        console.log('Proceeding to save vessel with token ID:', mintedTokenId);
         createVesselMutation.mutate({ ...formData, tokenId: mintedTokenId });
       } else {
+        console.error('Could not extract Token ID from transaction logs');
+        console.log('Available logs:', mintTxReceipt.logs);
         toast.error('Could not extract Token ID from minting transaction. Please contact support.', {
           description: `Tx Hash: ${mintTxHash}`
         });
       }
     }
-  }, [isMintingTxSuccess, mintTxReceipt]);
+  }, [isMintingTxSuccess, mintTxReceipt, formData, createVesselMutation]);
 
   // Effect for handling minting errors
   useEffect(() => {
     if (mintError) {
+      console.error('Minting error:', mintError);
       toast.error((mintError as any).message || "An error occurred during minting.");
     }
   }, [mintError]);
@@ -340,17 +378,6 @@ const RegisterVessel = () => {
                 >
                   {isProcessing ? 'Processing...' : 'Register Vessel & Mint NFT'}
                 </Button>
-
-                {/* See Details Button (only if NFT minted) */}
-                {createVesselMutation.data?.nft_token_id && createVesselMutation.data?.nft_contract_address && (
-                  <Button
-                    variant="outline"
-                    className="w-full maritime-button border-[#64FFDA] text-[#64FFDA] hover:bg-[#64FFDA]/10 font-serif mt-4"
-                    onClick={() => setDetailsModal({ open: true, tokenId: createVesselMutation.data.nft_token_id, contract: createVesselMutation.data.nft_contract_address })}
-                  >
-                    See NFT Details
-                  </Button>
-                )}
               </form>
             </CardContent>
           </Card>
