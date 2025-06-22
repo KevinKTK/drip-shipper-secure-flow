@@ -358,7 +358,7 @@ const ShipperView = () => {
             </div>
 
             <Button onClick={handleCreateOrder} disabled={isProcessing || !isConnected} className="w-full maritime-button bg-[#D4AF37] hover:bg-[#D4AF37]/80 text-[#0A192F] font-serif">
-              {isProcessing ? 'Processing...' : 'Create Order & Mint NFT'}
+              {isProcessing ? 'Processing...' : 'Create Order & Mint Cargo NFT'}
             </Button>
           </CardContent>
         </Card>
@@ -420,7 +420,6 @@ const ShipperView = () => {
                 </div>
               </div>
               
-              {/* Mandatory Penalty Protection Summary */}
               <div className="bg-[#D4AF37]/10 p-4 rounded-lg border border-[#D4AF37]/30">
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="w-4 h-4 text-[#D4AF37]" />
@@ -462,7 +461,6 @@ const ShipperView = () => {
                   </div>
               )}
               
-              {/* See Details Button (only if NFT minted) */}
               {createOrderMutation.data?.nft_token_id && createOrderMutation.data?.nft_contract_address && (
                 <Button
                   variant="outline"
@@ -484,11 +482,10 @@ const ShipperView = () => {
             policyType="shipper"
         />
 
-        {/* NFT Details Modal */}
         <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, tokenId: open ? detailsModal.tokenId : undefined, contract: open ? detailsModal.contract : undefined })}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>NFT On-Chain Details</DialogTitle>
+              <DialogTitle>Cargo NFT On-Chain Details</DialogTitle>
               <DialogDescription>
                 Token ID: <span className="font-mono">{detailsModal.tokenId}</span><br />
                 Contract: <span className="font-mono break-all">{detailsModal.contract}</span>

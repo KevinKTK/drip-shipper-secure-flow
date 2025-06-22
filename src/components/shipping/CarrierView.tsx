@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Ship, AlertCircle, Wallet, Shield } from 'lucide-react';
+import { CalendarIcon, Ship, AlertCircle, Wallet, Shield, ExternalLink } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,19 +20,19 @@ import PlatformProtectionCard from './PlatformProtectionCard';
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { parseAbiItem } from 'viem';
 import { decodeEventLog } from 'viem';
-import VesselNFT from '@/../contracts/ABI/VesselNFT.json';
+import JourneyNFT from '@/../contracts/ABI/JourneyNFT.json';
 import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
-interface VesselMintedEventArgs {
+interface JourneyMintedEventArgs {
   tokenId: bigint;
-  owner: string;
-  vesselName: string;
+  carrier: string;
+  vesselId: bigint;
 }
 
-interface VesselMintedEvent {
-  eventName: 'VesselMinted';
-  args: VesselMintedEventArgs;
+interface JourneyMintedEvent {
+  eventName: 'JourneyMinted';
+  args: JourneyMintedEventArgs;
 }
 
 const CarrierView = () => {
@@ -44,13 +43,9 @@ const CarrierView = () => {
   const [destinationPort, setDestinationPort] = useState('');
   const [departureDate, setDepartureDate] = useState<Date>();
   const [arrivalDate, setArrivalDate] = useState<Date>();
-  const [vesselType, setVesselType] = useState('');
+  const [selectedVessel, setSelectedVessel] = useState<any>(null);
   const [availableCapacity, setAvailableCapacity] = useState('');
   const [price, setPrice] = useState('');
-  const [vesselName, setVesselName] = useState('');
-  const [imoNumber, setImoNumber] = useState('');
-  const [flagState, setFlagState] = useState('');
-  const [yearBuilt, setYearBuilt] = useState('');
   const [showInsuranceModal, setShowInsuranceModal] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
   const [detailsModal, setDetailsModal] = useState<{ open: boolean, tokenId?: string, contract?: string }>({ open: false });
@@ -59,7 +54,26 @@ const CarrierView = () => {
   const { isConnected, address, loading: authLoading } = useAuth();
   const { address: wagmiAddress, chain } = useAccount();
   const queryClient = useQueryClient();
-  const vesselNFTAddress = CONTRACT_ADDRESSES.vesselNFT as `0x${string}`;
+  const journeyNFTAddress = CONTRACT_ADDRESSES.journeyNFT as `0x${string}`;
+
+  // Fetch user's vessels from Supabase
+  const { data: userVessels } = useQuery({
+    queryKey: ['user-vessels', address],
+    queryFn: async () => {
+      if (!address) return [];
+      
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('order_type', 'vessel')
+        .eq('wallet_address', address)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!address && isConnected,
+  });
 
   const { data: insuranceTemplates } = useQuery({
     queryKey: ['insurance-templates'],
@@ -85,7 +99,7 @@ const CarrierView = () => {
       return data;
     },
     onSuccess: () => {
-      toast.success('Vessel route saved successfully!');
+      toast.success('Journey route saved successfully!');
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       // Reset form
       setTitle('');
@@ -94,18 +108,14 @@ const CarrierView = () => {
       setDestinationPort('');
       setDepartureDate(undefined);
       setArrivalDate(undefined);
-      setVesselType('');
+      setSelectedVessel(null);
       setAvailableCapacity('');
       setPrice('');
-      setVesselName('');
-      setImoNumber('');
-      setFlagState('');
-      setYearBuilt('');
       setSelectedInsurance(null);
     },
     onError: (error: any) => {
       console.error('Database save error:', error);
-      toast.error('NFT was minted, but failed to save vessel route to database. Please contact support.', {
+      toast.error('NFT was minted, but failed to save journey route to database. Please contact support.', {
         description: `Tx Hash: ${mintTxHash}`
       });
     },
@@ -114,26 +124,27 @@ const CarrierView = () => {
   // --- SUBMIT HANDLER ---
   const handleCreateRoute = () => {
     if (!isConnected || !wagmiAddress) {
-      toast.error('Please connect your wallet to create a vessel route');
+      toast.error('Please connect your wallet to create a journey route');
       return;
     }
 
-    if (!title || !originPort || !destinationPort || !departureDate || !vesselType || !price || !vesselName || !imoNumber || !flagState || !yearBuilt || !availableCapacity) {
-      toast.error('Please fill in all required fields');
+    if (!title || !originPort || !destinationPort || !departureDate || !price || !selectedVessel || !availableCapacity) {
+      toast.error('Please fill in all required fields and select a vessel');
       return;
     }
 
-    toast.info('Minting Vessel NFT, please confirm in your wallet...');
+    toast.info('Minting Journey NFT, please confirm in your wallet...');
     writeContract({
-      address: vesselNFTAddress,
-      abi: VesselNFT.abi,
-      functionName: 'mintVessel',
+      address: journeyNFTAddress,
+      abi: JourneyNFT.abi,
+      functionName: 'mintJourney',
       args: [
         wagmiAddress,
-        vesselName,
-        imoNumber,
-        flagState,
-        BigInt(yearBuilt)
+        BigInt(selectedVessel.nft_token_id || 0),
+        originPort,
+        destinationPort,
+        BigInt(Math.floor(departureDate.getTime() / 1000)), // Convert to Unix timestamp
+        BigInt(arrivalDate ? Math.floor(arrivalDate.getTime() / 1000) : Math.floor(addDays(departureDate, 14).getTime() / 1000))
       ],
       account: wagmiAddress,
       chain,
@@ -143,11 +154,11 @@ const CarrierView = () => {
   // --- EFFECT to handle the workflow AFTER minting is successful ---
   useEffect(() => {
     if (isMintingTxSuccess && mintTxReceipt) {
-      toast.success('Vessel NFT Minted! Saving route details...');
+      toast.success('Journey NFT Minted! Saving route details...');
 
       // Parse the transaction logs to find the minted token ID
       let mintedTokenId: string | null = null;
-      const eventAbi = parseAbiItem('event VesselMinted(uint256 indexed tokenId, address indexed owner, string vesselName)');
+      const eventAbi = parseAbiItem('event JourneyMinted(uint256 indexed tokenId, address indexed carrier, uint256 indexed vesselId)');
 
       for (const log of mintTxReceipt.logs) {
         try {
@@ -155,9 +166,9 @@ const CarrierView = () => {
             abi: [eventAbi], 
             data: log.data, 
             topics: log.topics 
-          }) as VesselMintedEvent;
+          }) as JourneyMintedEvent;
           
-          if (decodedLog.eventName === 'VesselMinted') {
+          if (decodedLog.eventName === 'JourneyMinted') {
             mintedTokenId = decodedLog.args.tokenId.toString();
             break;
           }
@@ -175,7 +186,7 @@ const CarrierView = () => {
           destination_port: destinationPort,
           departure_date: departureDate ? format(departureDate, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
           arrival_date: arrivalDate ? format(arrivalDate, 'yyyy-MM-dd') : null,
-          vessel_type: vesselType,
+          vessel_type: selectedVessel.vessel_type,
           weight_tons: availableCapacity ? parseInt(availableCapacity) : null,
           price_eth: parseFloat(price),
           is_insured: !!selectedInsurance,
@@ -184,7 +195,7 @@ const CarrierView = () => {
           status: 'pending',
           wallet_address: address,
           nft_token_id: mintedTokenId,
-          nft_contract_address: vesselNFTAddress,
+          nft_contract_address: journeyNFTAddress,
           // Mandatory penalty system fields
           penalty_rate_per_day: 10,
           max_penalty_percentage: 100,
@@ -232,7 +243,7 @@ const CarrierView = () => {
 
   return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Create Vessel Route Form */}
+        {/* Create Journey Route Form */}
         <Card className="maritime-card maritime-card-glow">
           <CardHeader>
             <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
@@ -261,31 +272,62 @@ const CarrierView = () => {
                 </div>
             )}
 
-            {/* Vessel Information */}
+            {/* Vessel Selection */}
             <div className="space-y-4 p-4 bg-[#1E3A5F]/30 rounded-lg border border-[#D4AF37]/20">
-              <h3 className="text-[#D4AF37] font-serif font-medium">Vessel Information</h3>
+              <h3 className="text-[#D4AF37] font-serif font-medium">Select Your Vessel</h3>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[#CCD6F6] font-serif">Vessel Name *</Label>
-                  <Input value={vesselName} onChange={(e) => setVesselName(e.target.value)} placeholder="e.g., Ocean Voyager" className="maritime-input" disabled={isProcessing || !isConnected} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#CCD6F6] font-serif">IMO Number *</Label>
-                  <Input value={imoNumber} onChange={(e) => setImoNumber(e.target.value)} placeholder="e.g., IMO1234567" className="maritime-input" disabled={isProcessing || !isConnected} />
-                </div>
+              <div className="space-y-2">
+                <Label className="text-[#CCD6F6] font-serif">Select Vessel *</Label>
+                <Select value={selectedVessel?.id || ''} onValueChange={(value) => {
+                  const vessel = userVessels?.find(v => v.id === value);
+                  setSelectedVessel(vessel);
+                }} disabled={isProcessing || !isConnected}>
+                  <SelectTrigger className="maritime-input">
+                    <SelectValue placeholder="Choose a vessel from your fleet" />
+                  </SelectTrigger>
+                  <SelectContent className="maritime-card">
+                    {userVessels?.map((vessel) => (
+                      <SelectItem key={vessel.id} value={vessel.id} className="text-[#FFFFFF] font-serif">
+                        {vessel.title} - {vessel.vessel_type?.replace('_', ' ').toUpperCase()} ({vessel.weight_tons} tons)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {userVessels?.length === 0 && (
+                  <p className="text-xs text-[#CCD6F6]/70 font-serif">
+                    No vessels found. Please register a vessel first in the "My Vessels" tab.
+                  </p>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[#CCD6F6] font-serif">Flag State *</Label>
-                  <Input value={flagState} onChange={(e) => setFlagState(e.target.value)} placeholder="e.g., Panama" className="maritime-input" disabled={isProcessing || !isConnected} />
+              {selectedVessel && (
+                <div className="bg-[#1E3A5F] p-3 rounded-lg border border-[#64FFDA]/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Ship className="w-4 h-4 text-[#64FFDA]" />
+                      <span className="text-[#64FFDA] font-serif font-medium">{selectedVessel.title}</span>
+                    </div>
+                    {selectedVessel.nft_token_id && selectedVessel.nft_contract_address && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[#64FFDA] hover:bg-[#64FFDA]/10 p-1"
+                        onClick={() => window.open(`https://cardona-zkevm.polygonscan.com/token/${selectedVessel.nft_contract_address}?a=${selectedVessel.nft_token_id}`, '_blank')}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-1 text-xs text-[#CCD6F6] font-serif">
+                    <p>Type: {selectedVessel.vessel_type?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                    <p>Capacity: {selectedVessel.weight_tons} tons</p>
+                    {selectedVessel.nft_token_id && (
+                      <p>NFT Token ID: {selectedVessel.nft_token_id}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[#CCD6F6] font-serif">Year Built *</Label>
-                  <Input type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} placeholder="e.g., 2015" className="maritime-input" disabled={isProcessing || !isConnected} />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Route Information */}
@@ -341,20 +383,6 @@ const CarrierView = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-[#CCD6F6] font-serif">Vessel Type *</Label>
-              <Select value={vesselType} onValueChange={setVesselType} disabled={isProcessing || !isConnected}>
-                <SelectTrigger className="maritime-input"><SelectValue placeholder="Select vessel type" /></SelectTrigger>
-                <SelectContent className="maritime-card">
-                  <SelectItem value="bulk_carrier">Bulk Carrier</SelectItem>
-                  <SelectItem value="container_ship">Container Ship</SelectItem>
-                  <SelectItem value="tanker">Tanker</SelectItem>
-                  <SelectItem value="general_cargo">General Cargo</SelectItem>
-                  <SelectItem value="roro">RoRo Ship</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[#CCD6F6] font-serif">Available Capacity (tons) *</Label>
@@ -392,7 +420,7 @@ const CarrierView = () => {
             </div>
 
             <Button onClick={handleCreateRoute} disabled={isProcessing || !isConnected} className="w-full maritime-button bg-[#D4AF37] hover:bg-[#D4AF37]/80 text-[#0A192F] font-serif">
-              {isProcessing ? 'Processing...' : 'Register Vessel & Create Route'}
+              {isProcessing ? 'Processing...' : 'Register Route & Mint Journey NFT'}
             </Button>
           </CardContent>
         </Card>
@@ -409,7 +437,7 @@ const CarrierView = () => {
               <div className="space-y-3 text-[#CCD6F6] font-serif">
                 <div className="flex justify-between">
                   <span>Vessel:</span>
-                  <span className="text-[#FFFFFF]">{vesselName || 'Not entered'}</span>
+                  <span className="text-[#FFFFFF]">{selectedVessel?.title || 'Not selected'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Route:</span>
@@ -430,7 +458,7 @@ const CarrierView = () => {
                 <div className="flex justify-between">
                   <span>Vessel Type:</span>
                   <span className="text-[#FFFFFF]">
-                  {vesselType ? vesselType.replace('_', ' ').toUpperCase() : 'Not selected'}
+                  {selectedVessel?.vessel_type ? selectedVessel.vessel_type.replace('_', ' ').toUpperCase() : 'Not selected'}
                 </span>
                 </div>
                 {availableCapacity && (
@@ -522,7 +550,7 @@ const CarrierView = () => {
         <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, tokenId: open ? detailsModal.tokenId : undefined, contract: open ? detailsModal.contract : undefined })}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Vessel NFT On-Chain Details</DialogTitle>
+              <DialogTitle>Journey NFT On-Chain Details</DialogTitle>
               <DialogDescription>
                 Token ID: <span className="font-mono">{detailsModal.tokenId}</span><br />
                 Contract: <span className="font-mono break-all">{detailsModal.contract}</span>
