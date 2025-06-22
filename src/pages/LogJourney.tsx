@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -197,6 +196,14 @@ const LogJourney = () => {
       return;
     }
 
+    // Check if vessel has an NFT token ID
+    if (!vessel?.nft_token_id) {
+      toast.error('Vessel NFT Required', {
+        description: 'This vessel must have an NFT token ID to log journeys',
+      });
+      return;
+    }
+
     try {
       // Store form data for later use after NFT confirmation
       setPendingJourneyData(formData);
@@ -205,13 +212,16 @@ const LogJourney = () => {
         description: 'Please confirm the transaction in your wallet.',
       });
 
-      // Mint the Journey NFT first
+      // Convert departure date to Unix timestamp
+      const departureTimestamp = Math.floor(new Date(formData.departureDate).getTime() / 1000);
+
+      // Mint the Journey NFT with corrected parameters
       await mintJourney({
         to: address,
-        vesselId: vesselId!,
+        vesselTokenId: vessel.nft_token_id,
         originPort: formData.originPort,
         destinationPort: formData.destinationPort,
-        departureDate: formData.departureDate,
+        departureTimestamp: departureTimestamp,
         availableCapacityKg: capacity * 1000, // Convert tons to kg
       });
       
@@ -303,6 +313,7 @@ const LogJourney = () => {
                   <div className="text-xl">Logging Journey for: {vessel.title}</div>
                   <div className="text-sm text-[#D4AF37] font-normal">
                     {vessel.vessel_type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} • {vessel.weight_tons} tons capacity
+                    {vessel.nft_token_id && <span> • NFT #{vessel.nft_token_id}</span>}
                   </div>
                 </div>
               </CardTitle>
@@ -385,7 +396,7 @@ const LogJourney = () => {
 
                   <Button
                     type="submit"
-                    disabled={isProcessing}
+                    disabled={isProcessing || !vessel?.nft_token_id}
                     className="w-full golden-button maritime-button font-serif font-semibold py-3 text-lg"
                   >
                     {isMinting && 'Minting NFT...'}
@@ -393,6 +404,12 @@ const LogJourney = () => {
                     {createJourneyMutation.isPending && 'Saving to Database...'}
                     {!isProcessing && 'Log Journey & Mint NFT'}
                   </Button>
+                  
+                  {!vessel?.nft_token_id && (
+                    <p className="text-center text-[#CCD6F6]/70 font-serif text-sm">
+                      This vessel needs an NFT token ID to log journeys
+                    </p>
+                  )}
                   
                   {isProcessing && (
                     <div className="text-center text-[#CCD6F6] font-serif text-sm">
