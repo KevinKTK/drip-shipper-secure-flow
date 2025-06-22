@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +11,14 @@ import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useJourneyContract } from '@/hooks/useJourneyContract';
 
 const LogJourney = () => {
   const { vesselId } = useParams();
   const navigate = useNavigate();
   const { address, isConnected } = useAuth();
   const queryClient = useQueryClient();
+  const { mintJourney, hash, isPending: isMinting, isConfirming, isConfirmed, error: mintError } = useJourneyContract();
 
   const [formData, setFormData] = useState({
     originPort: '',
@@ -24,6 +27,39 @@ const LogJourney = () => {
     arrivalDate: '',
     availableCapacity: '',
   });
+
+  const [pendingJourneyData, setPendingJourneyData] = useState<any>(null);
+
+  // Handle NFT minting confirmation
+  useEffect(() => {
+    if (isConfirmed && pendingJourneyData && hash) {
+      console.log('NFT minted successfully! Transaction hash:', hash);
+      toast.success('NFT Minted!', {
+        description: 'Journey NFT has been minted successfully. Now saving to database...',
+      });
+      
+      // Now save to Supabase with the transaction hash
+      const dataWithNFT = {
+        ...pendingJourneyData,
+        nft_transaction_hash: hash,
+        journey_nft_contract_address: contractAddresses.journeyNFT,
+      };
+      
+      createJourneyMutation.mutate(dataWithNFT);
+      setPendingJourneyData(null);
+    }
+  }, [isConfirmed, pendingJourneyData, hash]);
+
+  // Handle minting error
+  useEffect(() => {
+    if (mintError) {
+      console.error('NFT minting error:', mintError);
+      toast.error('NFT Minting Failed', {
+        description: mintError.message || 'Failed to mint Journey NFT. Please try again.',
+      });
+      setPendingJourneyData(null);
+    }
+  }, [mintError]);
 
   // Fetch vessel details
   const { data: vessel, isLoading: vesselLoading } = useQuery({
@@ -76,6 +112,8 @@ const LogJourney = () => {
         arrival_date: data.arrivalDate,
         available_capacity_kg: parseInt(data.availableCapacity) * 1000,
         carrier_wallet_address: address,
+        nft_transaction_hash: data.nft_transaction_hash,
+        journey_nft_contract_address: data.journey_nft_contract_address,
       });
 
       const { data: result, error } = await supabase
@@ -86,8 +124,10 @@ const LogJourney = () => {
           destination_port: data.destinationPort,
           departure_date: data.departureDate,
           arrival_date: data.arrivalDate,
-          available_capacity_kg: parseInt(data.availableCapacity) * 1000, // Convert tons to kg
+          available_capacity_kg: parseInt(data.availableCapacity) * 1000,
           carrier_wallet_address: address,
+          nft_transaction_hash: data.nft_transaction_hash,
+          journey_nft_contract_address: data.journey_nft_contract_address,
         }])
         .select()
         .single();
@@ -102,7 +142,7 @@ const LogJourney = () => {
     },
     onSuccess: () => {
       toast.success('Journey logged successfully!', {
-        description: 'Your journey has been added and is now available for cargo matching.',
+        description: 'Your journey has been minted as an NFT and saved to the database.',
       });
       queryClient.invalidateQueries({ queryKey: ['vessel-journeys'] });
       setFormData({
@@ -119,7 +159,6 @@ const LogJourney = () => {
       let errorMessage = 'Failed to log journey';
       let errorDescription = error.message || 'An unexpected error occurred';
       
-      // Handle specific RLS policy violations
       if (error.message?.includes('row-level security policy')) {
         errorMessage = 'Access denied';
         errorDescription = 'You do not have permission to create journeys. Please ensure your wallet is connected.';
@@ -131,7 +170,7 @@ const LogJourney = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isConnected || !address) {
@@ -157,12 +196,38 @@ const LogJourney = () => {
       return;
     }
 
-    createJourneyMutation.mutate(formData);
+    try {
+      // Store form data for later use after NFT confirmation
+      setPendingJourneyData(formData);
+      
+      toast.info('Minting Journey NFT...', {
+        description: 'Please confirm the transaction in your wallet.',
+      });
+
+      // Mint the Journey NFT first
+      await mintJourney({
+        to: address,
+        vesselId: vesselId!,
+        originPort: formData.originPort,
+        destinationPort: formData.destinationPort,
+        departureDate: formData.departureDate,
+        availableCapacityKg: capacity * 1000, // Convert tons to kg
+      });
+      
+    } catch (error) {
+      console.error('Error starting journey creation process:', error);
+      setPendingJourneyData(null);
+      toast.error('Transaction Failed', {
+        description: 'Failed to initiate the journey creation process.',
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  const isProcessing = isMinting || isConfirming || createJourneyMutation.isPending;
 
   if (!isConnected) {
     return (
@@ -264,7 +329,7 @@ const LogJourney = () => {
                         onChange={(e) => handleInputChange('originPort', e.target.value)}
                         placeholder="e.g., Port of Shanghai"
                         className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
-                        disabled={createJourneyMutation.isPending}
+                        disabled={isProcessing}
                       />
                     </div>
 
@@ -275,7 +340,7 @@ const LogJourney = () => {
                         onChange={(e) => handleInputChange('destinationPort', e.target.value)}
                         placeholder="e.g., Port of Los Angeles"
                         className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
-                        disabled={createJourneyMutation.isPending}
+                        disabled={isProcessing}
                       />
                     </div>
                   </div>
@@ -288,7 +353,7 @@ const LogJourney = () => {
                         value={formData.departureDate}
                         onChange={(e) => handleInputChange('departureDate', e.target.value)}
                         className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] font-serif"
-                        disabled={createJourneyMutation.isPending}
+                        disabled={isProcessing}
                       />
                     </div>
 
@@ -299,7 +364,7 @@ const LogJourney = () => {
                         value={formData.arrivalDate}
                         onChange={(e) => handleInputChange('arrivalDate', e.target.value)}
                         className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] font-serif"
-                        disabled={createJourneyMutation.isPending}
+                        disabled={isProcessing}
                       />
                     </div>
                   </div>
@@ -313,17 +378,28 @@ const LogJourney = () => {
                       onChange={(e) => handleInputChange('availableCapacity', e.target.value)}
                       placeholder="e.g., 15000"
                       className="maritime-glow bg-[#1E3A5F] border-[#CCD6F6]/30 text-[#FFFFFF] placeholder-[#CCD6F6]/50 font-serif"
-                      disabled={createJourneyMutation.isPending}
+                      disabled={isProcessing}
                     />
                   </div>
 
                   <Button
                     type="submit"
-                    disabled={createJourneyMutation.isPending}
+                    disabled={isProcessing}
                     className="w-full golden-button maritime-button font-serif font-semibold py-3 text-lg"
                   >
-                    {createJourneyMutation.isPending ? 'Logging Journey...' : 'Log Journey'}
+                    {isMinting && 'Minting NFT...'}
+                    {isConfirming && 'Confirming Transaction...'}
+                    {createJourneyMutation.isPending && 'Saving to Database...'}
+                    {!isProcessing && 'Log Journey & Mint NFT'}
                   </Button>
+                  
+                  {isProcessing && (
+                    <div className="text-center text-[#CCD6F6] font-serif text-sm">
+                      {isMinting && "Please confirm the transaction in your wallet..."}
+                      {isConfirming && "Waiting for blockchain confirmation..."}
+                      {createJourneyMutation.isPending && "Finalizing journey record..."}
+                    </div>
+                  )}
                 </form>
               </CardContent>
             </Card>
