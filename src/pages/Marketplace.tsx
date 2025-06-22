@@ -110,7 +110,7 @@ const Marketplace = () => {
         <div className="flex items-center gap-2 text-[#CCD6F6]"><Calendar className="w-4 h-4" /><span className="font-serif text-sm">Departure: {new Date(order.departure_date).toLocaleDateString()}</span></div>
         {order.cargo_type && (<Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">{order.cargo_type.replace('_', ' ').toUpperCase()}</Badge>)}
         {order.vessel_type && (<Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">{order.vessel_type.replace('_', ' ').toUpperCase()}</Badge>)}
-        <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20"><div className="flex items-center gap-1"><Coins className="w-4 h-4 text-[#D4AF37]" /><span className="text-[#D4AF37] font-medium">{order.price_ink} ETH</span></div>{order.nft_token_id && (<span className="text-xs text-[#CCD6F6]/70">NFT #{order.nft_token_id}</span>)}</div>
+        <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20"><div className="flex items-center gap-1"><Coins className="w-4 h-4 text-[#D4AF37]" /><span className="text-[#D4AF37] font-medium">{order.price_eth} ETH</span></div>{order.nft_token_id && (<span className="text-xs text-[#CCD6F6]/70">NFT #{order.nft_token_id}</span>)}</div>
         <div className="bg-[#D4AF37]/10 p-3 rounded-lg border border-[#D4AF37]/30 mt-4"><div className="flex items-center justify-center gap-2"><Shield className="w-4 h-4 text-[#D4AF37]" /><span className="text-[#D4AF37] font-serif font-medium text-sm">Automated Delay Penalties Active</span></div><p className="text-xs text-[#CCD6F6] text-center mt-1 font-serif">10% refund per 24h delay • Built-in protection</p></div>
         {order.nft_token_id && order.nft_contract_address && (
           <a href={`https://cardona-zkevm.polygonscan.com/token/${order.nft_contract_address}?a=${order.nft_token_id}`} target="_blank" rel="noopener noreferrer" className="block mt-2 w-full">
@@ -223,15 +223,12 @@ const Marketplace = () => {
         </div>
         <div className="page-enter" style={{ animationDelay: '0.2s' }}>
           <Tabs defaultValue="cargo" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-[#1E3A5F] border border-[#D4AF37]/30">
+            <TabsList className="grid w-full grid-cols-2 bg-[#1E3A5F] border border-[#D4AF37]/30">
               <TabsTrigger value="cargo" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
                 Available Shipments ({isLoading ? '...' : cargoOrders.length})
               </TabsTrigger>
               <TabsTrigger value="vessel" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
-                Available Vessels ({isLoading ? '...' : vesselOrders.length})
-              </TabsTrigger>
-              <TabsTrigger value="journeys" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
-                Available Routes ({isLoading ? '...' : availableJourneys.length})
+                Available Vessels ({isLoading ? '...' : vesselOrders.length + availableJourneys.length})
               </TabsTrigger>
             </TabsList>
             
@@ -259,36 +256,46 @@ const Marketplace = () => {
               {isLoading ? (
                 <SkeletonGrid count={6} />
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {vesselOrders.map((order, index) => (
-                    <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
-                      <OrderCard order={order} />
-                    </div>
-                  ))}
-                  {vesselOrders.length === 0 && (
-                    <div className="col-span-full text-center py-12">
-                      <Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
-                      <p className="text-[#CCD6F6] font-serif">No vessels available</p>
+                <div className="space-y-8">
+                  {/* Registered Vessels Section */}
+                  {vesselOrders.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-serif font-medium text-[#FFFFFF] mb-4 flex items-center gap-2">
+                        <Ship className="w-5 h-5 text-[#D4AF37]" />
+                        Registered Vessels ({vesselOrders.length})
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {vesselOrders.map((order, index) => (
+                          <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
+                            <OrderCard order={order} />
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="journeys" className="mt-6">
-              {isLoading ? (
-                <SkeletonGrid count={6} />
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {availableJourneys.map((journey, index) => (
-                    <div key={journey.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
-                      <JourneyCard journey={journey} />
+
+                  {/* Available Journey Routes Section */}
+                  {availableJourneys.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-serif font-medium text-[#FFFFFF] mb-4 flex items-center gap-2">
+                        <Route className="w-5 h-5 text-[#D4AF37]" />
+                        Logged Journey Routes ({availableJourneys.length})
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {availableJourneys.map((journey, index) => (
+                          <div key={journey.id} className="page-enter-stagger" style={{ animationDelay: `${(index + vesselOrders.length + 1) * 0.1}s` }}>
+                            <JourneyCard journey={journey} />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                  {availableJourneys.length === 0 && (
-                    <div className="col-span-full text-center py-12">
-                      <Route className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
-                      <p className="text-[#CCD6F6] font-serif">No carrier routes available</p>
+                  )}
+
+                  {/* Empty State */}
+                  {vesselOrders.length === 0 && availableJourneys.length === 0 && (
+                    <div className="text-center py-12">
+                      <Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+                      <p className="text-[#CCD6F6] font-serif">No vessels or journey routes available</p>
                     </div>
                   )}
                 </div>
@@ -299,11 +306,86 @@ const Marketplace = () => {
       </div>
       
       <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, order: open ? detailsModal.order : null })}>
-        {/* ... content unchanged ... */}
+        <DialogContent className="maritime-modal max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-[#FFFFFF] font-serif">
+              {detailsModal.order?.title || 'Order Details'}
+            </DialogTitle>
+            <DialogDescription className="text-[#CCD6F6] font-serif">
+              Complete information about this {detailsModal.order?.order_type || 'item'}
+            </DialogDescription>
+          </DialogHeader>
+          {detailsModal.order && (
+            <div className="space-y-4 text-[#CCD6F6] font-serif">
+              <div className="grid grid-cols-2 gap-4">
+                <div><strong>Origin:</strong> {detailsModal.order.origin_port}</div>
+                <div><strong>Destination:</strong> {detailsModal.order.destination_port}</div>
+                <div><strong>Departure:</strong> {new Date(detailsModal.order.departure_date).toLocaleDateString()}</div>
+                {detailsModal.order.arrival_date && (
+                  <div><strong>Arrival:</strong> {new Date(detailsModal.order.arrival_date).toLocaleDateString()}</div>
+                )}
+              </div>
+              {detailsModal.order.description && (
+                <div><strong>Description:</strong> {detailsModal.order.description}</div>
+              )}
+              {detailsModal.order.cargo_type && (
+                <div><strong>Cargo Type:</strong> {detailsModal.order.cargo_type.replace('_', ' ').toUpperCase()}</div>
+              )}
+              {detailsModal.order.vessel_type && (
+                <div><strong>Vessel Type:</strong> {detailsModal.order.vessel_type.replace('_', ' ').toUpperCase()}</div>
+              )}
+              {detailsModal.order.weight_tons && (
+                <div><strong>Weight:</strong> {detailsModal.order.weight_tons} tons</div>
+              )}
+              {detailsModal.order.volume_cbm && (
+                <div><strong>Volume:</strong> {detailsModal.order.volume_cbm} CBM</div>
+              )}
+              {detailsModal.order.available_capacity_kg && (
+                <div><strong>Available Capacity:</strong> {detailsModal.order.available_capacity_kg.toLocaleString()} kg</div>
+              )}
+              <div><strong>Price:</strong> {detailsModal.order.price_eth || 'Contact for pricing'} ETH</div>
+              <div><strong>Status:</strong> <Badge variant="outline">{detailsModal.order.status || 'Active'}</Badge></div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setDetailsModal({ open: false, order: null })} className="maritime-button">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
       
       <Dialog open={insuranceModal.open || insuranceModal.loading} onOpenChange={open => { if (!insuranceModal.loading) { setInsuranceModal({ open, policy: open ? insuranceModal.policy : null, loading: false }); } }}>
-        {/* ... content unchanged ... */}
+        <DialogContent className="maritime-modal">
+          <DialogHeader>
+            <DialogTitle className="text-[#FFFFFF] font-serif">Insurance Policy Details</DialogTitle>
+          </DialogHeader>
+          {insuranceModal.loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37]"></div>
+            </div>
+          ) : insuranceModal.policy && (
+            <div className="space-y-4 text-[#CCD6F6] font-serif">
+              <div><strong>Policy Name:</strong> {insuranceModal.policy.policy_name}</div>
+              <div><strong>Premium:</strong> {insuranceModal.policy.premium_eth} ETH</div>
+              <div><strong>Payout Amount:</strong> {insuranceModal.policy.payout_amount_eth} ETH</div>
+              {insuranceModal.policy.delay_threshold_hours && (
+                <div><strong>Delay Threshold:</strong> {insuranceModal.policy.delay_threshold_hours} hours</div>
+              )}
+              <div><strong>Trigger Condition:</strong> {insuranceModal.policy.trigger_condition}</div>
+              {insuranceModal.policy.description && (
+                <div><strong>Description:</strong> {insuranceModal.policy.description}</div>
+              )}
+              <div><strong>Data Source:</strong> {insuranceModal.policy.data_source || 'PortAuthorityAPI'}</div>
+              <div><strong>Type:</strong> <Badge variant="outline">{insuranceModal.policy.isTemplate ? 'Template' : 'Custom'}</Badge></div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setInsuranceModal({ open: false, policy: null, loading: false })} className="maritime-button">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
       
       <InsurancePolicyModal isOpen={selectInsuranceModal.open} onClose={() => setSelectInsuranceModal({ open: false, order: null })} onSelectPolicy={handleApplyInsurance} policyType="shipper" />
