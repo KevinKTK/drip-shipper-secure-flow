@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertTriangle, TrendingUp, Sparkles, Shield, Coins } from 'lucide-react';
 import Navigation from '@/components/Navigation';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -54,14 +54,13 @@ enum SolidityTriggerCondition {
 // --- Component ---
 const ContractBuilder = () => {
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
   const { isConnected } = useAuth();
   const queryClient = useQueryClient();
   const { address, chain } = useAccount();
   const insurancePolicyNFTAddress = CONTRACT_ADDRESSES.insurancePolicyNFT as `0x${string}`;
 
   // Wagmi hooks
-  const { data: mintTxHash, isPending: isMintingPending, writeContract, error: mintError } = useWriteContract();
+  const { data: mintTxHash, isPending: isMintingPending, writeContract, error: mintError, reset: resetWriteContract } = useWriteContract();
   const { data: mintTxReceipt, isLoading: isMintingTxLoading, isSuccess: isMintingTxSuccess } = useWaitForTransactionReceipt({
     hash: mintTxHash,
   });
@@ -77,7 +76,7 @@ const ContractBuilder = () => {
   const [destinationLocation, setDestinationLocation] = useState('');
   const [aiRiskAssessment, setAiRiskAssessment] = useState<RiskAssessmentData | null>(null);
   const [isLoadingRiskAssessment, setIsLoadingRiskAssessment] = useState(false);
-  const [policyDataForDb, setPolicyDataForDb] = useState<any>(null);
+  const policyDataForDb = useRef<any>(null);
 
   const calculatedPremium = (() => {
     const payout = parseFloat(payoutAmount) || 0;
@@ -93,28 +92,31 @@ const ContractBuilder = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast({ title: "Insurance Policy Created!", description: `Policy "${(data as any).policy_name}" has been saved.` });
+      const policy = data as any;
+      toast.success("Policy Saved to Database!", {
+        description: `Policy "${policy.policy_name}" (NFT #${policy.nft_token_id}) is now in your portfolio.`,
+      });
       queryClient.invalidateQueries({ queryKey: ['user-insurance-policies'] });
     },
     onError: (error: any) => {
       console.error('Policy creation error:', error);
-      toast({ title: "Database Error", description: `NFT was minted but failed to save. Please contact support. Tx: ${mintTxHash}`, variant: "destructive" });
+      toast.error("Database Error", { description: `NFT was minted but failed to save. Please contact support. Tx: ${mintTxHash}` });
     },
   });
 
   const handleMintPolicy = async () => {
     // Validation checks
     if (!isConnected || !address) {
-      toast({ title: "Wallet Required", description: "Please connect your wallet.", variant: "destructive" });
+      toast.error("Wallet Required", { description: "Please connect your wallet." });
       return;
     }
     if (!policyName.trim()) {
-      toast({ title: "Policy Name Required", description: "Please enter a name for your policy.", variant: "destructive" });
+      toast.error("Policy Name Required", { description: "Please enter a name for your policy." });
       return;
     }
     const payoutInEth = parseFloat(payoutAmount);
     if (isNaN(payoutInEth) || payoutInEth <= 0) {
-      toast({ title: "Invalid Payout", description: "Payout amount must be a positive number.", variant: "destructive" });
+      toast.error("Invalid Payout", { description: "Payout amount must be a positive number." });
       return;
     }
 
@@ -125,6 +127,7 @@ const ContractBuilder = () => {
         payout_amount_eth: payoutInEth,
         premium_eth: calculatedPremium,
         is_active: true,
+        policy_type: policyType
       };
 
       let policyData;
@@ -139,7 +142,7 @@ const ContractBuilder = () => {
         const dataSource = stringToHex(includeForceMajeure ? 'PortAuthority_Weather' : 'PortAuthority', { size: 32 });
         const threshold = BigInt(delayThreshold[0]);
 
-        policyData = { ...basePolicyData, policy_type: 'shipper', delay_threshold_hours: delayThreshold[0] };
+        policyData = { ...basePolicyData, delay_threshold_hours: delayThreshold[0] };
         contractArgs = [policyTypeEnum, BigInt(0), payoutAmountWei, triggerConditionEnum, dataSource, threshold, expiryTimestamp];
 
       } else { // carrier
@@ -148,12 +151,12 @@ const ContractBuilder = () => {
         const dataSource = stringToHex(includeForceMajeure ? 'CargoInspect_Weather' : 'CargoInspect', { size: 32 });
         const threshold = BigInt(damageThreshold[0]);
 
-        policyData = { ...basePolicyData, policy_type: 'carrier', cargo_damage_threshold_percentage: damageThreshold[0] };
+        policyData = { ...basePolicyData, cargo_damage_threshold_percentage: damageThreshold[0] };
         contractArgs = [policyTypeEnum, BigInt(0), payoutAmountWei, triggerConditionEnum, dataSource, threshold, expiryTimestamp];
       }
 
-      setPolicyDataForDb(policyData);
-      toast({ title: "Minting Policy NFT", description: "Please confirm in your wallet..." });
+      policyDataForDb.current = policyData;
+      toast.info("Minting Policy NFT", { description: "Please confirm in your wallet..." });
 
       console.log("Submitting transaction with arguments:", contractArgs);
 
@@ -170,13 +173,15 @@ const ContractBuilder = () => {
 
     } catch (e) {
       console.error("Error during argument preparation:", e);
-      toast({ title: "Client Error", description: "Failed to prepare the transaction. Check console for details.", variant: "destructive"});
+      toast.error("Client Error", { description: "Failed to prepare the transaction. Check console for details."});
     }
   };
 
+  // --- EFFECT HOOKS for Transaction Lifecycle ---
+
+  // 1. When the transaction is successfully mined
   useEffect(() => {
-    if (isMintingTxSuccess && mintTxReceipt && policyDataForDb) {
-      // Find the minted token ID from the transaction logs
+    if (isMintingTxSuccess && mintTxReceipt) {
       let mintedTokenId: string | null = null;
       const eventAbi = parseAbiItem('event PolicyMinted(uint256 indexed policyTokenId, address indexed policyHolder, uint8 triggerCondition, uint256 payoutAmount)');
 
@@ -188,38 +193,49 @@ const ContractBuilder = () => {
               mintedTokenId = decodedLog.args.policyTokenId.toString();
               break;
             }
-          } catch (e) {
-            // This is expected if the log is not the one we are looking for
-          }
+          } catch (e) { /* Ignore decoding errors for other events */ }
         }
       }
 
-      if (mintedTokenId) {
-        // ADDED: Success toast after minting and finding the token ID
-        toast({
-          title: 'NFT Minted Successfully!',
-          description: `Policy NFT with Token ID #${mintedTokenId} has been created on-chain.`,
-          variant: "success",
+      if (mintedTokenId && policyDataForDb.current) {
+        toast.success('NFT Minted Successfully!', {
+          description: `Policy NFT with Token ID #${mintedTokenId} has been created on-chain. Saving to database...`,
         });
-
-        const finalPolicyData = { ...policyDataForDb, nft_token_id: mintedTokenId, nft_contract_address: insurancePolicyNFTAddress };
+        const finalPolicyData = { ...policyDataForDb.current, nft_token_id: mintedTokenId, nft_contract_address: insurancePolicyNFTAddress };
         createPolicyMutation.mutate(finalPolicyData);
       } else {
-        toast({ variant: "destructive", title: 'Could not extract Token ID from transaction.', description: `Tx Hash: ${mintTxHash}` });
+        toast.error('Could not extract Token ID from transaction.', { description: `Tx Hash: ${mintTxHash}` });
       }
-      setPolicyDataForDb(null);
-    }
-  }, [isMintingTxSuccess, mintTxReceipt, policyDataForDb, createPolicyMutation, insurancePolicyNFTAddress, mintTxHash, toast]);
 
+      policyDataForDb.current = null;
+      resetWriteContract();
+    }
+  }, [isMintingTxSuccess, mintTxReceipt]);
+  
+  // 2. When the transaction is sent to the wallet
+  useEffect(() => {
+    if (mintTxHash) {
+      toast.info("Transaction Sent!", {
+        description: "Waiting for blockchain confirmation...",
+        action: {
+          label: "View on Explorer",
+          onClick: () => window.open(`https://cardona-zkevm.polygonscan.com/tx/${mintTxHash}`, '_blank'),
+        },
+      });
+    }
+  }, [mintTxHash]);
+
+  // 3. When there is a wallet/network error
   useEffect(() => {
     if (mintError) {
-      toast({ variant: "destructive", title: "Minting Error", description: (mintError as any).shortMessage || mintError.message });
+      toast.error("Minting Error", { description: (mintError as any).shortMessage || mintError.message });
+      resetWriteContract();
     }
-  }, [mintError, toast]);
+  }, [mintError]);
 
   const handleAiRiskAssessment = async () => {
     if (!sourceLocation.trim() || !destinationLocation.trim()) {
-      toast({ title: "Route Information Required", description: "Please enter both source and destination", variant: "destructive" });
+      toast.error("Route Information Required", { description: "Please enter both source and destination" });
       return;
     }
     setIsLoadingRiskAssessment(true);
@@ -229,10 +245,10 @@ const ContractBuilder = () => {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
       setAiRiskAssessment(data);
-      toast({ title: "Risk Assessment Complete", description: "AI analysis has been generated" });
+      toast.success("Risk Assessment Complete", { description: "AI analysis has been generated" });
     } catch (error: any) {
       console.error("Risk assessment error:", error);
-      toast({ title: "Assessment Failed", description: error.message || "Could not generate risk assessment.", variant: "destructive" });
+      toast.error("Assessment Failed", { description: error.message || "Could not generate risk assessment." });
     } finally {
       setIsLoadingRiskAssessment(false);
     }

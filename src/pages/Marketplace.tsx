@@ -370,7 +370,12 @@ const Marketplace = () => {
         </DialogContent>
       </Dialog>
       
-      <InsurancePolicyModal isOpen={selectInsuranceModal.open} onClose={() => setSelectInsuranceModal({ open: false, order: null })} onSelectPolicy={handleApplyInsurance} policyType="shipper" />
+      <InsurancePolicyModal 
+        isOpen={selectInsuranceModal.open} 
+        onClose={() => setSelectInsuranceModal({ open: false, order: null })} 
+        onSelectPolicy={handleApplyInsurance} 
+        policyType={selectInsuranceModal.order?.order_type === 'cargo' ? 'shipper' : 'carrier'}
+      />
       <AiRouteModal isOpen={aiRouteModal.open} onClose={() => setAiRouteModal({ open: false, order: null })} order={aiRouteModal.order} />
     </div>
   );

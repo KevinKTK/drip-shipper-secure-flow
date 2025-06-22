@@ -46,7 +46,7 @@ const InsurancePolicyModal = ({
 
   // Fetch user's custom policies
   const { data: userPolicies, isLoading: isLoadingUserPolicies } = useQuery({
-    queryKey: ['user-insurance-policies', address],
+    queryKey: ['user-insurance-policies', address, policyType],
     queryFn: async () => {
       if (!address) return [];
       
@@ -54,6 +54,7 @@ const InsurancePolicyModal = ({
         .from('user_insurance_policies')
         .select('*')
         .eq('wallet_address', address)
+        .eq('policy_type', policyType)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
       
@@ -167,15 +168,6 @@ const InsurancePolicyModal = ({
     </Card>
   );
 
-  // ... keep existing code (filtered policies logic for proper policy type display)
-  const filteredUserPolicies = userPolicies?.filter(policy => {
-    if (policyType === 'shipper') {
-      return policy.policy_type === 'shipper' || policy.delay_threshold_hours > 0;
-    } else {
-      return policy.policy_type === 'carrier' || policy.cargo_damage_threshold_percentage > 0;
-    }
-  }) || [];
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden bg-[#0A192F] border border-[#D4AF37]/30">
@@ -192,14 +184,14 @@ const InsurancePolicyModal = ({
           ) : (
             <div className="space-y-6">
               {/* User's Custom Policies */}
-              {filteredUserPolicies && filteredUserPolicies.length > 0 && (
+              {userPolicies && userPolicies.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <User className="w-5 h-5 text-[#64FFDA]" />
                     <h3 className="text-[#64FFDA] font-serif font-medium text-lg">Your Custom Policies</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredUserPolicies.map((policy) => (
+                    {userPolicies.map((policy) => (
                       <PolicyCard key={policy.id} policy={policy} isTemplate={false} />
                     ))}
                   </div>
@@ -222,7 +214,7 @@ const InsurancePolicyModal = ({
               )}
 
               {/* No policies available */}
-              {(!templatePolicies || templatePolicies.length === 0) && (!filteredUserPolicies || filteredUserPolicies.length === 0) && (
+              {(!templatePolicies || templatePolicies.length === 0) && (!userPolicies || userPolicies.length === 0) && (
                 <div className="text-center py-12">
                   <Shield className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
                   <p className="text-[#CCD6F6] font-serif">No {getPolicyTypeLabel(policyType).toLowerCase()} policies available</p>
