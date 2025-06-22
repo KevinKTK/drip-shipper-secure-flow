@@ -2,6 +2,7 @@
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { contractAddresses } from '@/lib/contract-addresses';
 import { parseEther } from 'viem';
+import { polygonZkEvmCardona } from 'wagmi/chains';
 
 // Journey NFT ABI - only the functions we need
 const JOURNEY_NFT_ABI = [
@@ -51,6 +52,8 @@ export const useJourneyContract = () => {
           BigInt(params.availableCapacityKg)
         ],
         value: parseEther('0.001'), // Small fee for minting
+        chain: polygonZkEvmCardona,
+        account: address,
       });
     } catch (error) {
       console.error('Error minting journey NFT:', error);
