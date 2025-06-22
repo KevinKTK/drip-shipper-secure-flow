@@ -116,10 +116,17 @@ All contracts are deployed on Polygon zkEVM Cardona testnet.
 
 ---
 
-## 🧑‍💻 Contributing
+## 🎛️ Vibe Coding Tools
 
-- Edit via [Lovable](https://lovable.dev/projects/aa64918e-77d9-4e4d-acf0-ccf436c91336) or your favorite IDE.
-- PRs and issues welcome!
+- **Lovable:** Used for Frontend development and seamless Supabase integration.
+- **Google Gemini:** Used for designing and generating complex pieces of code, including AI-powered route optimization and risk analysis.
+- **Cursor:** Used for general implementation and code editing throughout the project.
+
+Prompts and workflow documentation are hosted here: [Vibe Coding Prompts & Docs](https://docs.google.com/document/d/1DaTm2yIKkEmPob1Nzx1OGwWjCG4KSNkk4ns3uzj65OE/edit?usp=sharing)
+
+---
+
+**Made by:** Kevin Khoo and Kilian H. Scheutwinkel
 
 ---
 
@@ -131,7 +138,7 @@ MIT
 
 ## 🌐 Links
 
-- [Lovable Project](https://lovable.dev/projects/aa64918e-77d9-4e4d-acf0-ccf436c91336)
+- [Lovable Project](https://drip-shipper-secure-flow.lovable.app)
 - [Polygon zkEVM Cardona Explorer](https://cardona-zkevm.polygonscan.com/)
 - [Supabase](https://supabase.com/)
 - [Google Gemini](https://deepmind.google/technologies/gemini/)
