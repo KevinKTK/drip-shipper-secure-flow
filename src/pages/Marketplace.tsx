@@ -31,7 +31,20 @@ const Marketplace = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          carrier_routes (
+            id,
+            origin_port,
+            destination_port,
+            departure_date,
+            arrival_date,
+            available_capacity_kg,
+            price_eth,
+            nft_transaction_hash,
+            journey_nft_contract_address
+          )
+        `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -39,53 +52,10 @@ const Marketplace = () => {
     },
   });
 
-  const { data: pricedJourneys, isLoading: pricedJourneysLoading } = useQuery({
-    queryKey: ['priced-journeys'],
-    queryFn: async () => {
-      console.log('Fetching priced journeys...');
-      
-      const { data, error } = await supabase
-        .from('carrier_routes')
-        .select(`
-          *,
-          vessel:orders!carrier_routes_vessel_id_fkey(
-            id,
-            title,
-            vessel_type,
-            weight_tons,
-            nft_token_id,
-            vessel_nft_contract_address,
-            description
-          )
-        `)
-        .not('price_eth', 'is', null)
-        .order('departure_date', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching priced journeys:', error);
-        throw error;
-      }
-      
-      console.log('Fetched priced journeys:', data);
-      
-      // Filter out past journeys on the frontend
-      const currentDate = new Date();
-      const futureJourneys = data?.filter(journey => {
-        const departureDate = new Date(journey.departure_date);
-        return departureDate >= currentDate;
-      }) || [];
-      
-      console.log('Future priced journeys:', futureJourneys);
-      
-      return futureJourneys;
-    },
-  });
-
   const cargoOrders = orders?.filter(order => order.order_type === 'cargo') || [];
   const vesselOrders = orders?.filter(order => order.order_type === 'vessel') || [];
-  const availablePricedJourneys = pricedJourneys || [];
 
-  const isLoading = ordersLoading || pricedJourneysLoading;
+  const isLoading = ordersLoading;
 
   const fetchInsurancePolicyDetails = async (order: any) => {
     setInsuranceModal({ open: false, policy: null, loading: true });
@@ -116,139 +86,103 @@ const Marketplace = () => {
     }
   };
 
-  const OrderCard = ({ order }: { order: any }) => (
-    <Card className="maritime-card maritime-card-glow">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
-            {order.order_type === 'cargo' ? <Package className="w-5 h-5 text-[#D4AF37]" /> : <Ship className="w-5 h-5 text-[#D4AF37]" />}
-            {order.title}
-          </CardTitle>
-          {order.is_insured && (
-            <button type="button" className="focus:outline-none" onClick={() => fetchInsurancePolicyDetails(order)} title="View Insurance Policy Details">
-              <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium cursor-pointer hover:underline"><Shield className="w-3 h-3 mr-1" />Insured</Badge>
-            </button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-[#CCD6F6]"><MapPin className="w-4 h-4" /><span className="font-serif text-sm">{order.origin_port} → {order.destination_port}</span></div>
-        <div className="flex items-center gap-2 text-[#CCD6F6]"><Calendar className="w-4 h-4" /><span className="font-serif text-sm">Departure: {new Date(order.departure_date).toLocaleDateString()}</span></div>
-        {order.cargo_type && (<Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">{order.cargo_type.replace('_', ' ').toUpperCase()}</Badge>)}
-        {order.vessel_type && (<Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">{order.vessel_type.replace('_', ' ').toUpperCase()}</Badge>)}
-        <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20"><div className="flex items-center gap-1"><Coins className="w-4 h-4 text-[#D4AF37]" /><span className="text-[#D4AF37] font-medium">{order.price_eth} ETH</span></div>{order.nft_token_id && (<span className="text-xs text-[#CCD6F6]/70">NFT #{order.nft_token_id}</span>)}</div>
-        <div className="bg-[#D4AF37]/10 p-3 rounded-lg border border-[#D4AF37]/30 mt-4"><div className="flex items-center justify-center gap-2"><Shield className="w-4 h-4 text-[#D4AF37]" /><span className="text-[#D4AF37] font-serif font-medium text-sm">Automated Delay Penalties Active</span></div><p className="text-xs text-[#CCD6F6] text-center mt-1 font-serif">10% refund per 24h delay • Built-in protection</p></div>
-        {order.nft_token_id && order.nft_contract_address && (
-          <a href={`https://cardona-zkevm.polygonscan.com/token/${order.nft_contract_address}?a=${order.nft_token_id}`} target="_blank" rel="noopener noreferrer" className="block mt-2 w-full">
-            <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif">
-              See NFT contract (Polygon zkEVM)
-            </Button>
-          </a>
-        )}
-        {!order.is_insured && (<div className="space-y-2"><Button className="w-full maritime-button bg-[#64FFDA]/20 hover:bg-[#64FFDA] hover:text-[#0A192F] text-[#64FFDA] font-serif border border-[#64FFDA]/30" onClick={() => setSelectInsuranceModal({ open: true, order })} disabled={!isConnected}><Shield className="w-4 h-4 mr-2" />Select Insurance Policy</Button><Button className="w-full maritime-button bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] font-serif border border-[#CCD6F6]/30" onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}>Create Custom Policy</Button></div>)}
-        <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif mt-2" onClick={() => setDetailsModal({ open: true, order })}>See Details</Button>
-        <Button variant="outline" className="w-full maritime-button bg-transparent hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#D4AF37] border border-[#D4AF37]/50 font-serif mt-2" onClick={() => {
-          setAiRouteModal({ open: true, order });}}
-          ><Wand2 className="w-4 h-4 mr-2" />Ask AI for Route</Button>
-      </CardContent>
-    </Card>
-  );
+  const OrderCard = ({ order }: { order: any }) => {
+    // A vessel might have multiple journey routes, find the most relevant one to display.
+    // For now, let's just pick the first priced one.
+    const displayJourney = order.carrier_routes?.find((route: any) => route.price_eth);
 
-  const PricedJourneyCard = ({ journey }: { journey: any }) => (
-    <Card className="maritime-card maritime-card-glow">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
-            <Route className="w-5 h-5 text-[#D4AF37]" />
-            {journey.vessel?.title || 'Carrier Route'}
-          </CardTitle>
-          <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium">
-            <Coins className="w-3 h-3 mr-1" />
-            Available
-          </Badge>
-        </div>
-        {journey.vessel?.nft_token_id && (
-          <div className="text-sm text-[#D4AF37] font-normal">
-            Vessel NFT #{journey.vessel.nft_token_id} • {journey.vessel.vessel_type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-          </div>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-[#CCD6F6]">
-          <MapPin className="w-4 h-4" />
-          <span className="font-serif text-sm">{journey.origin_port} → {journey.destination_port}</span>
-        </div>
-        <div className="flex items-center gap-2 text-[#CCD6F6]">
-          <Calendar className="w-4 h-4" />
-          <span className="font-serif text-sm">Departure: {new Date(journey.departure_date).toLocaleDateString()}</span>
-        </div>
-        {journey.arrival_date && (
-          <div className="flex items-center gap-2 text-[#CCD6F6]">
-            <Calendar className="w-4 h-4" />
-            <span className="font-serif text-sm">Arrival: {new Date(journey.arrival_date).toLocaleDateString()}</span>
-          </div>
-        )}
-        {journey.available_capacity_kg && (
-          <div className="flex items-center gap-2 text-[#CCD6F6]">
-            <Package className="w-4 h-4" />
-            <span className="font-serif text-sm">Available: {Math.round(journey.available_capacity_kg / 1000)} tons</span>
-          </div>
-        )}
-        {journey.vessel && (
-          <div className="flex gap-2">
-            <Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">
-              {journey.vessel.vessel_type?.replace('_', ' ').toUpperCase()}
-            </Badge>
-            {journey.vessel.weight_tons && (
-              <Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">
-                {journey.vessel.weight_tons}T Capacity
+    return (
+      <Card className="maritime-card maritime-card-glow">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
+              {order.order_type === 'cargo' ? <Package className="w-5 h-5 text-[#D4AF37]" /> : <Ship className="w-5 h-5 text-[#D4AF37]" />}
+              {order.title}
+            </CardTitle>
+            {order.is_insured && (
+              <button type="button" className="focus:outline-none" onClick={() => fetchInsurancePolicyDetails(order)} title="View Insurance Policy Details">
+                <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium cursor-pointer hover:underline"><Shield className="w-3 h-3 mr-1" />Insured</Badge>
+              </button>
+            )}
+            {displayJourney && (
+              <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium">
+                <Coins className="w-3 h-3 mr-1" />
+                Available
               </Badge>
             )}
           </div>
-        )}
-        <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20">
-          <div className="flex items-center gap-1">
-            <Coins className="w-4 h-4 text-[#D4AF37]" />
-            <span className="text-[#D4AF37] font-medium">{journey.price_eth} ETH</span>
-          </div>
-        </div>
-        <div className="bg-[#D4AF37]/10 p-3 rounded-lg border border-[#D4AF37]/30 mt-4">
-          <div className="flex items-center justify-center gap-2">
-            <Shield className="w-4 h-4 text-[#D4AF37]" />
-            <span className="text-[#D4AF37] font-serif font-medium text-sm">NFT-Verified Journey</span>
-          </div>
-          <p className="text-xs text-[#CCD6F6] text-center mt-1 font-serif">Blockchain-verified capacity • Reliable route</p>
-        </div>
-        <div className="flex gap-2">
-          {journey.nft_transaction_hash && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.open(`https://cardona-zkevm.polygonscan.com/tx/${journey.nft_transaction_hash}`, '_blank')}
-              className="flex-1 maritime-button bg-transparent hover:bg-[#64FFDA] hover:text-[#0A192F] text-[#64FFDA] border border-[#64FFDA]/50 font-serif"
-            >
-              <ExternalLink className="w-3 h-3 mr-1" />
-              Journey NFT
-            </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {displayJourney ? (
+            <>
+              <div className="flex items-center gap-2 text-[#CCD6F6]"><MapPin className="w-4 h-4" /><span className="font-serif text-sm">{displayJourney.origin_port} → {displayJourney.destination_port}</span></div>
+              <div className="flex items-center gap-2 text-[#CCD6F6]"><Calendar className="w-4 h-4" /><span className="font-serif text-sm">Departure: {new Date(displayJourney.departure_date).toLocaleDateString()}</span></div>
+              {displayJourney.arrival_date && (<div className="flex items-center gap-2 text-[#CCD6F6]"><Calendar className="w-4 h-4" /><span className="font-serif text-sm">Arrival: {new Date(displayJourney.arrival_date).toLocaleDateString()}</span></div>)}
+              {displayJourney.available_capacity_kg && (<div className="flex items-center gap-2 text-[#CCD6F6]"><Package className="w-4 h-4" /><span className="font-serif text-sm">Available: {Math.round(displayJourney.available_capacity_kg / 1000)} tons</span></div>)}
+              <div className="flex gap-2">
+                {order.vessel_type && (<Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">{order.vessel_type.replace('_', ' ').toUpperCase()}</Badge>)}
+                {order.weight_tons && (<Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">{order.weight_tons}T Capacity</Badge>)}
+              </div>
+              <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20">
+                <div className="flex items-center gap-1"><Coins className="w-4 h-4 text-[#D4AF37]" /><span className="text-[#D4AF37] font-medium">{displayJourney.price_eth} ETH</span></div>
+                {order.nft_token_id && (<span className="text-xs text-[#CCD6F6]/70">Vessel NFT #{order.nft_token_id}</span>)}
+              </div>
+              <div className="bg-[#D4AF37]/10 p-3 rounded-lg border border-[#D4AF37]/30 mt-4">
+                <div className="flex items-center justify-center gap-2"><Shield className="w-4 h-4 text-[#D4AF37]" /><span className="text-[#D4AF37] font-serif font-medium text-sm">NFT-Verified Journey</span></div>
+                <p className="text-xs text-[#CCD6F6] text-center mt-1 font-serif">Blockchain-verified capacity • Reliable route</p>
+              </div>
+              <div className="flex gap-2">
+                {displayJourney.nft_transaction_hash && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`https://cardona-zkevm.polygonscan.com/tx/${displayJourney.nft_transaction_hash}`, '_blank')}
+                    className="flex-1 maritime-button bg-transparent hover:bg-[#64FFDA] hover:text-[#0A192F] text-[#64FFDA] border border-[#64FFDA]/50 font-serif"
+                  >
+                    <ExternalLink className="w-3 h-3 mr-1" />
+                    Journey NFT
+                  </Button>
+                )}
+                {order.vessel_nft_contract_address && order.nft_token_id && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`https://cardona-zkevm.polygonscan.com/token/${order.vessel_nft_contract_address}?a=${order.nft_token_id}`, '_blank')}
+                    className="flex-1 maritime-button bg-transparent hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#D4AF37] border border-[#D4AF37]/50 font-serif"
+                  >
+                    <ExternalLink className="w-3 h-3 mr-1" />
+                    Vessel NFT
+                  </Button>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 text-[#CCD6F6]"><MapPin className="w-4 h-4" /><span className="font-serif text-sm">{order.origin_port} → {order.destination_port}</span></div>
+              <div className="flex items-center gap-2 text-[#CCD6F6]"><Calendar className="w-4 h-4" /><span className="font-serif text-sm">Departure: {new Date(order.departure_date).toLocaleDateString()}</span></div>
+              {order.cargo_type && (<Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">{order.cargo_type.replace('_', ' ').toUpperCase()}</Badge>)}
+              {order.vessel_type && (<Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">{order.vessel_type.replace('_', ' ').toUpperCase()}</Badge>)}
+              <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20"><div className="flex items-center gap-1"><Coins className="w-4 h-4 text-[#D4AF37]" /><span className="text-[#D4AF37] font-medium">{order.price_eth} ETH</span></div>{order.nft_token_id && (<span className="text-xs text-[#CCD6F6]/70">NFT #{order.nft_token_id}</span>)}</div>
+              <div className="bg-[#D4AF37]/10 p-3 rounded-lg border border-[#D4AF37]/30 mt-4"><div className="flex items-center justify-center gap-2"><Shield className="w-4 h-4 text-[#D4AF37]" /><span className="text-[#D4AF37] font-serif font-medium text-sm">Automated Delay Penalties Active</span></div><p className="text-xs text-[#CCD6F6] text-center mt-1 font-serif">10% refund per 24h delay • Built-in protection</p></div>
+              {order.nft_token_id && order.nft_contract_address && (
+                <a href={`https://cardona-zkevm.polygonscan.com/token/${order.nft_contract_address}?a=${order.nft_token_id}`} target="_blank" rel="noopener noreferrer" className="block mt-2 w-full">
+                  <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif">
+                    See NFT contract (Polygon zkEVM)
+                  </Button>
+                </a>
+              )}
+            </>
           )}
-          {journey.vessel?.vessel_nft_contract_address && journey.vessel?.nft_token_id && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.open(`https://cardona-zkevm.polygonscan.com/token/${journey.vessel.vessel_nft_contract_address}?a=${journey.vessel.nft_token_id}`, '_blank')}
-              className="flex-1 maritime-button bg-transparent hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#D4AF37] border border-[#D4AF37]/50 font-serif"
-            >
-              <ExternalLink className="w-3 h-3 mr-1" />
-              Vessel NFT
-            </Button>
-          )}
-        </div>
-        <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif mt-2" onClick={() => setDetailsModal({ open: true, order: journey })}>
-          See Details
-        </Button>
-      </CardContent>
-    </Card>
-  );
+
+          {!order.is_insured && (<div className="space-y-2"><Button className="w-full maritime-button bg-[#64FFDA]/20 hover:bg-[#64FFDA] hover:text-[#0A192F] text-[#64FFDA] font-serif border border-[#64FFDA]/30" onClick={() => setSelectInsuranceModal({ open: true, order })} disabled={!isConnected}><Shield className="w-4 h-4 mr-2" />Select Insurance Policy</Button><Button className="w-full maritime-button bg-[#CCD6F6]/20 hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] font-serif border border-[#CCD6F6]/30" onClick={() => navigate(`/contract-builder?orderId=${order.id}`)}>Create Custom Policy</Button></div>)}
+          <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif mt-2" onClick={() => setDetailsModal({ open: true, order: displayJourney ? { ...order, ...displayJourney, vessel: order } : order })}>See Details</Button>
+          <Button variant="outline" className="w-full maritime-button bg-transparent hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#D4AF37] border border-[#D4AF37]/50 font-serif mt-2" onClick={() => {
+            setAiRouteModal({ open: true, order });}}
+            ><Wand2 className="w-4 h-4 mr-2" />Ask AI for Route</Button>
+        </CardContent>
+      </Card>
+    )
+  };
 
   const applyInsuranceMutation = useMutation({
     mutationFn: async ({ orderId, policy }: { orderId: string, policy: any }) => {
@@ -293,7 +227,7 @@ const Marketplace = () => {
                 Available Shipments ({isLoading ? '...' : cargoOrders.length})
               </TabsTrigger>
               <TabsTrigger value="vessel" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
-                Available Vessels ({isLoading ? '...' : vesselOrders.length + availablePricedJourneys.length})
+                Available Vessels ({isLoading ? '...' : vesselOrders.length})
               </TabsTrigger>
             </TabsList>
             
@@ -322,25 +256,8 @@ const Marketplace = () => {
                 <SkeletonGrid count={6} />
               ) : (
                 <div className="space-y-8">
-                  {/* Available Journey Routes Section */}
-                  {availablePricedJourneys.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-serif font-medium text-[#FFFFFF] mb-4 flex items-center gap-2">
-                        <Route className="w-5 h-5 text-[#D4AF37]" />
-                        Available Journey Routes ({availablePricedJourneys.length})
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {availablePricedJourneys.map((journey, index) => (
-                          <div key={journey.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
-                            <PricedJourneyCard journey={journey} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Registered Vessels Section */}
-                  {vesselOrders.length > 0 && (
+                  {vesselOrders.length > 0 ? (
                     <div>
                       <h3 className="text-lg font-serif font-medium text-[#FFFFFF] mb-4 flex items-center gap-2">
                         <Ship className="w-5 h-5 text-[#D4AF37]" />
@@ -348,19 +265,16 @@ const Marketplace = () => {
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {vesselOrders.map((order, index) => (
-                          <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + availablePricedJourneys.length + 1) * 0.1}s` }}>
+                          <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index) * 0.1}s` }}>
                             <OrderCard order={order} />
                           </div>
                         ))}
                       </div>
                     </div>
-                  )}
-
-                  {/* Empty State */}
-                  {vesselOrders.length === 0 && availablePricedJourneys.length === 0 && (
+                  ) : (
                     <div className="text-center py-12">
                       <Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
-                      <p className="text-[#CCD6F6] font-serif">No vessels or journey routes available</p>
+                      <p className="text-[#CCD6F6] font-serif">No vessels available</p>
                     </div>
                   )}
                 </div>

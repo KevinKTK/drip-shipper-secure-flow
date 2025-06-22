@@ -122,7 +122,9 @@ const ShipperView = () => {
       args: [
         wagmiAddress,
         description,
+        cargoType,
         BigInt(weight),
+        BigInt(volume || '0'),
         originPort,
         destinationPort
       ],
