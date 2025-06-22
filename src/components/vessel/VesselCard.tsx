@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Ship, Package, Calendar, MapPin } from 'lucide-react';
+import { Ship, Package, Calendar, MapPin, ExternalLink, Hash } from 'lucide-react';
 
 interface VesselCardProps {
   vessel: any;
@@ -14,6 +14,13 @@ interface VesselCardProps {
 const VesselCard = ({ vessel, onLogJourney, style }: VesselCardProps) => {
   const getVesselTypeDisplay = (type: string) => {
     return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const getBlockExplorerUrl = () => {
+    if (vessel.nft_token_id && vessel.nft_contract_address) {
+      return `https://cardona-zkevm.polygonscan.com/token/${vessel.nft_contract_address}?a=${vessel.nft_token_id}`;
+    }
+    return null;
   };
 
   return (
@@ -53,7 +60,39 @@ const VesselCard = ({ vessel, onLogJourney, style }: VesselCardProps) => {
             <Package className="w-4 h-4 text-cyan-400 flex-shrink-0" />
             <span>Capacity: {vessel.weight_tons || 0} tons</span>
           </div>
+
+          {vessel.nft_token_id && (
+            <div className="flex items-center gap-2 text-slate-200 font-serif text-sm">
+              <Hash className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+              <span>Token ID: {vessel.nft_token_id}</span>
+            </div>
+          )}
         </div>
+
+        {vessel.nft_token_id && vessel.nft_contract_address && (
+          <div className="pt-2 border-t border-slate-500/20">
+            <div className="bg-cyan-400/10 border border-cyan-400/20 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-cyan-400 font-serif text-xs font-medium">NFT Details</p>
+                  <p className="text-slate-300 font-serif text-xs">
+                    Contract: {vessel.nft_contract_address.slice(0, 6)}...{vessel.nft_contract_address.slice(-4)}
+                  </p>
+                </div>
+                {getBlockExplorerUrl() && (
+                  <a
+                    href={getBlockExplorerUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-400 hover:text-cyan-300 transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="pt-4 border-t border-slate-500/20">
           <Button
