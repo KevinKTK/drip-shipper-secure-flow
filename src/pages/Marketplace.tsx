@@ -42,6 +42,8 @@ const Marketplace = () => {
   const { data: pricedJourneys, isLoading: pricedJourneysLoading } = useQuery({
     queryKey: ['priced-journeys'],
     queryFn: async () => {
+      console.log('Fetching priced journeys...');
+      
       const { data, error } = await supabase
         .from('carrier_routes')
         .select(`
@@ -57,11 +59,25 @@ const Marketplace = () => {
           )
         `)
         .not('price_eth', 'is', null)
-        .gte('departure_date', new Date().toISOString().split('T')[0]) // Only future journeys
         .order('departure_date', { ascending: true });
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching priced journeys:', error);
+        throw error;
+      }
+      
+      console.log('Fetched priced journeys:', data);
+      
+      // Filter out past journeys on the frontend
+      const currentDate = new Date();
+      const futureJourneys = data?.filter(journey => {
+        const departureDate = new Date(journey.departure_date);
+        return departureDate >= currentDate;
+      }) || [];
+      
+      console.log('Future priced journeys:', futureJourneys);
+      
+      return futureJourneys;
     },
   });
 
