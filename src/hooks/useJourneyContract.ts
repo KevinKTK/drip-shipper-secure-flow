@@ -44,7 +44,7 @@ export const useJourneyContract = () => {
 
       // The `writeContract` function will trigger a wallet confirmation
       await writeContract({
-        address: contractAddresses.journeyNFT as `0x${string}`,
+        address: CONTRACT_ADDRESSES.journeyNFT as `0x${string}`,
         abi: JourneyNFT.abi,
         functionName: 'mintJourney',
         args: [
