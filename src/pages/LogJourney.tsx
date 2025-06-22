@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useJourneyContract } from '@/hooks/useJourneyContract';
+import { contractAddresses } from '@/lib/contract-addresses';
 
 const LogJourney = () => {
   const { vesselId } = useParams();

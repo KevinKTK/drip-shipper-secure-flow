@@ -5,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Ship, Package, Shield, Calendar, MapPin, Coins, Wand2 } from 'lucide-react';
+import { Ship, Package, Shield, Calendar, MapPin, Coins, Wand2, Route } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { SkeletonOrderCard } from '@/components/ui/maritime-skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import InsurancePolicyModal from '@/components/shipping/InsurancePolicyModal';
-import AiRouteModal from '@/components/shipping/AiRouteModal'; // Import the modal
+import AiRouteModal from '@/components/shipping/AiRouteModal';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -26,7 +26,7 @@ const Marketplace = () => {
   const [selectInsuranceModal, setSelectInsuranceModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
   const [aiRouteModal, setAiRouteModal] = useState<{ open: boolean, order: any | null }>({ open: false, order: null });
 
-  const { data: orders, isLoading } = useQuery({
+  const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,8 +39,27 @@ const Marketplace = () => {
     },
   });
 
+  const { data: journeys, isLoading: journeysLoading } = useQuery({
+    queryKey: ['carrier-routes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('carrier_routes')
+        .select(`
+          *,
+          vessel:orders!carrier_routes_vessel_id_fkey(*)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const cargoOrders = orders?.filter(order => order.order_type === 'cargo') || [];
   const vesselOrders = orders?.filter(order => order.order_type === 'vessel') || [];
+  const availableJourneys = journeys || [];
+
+  const isLoading = ordersLoading || journeysLoading;
 
   const fetchInsurancePolicyDetails = async (order: any) => {
     setInsuranceModal({ open: false, policy: null, loading: true });
@@ -109,6 +128,63 @@ const Marketplace = () => {
     </Card>
   );
 
+  const JourneyCard = ({ journey }: { journey: any }) => (
+    <Card className="maritime-card maritime-card-glow">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
+            <Route className="w-5 h-5 text-[#D4AF37]" />
+            {journey.vessel?.title || 'Journey Route'}
+          </CardTitle>
+          {journey.nft_transaction_hash && (
+            <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium">
+              <Shield className="w-3 h-3 mr-1" />
+              NFT Minted
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center gap-2 text-[#CCD6F6]">
+          <MapPin className="w-4 h-4" />
+          <span className="font-serif text-sm">{journey.origin_port} → {journey.destination_port}</span>
+        </div>
+        <div className="flex items-center gap-2 text-[#CCD6F6]">
+          <Calendar className="w-4 h-4" />
+          <span className="font-serif text-sm">Departure: {new Date(journey.departure_date).toLocaleDateString()}</span>
+        </div>
+        {journey.available_capacity_kg && (
+          <div className="flex items-center gap-2 text-[#CCD6F6]">
+            <Package className="w-4 h-4" />
+            <span className="font-serif text-sm">Available: {Math.round(journey.available_capacity_kg / 1000)} tons</span>
+          </div>
+        )}
+        {journey.vessel && (
+          <Badge variant="outline" className="border-[#CCD6F6]/30 text-[#CCD6F6]">
+            {journey.vessel.vessel_type?.replace('_', ' ').toUpperCase()}
+          </Badge>
+        )}
+        <div className="bg-[#D4AF37]/10 p-3 rounded-lg border border-[#D4AF37]/30 mt-4">
+          <div className="flex items-center justify-center gap-2">
+            <Shield className="w-4 h-4 text-[#D4AF37]" />
+            <span className="text-[#D4AF37] font-serif font-medium text-sm">Carrier Route Available</span>
+          </div>
+          <p className="text-xs text-[#CCD6F6] text-center mt-1 font-serif">Direct vessel route • Reliable capacity</p>
+        </div>
+        {journey.nft_transaction_hash && (
+          <a href={`https://cardona-zkevm.polygonscan.com/tx/${journey.nft_transaction_hash}`} target="_blank" rel="noopener noreferrer" className="block mt-2 w-full">
+            <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif">
+              View Journey NFT (Polygon zkEVM)
+            </Button>
+          </a>
+        )}
+        <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif mt-2" onClick={() => setDetailsModal({ open: true, order: journey })}>
+          See Details
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
   const applyInsuranceMutation = useMutation({
     mutationFn: async ({ orderId, policy }: { orderId: string, policy: any }) => {
       const updateData: any = { is_insured: true, updated_at: new Date().toISOString() };
@@ -141,21 +217,95 @@ const Marketplace = () => {
     <div className="min-h-screen bg-[#0A192F] maritime-background">
       <Navigation />
       <div className="container mx-auto px-6 py-8 relative z-10">
-        <div className="text-center mb-8 page-enter"><h1 className="text-4xl font-serif font-medium text-[#FFFFFF] mb-2">Maritime Marketplace</h1><p className="text-[#CCD6F6] font-serif font-light">Discover shipping opportunities with built-in delay penalty protection</p></div>
+        <div className="text-center mb-8 page-enter">
+          <h1 className="text-4xl font-serif font-medium text-[#FFFFFF] mb-2">Maritime Marketplace</h1>
+          <p className="text-[#CCD6F6] font-serif font-light">Discover shipping opportunities with built-in delay penalty protection</p>
+        </div>
         <div className="page-enter" style={{ animationDelay: '0.2s' }}>
           <Tabs defaultValue="cargo" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-[#1E3A5F] border border-[#D4AF37]/30"><TabsTrigger value="cargo" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">Available Shipments ({isLoading ? '...' : cargoOrders.length})</TabsTrigger><TabsTrigger value="vessel" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">Available Vessels ({isLoading ? '...' : vesselOrders.length})</TabsTrigger></TabsList>
-            <TabsContent value="cargo" className="mt-6">{isLoading ? (<SkeletonGrid count={6} />) : (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{cargoOrders.map((order, index) => (<div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}><OrderCard order={order} /></div>))}{cargoOrders.length === 0 && (<div className="col-span-full text-center py-12"><Package className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" /><p className="text-[#CCD6F6] font-serif">No cargo shipments available</p></div>)}</div>)}</TabsContent>
-            <TabsContent value="vessel" className="mt-6">{isLoading ? (<SkeletonGrid count={6} />) : (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{vesselOrders.map((order, index) => (<div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}><OrderCard order={order} /></div>))}{vesselOrders.length === 0 && (<div className="col-span-full text-center py-12"><Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" /><p className="text-[#CCD6F6] font-serif">No vessels available</p></div>)}</div>)}</TabsContent>
+            <TabsList className="grid w-full grid-cols-3 bg-[#1E3A5F] border border-[#D4AF37]/30">
+              <TabsTrigger value="cargo" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
+                Available Shipments ({isLoading ? '...' : cargoOrders.length})
+              </TabsTrigger>
+              <TabsTrigger value="vessel" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
+                Available Vessels ({isLoading ? '...' : vesselOrders.length})
+              </TabsTrigger>
+              <TabsTrigger value="journeys" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
+                Available Routes ({isLoading ? '...' : availableJourneys.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="cargo" className="mt-6">
+              {isLoading ? (
+                <SkeletonGrid count={6} />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {cargoOrders.map((order, index) => (
+                    <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
+                      <OrderCard order={order} />
+                    </div>
+                  ))}
+                  {cargoOrders.length === 0 && (
+                    <div className="col-span-full text-center py-12">
+                      <Package className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+                      <p className="text-[#CCD6F6] font-serif">No cargo shipments available</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="vessel" className="mt-6">
+              {isLoading ? (
+                <SkeletonGrid count={6} />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {vesselOrders.map((order, index) => (
+                    <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
+                      <OrderCard order={order} />
+                    </div>
+                  ))}
+                  {vesselOrders.length === 0 && (
+                    <div className="col-span-full text-center py-12">
+                      <Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+                      <p className="text-[#CCD6F6] font-serif">No vessels available</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="journeys" className="mt-6">
+              {isLoading ? (
+                <SkeletonGrid count={6} />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {availableJourneys.map((journey, index) => (
+                    <div key={journey.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
+                      <JourneyCard journey={journey} />
+                    </div>
+                  ))}
+                  {availableJourneys.length === 0 && (
+                    <div className="col-span-full text-center py-12">
+                      <Route className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
+                      <p className="text-[#CCD6F6] font-serif">No carrier routes available</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </TabsContent>
           </Tabs>
         </div>
       </div>
+      
       <Dialog open={detailsModal.open} onOpenChange={open => setDetailsModal({ open, order: open ? detailsModal.order : null })}>
         {/* ... content unchanged ... */}
       </Dialog>
+      
       <Dialog open={insuranceModal.open || insuranceModal.loading} onOpenChange={open => { if (!insuranceModal.loading) { setInsuranceModal({ open, policy: open ? insuranceModal.policy : null, loading: false }); } }}>
         {/* ... content unchanged ... */}
       </Dialog>
+      
       <InsurancePolicyModal isOpen={selectInsuranceModal.open} onClose={() => setSelectInsuranceModal({ open: false, order: null })} onSelectPolicy={handleApplyInsurance} policyType="shipper" />
       <AiRouteModal isOpen={aiRouteModal.open} onClose={() => setAiRouteModal({ open: false, order: null })} order={aiRouteModal.order} />
     </div>
@@ -164,7 +314,9 @@ const Marketplace = () => {
 
 const SkeletonGrid = ({ count }: { count: number }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {Array.from({ length: count }).map((_, index) => (<SkeletonOrderCard key={index} />))}
+    {Array.from({ length: count }).map((_, index) => (
+      <SkeletonOrderCard key={index} />
+    ))}
   </div>
 );
 

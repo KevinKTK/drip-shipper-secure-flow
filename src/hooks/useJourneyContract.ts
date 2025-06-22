@@ -1,5 +1,5 @@
 
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { contractAddresses } from '@/lib/contract-addresses';
 import { parseEther } from 'viem';
 
@@ -22,6 +22,7 @@ const JOURNEY_NFT_ABI = [
 ] as const;
 
 export const useJourneyContract = () => {
+  const { address } = useAccount();
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
