@@ -44,6 +44,20 @@ export const useJourneyContract = () => {
         throw new Error('Expected arrival must be after departure');
       }
 
+      // Convert vesselTokenId to BigInt and ensure all parameters are in correct format
+      const vesselTokenIdBigInt = BigInt(params.vesselTokenId);
+      const departureTimestampBigInt = BigInt(params.departureTimestamp);
+      const expectedArrivalTimestampBigInt = BigInt(params.expectedArrivalTimestamp);
+
+      console.log('Converted parameters:', {
+        to: params.to,
+        vesselTokenId: vesselTokenIdBigInt.toString(),
+        originPort: params.originPort,
+        destinationPort: params.destinationPort,
+        departureTimestamp: departureTimestampBigInt.toString(),
+        expectedArrivalTimestamp: expectedArrivalTimestampBigInt.toString()
+      });
+
       // The `writeContract` function will trigger a wallet confirmation
       await writeContract({
         address: CONTRACT_ADDRESSES.journeyNFT as `0x${string}`,
@@ -51,11 +65,11 @@ export const useJourneyContract = () => {
         functionName: 'mintJourney',
         args: [
           params.to as `0x${string}`, // _to
-          BigInt(params.vesselTokenId), // _vesselTokenId
+          vesselTokenIdBigInt, // _vesselTokenId
           params.originPort, // _originPort
           params.destinationPort, // _destinationPort
-          BigInt(params.departureTimestamp), // _departureTimestamp
-          BigInt(params.expectedArrivalTimestamp) // _expectedArrivalTimestamp
+          departureTimestampBigInt, // _departureTimestamp
+          expectedArrivalTimestampBigInt // _expectedArrivalTimestamp
         ],
         chain: polygonZkEvmCardona,
         account: address, // The connected user's account, must be the vessel owner
