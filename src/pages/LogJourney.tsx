@@ -523,17 +523,17 @@ const LogJourney = () => {
 
                           {/* Action Buttons */}
                           <div className="flex items-center gap-2 pt-2">
-                            {/* Smart Contract Link (Emoji Button) */}
+                            {/* View NFT Link */}
                             {journey.nft_transaction_hash && (
-                              <a 
-                                href={`https://cardona-zkevm.polygonscan.com/tx/${journey.nft_transaction_hash}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-lg hover:scale-110 transition-transform"
-                                title="View on Blockchain"
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.open(`https://cardona-zkevm.polygonscan.com/tx/${journey.nft_transaction_hash}`, '_blank')}
+                                className="h-6 px-2 text-xs text-[#64FFDA] hover:text-[#64FFDA]/80 hover:bg-[#64FFDA]/20 font-serif border border-[#64FFDA]/30"
                               >
-                                ⛓️
-                              </a>
+                                <ExternalLink className="w-3 h-3 mr-1" />
+                                View NFT
+                              </Button>
                             )}
 
                             {/* Publish to Marketplace Button */}

@@ -122,18 +122,20 @@ const JourneyCard = ({ journey, onSelect, onDelete }: JourneyCardProps) => {
           </div>
         )}
 
-        {/* Smart Contract Link */}
+        {/* View NFT Link */}
         {journey.nft_transaction_hash && (
-          <a 
-            href={`https://cardona-zkevm.polygonscan.com/tx/${journey.nft_transaction_hash}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-[#64FFDA] hover:text-[#64FFDA]/80 text-sm font-serif"
-            onClick={(e) => e.stopPropagation()}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(`https://cardona-zkevm.polygonscan.com/tx/${journey.nft_transaction_hash}`, '_blank');
+            }}
+            className="w-full maritime-button bg-transparent hover:bg-[#64FFDA] hover:text-[#0A192F] text-[#64FFDA] border border-[#64FFDA]/50 font-serif"
           >
-            <ExternalLink className="w-3 h-3" />
-            View on Blockchain
-          </a>
+            <ExternalLink className="w-4 h-4 mr-2" />
+            View NFT on Blockchain
+          </Button>
         )}
 
         <div className="text-xs text-[#CCD6F6]/50 font-serif">
