@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Ship, Package, Shield, Calendar, MapPin, Coins, Wand2, Route } from 'lucide-react';
+import { Ship, Package, Shield, Calendar, MapPin, Coins, Wand2, Route, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { SkeletonOrderCard } from '@/components/ui/maritime-skeleton';
@@ -39,8 +39,8 @@ const Marketplace = () => {
     },
   });
 
-  const { data: journeys, isLoading: journeysLoading } = useQuery({
-    queryKey: ['carrier-routes'],
+  const { data: pricedJourneys, isLoading: pricedJourneysLoading } = useQuery({
+    queryKey: ['priced-journeys'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('carrier_routes')
@@ -48,6 +48,7 @@ const Marketplace = () => {
           *,
           vessel:orders!carrier_routes_vessel_id_fkey(*)
         `)
+        .not('price_eth', 'is', null)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -57,9 +58,9 @@ const Marketplace = () => {
 
   const cargoOrders = orders?.filter(order => order.order_type === 'cargo') || [];
   const vesselOrders = orders?.filter(order => order.order_type === 'vessel') || [];
-  const availableJourneys = journeys || [];
+  const availablePricedJourneys = pricedJourneys || [];
 
-  const isLoading = ordersLoading || journeysLoading;
+  const isLoading = ordersLoading || pricedJourneysLoading;
 
   const fetchInsurancePolicyDetails = async (order: any) => {
     setInsuranceModal({ open: false, policy: null, loading: true });
@@ -128,20 +129,18 @@ const Marketplace = () => {
     </Card>
   );
 
-  const JourneyCard = ({ journey }: { journey: any }) => (
+  const PricedJourneyCard = ({ journey }: { journey: any }) => (
     <Card className="maritime-card maritime-card-glow">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <CardTitle className="text-[#FFFFFF] font-serif font-medium flex items-center gap-2">
             <Route className="w-5 h-5 text-[#D4AF37]" />
-            {journey.vessel?.title || 'Journey Route'}
+            {journey.vessel?.title || 'Carrier Route'}
           </CardTitle>
-          {journey.nft_transaction_hash && (
-            <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium">
-              <Shield className="w-3 h-3 mr-1" />
-              NFT Minted
-            </Badge>
-          )}
+          <Badge className="bg-[#64FFDA] text-[#0A192F] font-medium">
+            <Coins className="w-3 h-3 mr-1" />
+            Available
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -164,18 +163,23 @@ const Marketplace = () => {
             {journey.vessel.vessel_type?.replace('_', ' ').toUpperCase()}
           </Badge>
         )}
+        <div className="flex justify-between items-center pt-3 border-t border-[#CCD6F6]/20">
+          <div className="flex items-center gap-1">
+            <Coins className="w-4 h-4 text-[#D4AF37]" />
+            <span className="text-[#D4AF37] font-medium">{journey.price_eth} ETH</span>
+          </div>
+        </div>
         <div className="bg-[#D4AF37]/10 p-3 rounded-lg border border-[#D4AF37]/30 mt-4">
           <div className="flex items-center justify-center gap-2">
             <Shield className="w-4 h-4 text-[#D4AF37]" />
-            <span className="text-[#D4AF37] font-serif font-medium text-sm">Carrier Route Available</span>
+            <span className="text-[#D4AF37] font-serif font-medium text-sm">Verified Carrier Route</span>
           </div>
-          <p className="text-xs text-[#CCD6F6] text-center mt-1 font-serif">Direct vessel route • Reliable capacity</p>
+          <p className="text-xs text-[#CCD6F6] text-center mt-1 font-serif">NFT-backed journey • Reliable capacity</p>
         </div>
         {journey.nft_transaction_hash && (
-          <a href={`https://cardona-zkevm.polygonscan.com/tx/${journey.nft_transaction_hash}`} target="_blank" rel="noopener noreferrer" className="block mt-2 w-full">
-            <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif">
-              View Journey NFT (Polygon zkEVM)
-            </Button>
+          <a href={`https://cardona-zkevm.polygonscan.com/tx/${journey.nft_transaction_hash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#64FFDA] hover:text-[#64FFDA]/80 text-sm font-serif">
+            <ExternalLink className="w-3 h-3" />
+            View Journey NFT
           </a>
         )}
         <Button variant="outline" className="w-full maritime-button bg-[#1E3A5F] hover:bg-[#D4AF37] hover:text-[#0A192F] text-[#CCD6F6] border border-[#D4AF37]/50 font-serif mt-2" onClick={() => setDetailsModal({ open: true, order: journey })}>
@@ -228,7 +232,7 @@ const Marketplace = () => {
                 Available Shipments ({isLoading ? '...' : cargoOrders.length})
               </TabsTrigger>
               <TabsTrigger value="vessel" className="maritime-nav-glow data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A192F] text-[#CCD6F6] font-serif">
-                Available Vessels ({isLoading ? '...' : vesselOrders.length + availableJourneys.length})
+                Available Vessels ({isLoading ? '...' : vesselOrders.length + availablePricedJourneys.length})
               </TabsTrigger>
             </TabsList>
             
@@ -257,6 +261,23 @@ const Marketplace = () => {
                 <SkeletonGrid count={6} />
               ) : (
                 <div className="space-y-8">
+                  {/* Priced Journey Routes Section */}
+                  {availablePricedJourneys.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-serif font-medium text-[#FFFFFF] mb-4 flex items-center gap-2">
+                        <Route className="w-5 h-5 text-[#D4AF37]" />
+                        Available Carrier Routes ({availablePricedJourneys.length})
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {availablePricedJourneys.map((journey, index) => (
+                          <div key={journey.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
+                            <PricedJourneyCard journey={journey} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Registered Vessels Section */}
                   {vesselOrders.length > 0 && (
                     <div>
@@ -266,7 +287,7 @@ const Marketplace = () => {
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {vesselOrders.map((order, index) => (
-                          <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
+                          <div key={order.id} className="page-enter-stagger" style={{ animationDelay: `${(index + availablePricedJourneys.length + 1) * 0.1}s` }}>
                             <OrderCard order={order} />
                           </div>
                         ))}
@@ -274,25 +295,8 @@ const Marketplace = () => {
                     </div>
                   )}
 
-                  {/* Available Journey Routes Section */}
-                  {availableJourneys.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-serif font-medium text-[#FFFFFF] mb-4 flex items-center gap-2">
-                        <Route className="w-5 h-5 text-[#D4AF37]" />
-                        Logged Journey Routes ({availableJourneys.length})
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {availableJourneys.map((journey, index) => (
-                          <div key={journey.id} className="page-enter-stagger" style={{ animationDelay: `${(index + vesselOrders.length + 1) * 0.1}s` }}>
-                            <JourneyCard journey={journey} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Empty State */}
-                  {vesselOrders.length === 0 && availableJourneys.length === 0 && (
+                  {vesselOrders.length === 0 && availablePricedJourneys.length === 0 && (
                     <div className="text-center py-12">
                       <Ship className="w-16 h-16 text-[#CCD6F6]/50 mx-auto mb-4" />
                       <p className="text-[#CCD6F6] font-serif">No vessels or journey routes available</p>

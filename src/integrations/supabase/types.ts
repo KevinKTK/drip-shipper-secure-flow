@@ -21,6 +21,7 @@ export type Database = {
           journey_nft_contract_address: string | null
           nft_transaction_hash: string | null
           origin_port: string
+          price_eth: number | null
           updated_at: string | null
           user_id: string | null
           vessel_id: string | null
@@ -36,6 +37,7 @@ export type Database = {
           journey_nft_contract_address?: string | null
           nft_transaction_hash?: string | null
           origin_port: string
+          price_eth?: number | null
           updated_at?: string | null
           user_id?: string | null
           vessel_id?: string | null
@@ -51,6 +53,7 @@ export type Database = {
           journey_nft_contract_address?: string | null
           nft_transaction_hash?: string | null
           origin_port?: string
+          price_eth?: number | null
           updated_at?: string | null
           user_id?: string | null
           vessel_id?: string | null
