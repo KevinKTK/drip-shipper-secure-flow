@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useJourneyContract } from '@/hooks/useJourneyContract';
-import { contractAddresses } from '@/lib/contract-addresses';
+import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets';
 
 const LogJourney = () => {
   const { vesselId } = useParams();
@@ -42,7 +42,7 @@ const LogJourney = () => {
       const dataWithNFT = {
         ...pendingJourneyData,
         nft_transaction_hash: hash,
-        journey_nft_contract_address: contractAddresses.journeyNFT,
+        journey_nft_contract_address: CONTRACT_ADDRESSES.journeyNFT,
       };
 
       createJourneyMutation.mutate(dataWithNFT);

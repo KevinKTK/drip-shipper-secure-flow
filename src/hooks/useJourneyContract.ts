@@ -1,27 +1,11 @@
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
-import { contractAddresses } from '@/lib/contract-addresses';
+import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets.ts';
 import { polygonZkEvmCardona } from 'wagmi/chains';
+import JourneyNFT from '../../contracts/ABI/JourneyNFT.json';
 
-// Journey NFT ABI - CORRECTED to match the Solidity contract
-const JOURNEY_NFT_ABI = [
-  {
-    // The 'mintJourney' function in the contract
-    name: "mintJourney",
-    type: "function",
-    stateMutability: "nonpayable",
-    // CORRECTED: The inputs now match the Solidity function signature
-    inputs: [
-      { name: "_vesselTokenId", type: "uint256" },
-      { name: "_originPort", type: "string" },
-      { name: "_destinationPort", type: "string" },
-      { name: "_departureTimestamp", type: "uint256" },
-      { name: "_expectedArrivalTimestamp", type: "uint256" },
-      { name: "_availableCapacity", type: "uint256" } // Added this required parameter
-    ],
-    // CORRECTED: The function does not have a return value
-    outputs: [],
-  }
-] as const;
+// The 'mintJourney' function in the contract
+// NOTE: The full ABI is now imported from the JSON file. This is more robust.
+// const JOURNEY_NFT_ABI = [ ... ]
 
 export const useJourneyContract = () => {
   const { address } = useAccount();
@@ -31,27 +15,21 @@ export const useJourneyContract = () => {
     hash,
   });
 
-  // CORRECTED: The parameters object now matches the contract's requirements
   const mintJourney = async (params: {
     vesselTokenId: string;
     originPort: string;
     destinationPort: string;
     departureTimestamp: number;
     expectedArrivalTimestamp: number;
-    availableCapacity: string; // Added this required parameter
+    availableCapacity: string;
   }) => {
     try {
       console.log('Minting Journey NFT with params:', {
-        vesselTokenId: params.vesselTokenId,
-        originPort: params.originPort,
-        destinationPort: params.destinationPort,
-        departureTimestamp: params.departureTimestamp,
-        expectedArrivalTimestamp: params.expectedArrivalTimestamp,
-        availableCapacity: params.availableCapacity, // Added for logging
-        contractAddress: contractAddresses.journeyNFT
+        ...params,
+        contractAddress: CONTRACT_ADDRESSES.journeyNFT
       });
 
-      // CORRECTED: Updated validation logic
+      // Updated validation logic
       if (!params.vesselTokenId || !params.originPort || !params.destinationPort || !params.availableCapacity) {
         throw new Error('Missing required parameters for Journey NFT minting');
       }
@@ -67,16 +45,15 @@ export const useJourneyContract = () => {
       // The `writeContract` function will trigger a wallet confirmation
       await writeContract({
         address: contractAddresses.journeyNFT as `0x${string}`,
-        abi: JOURNEY_NFT_ABI,
+        abi: JourneyNFT.abi,
         functionName: 'mintJourney',
-        // CORRECTED: The arguments array now matches the ABI
         args: [
           BigInt(params.vesselTokenId),
           params.originPort,
           params.destinationPort,
           BigInt(params.departureTimestamp),
           BigInt(params.expectedArrivalTimestamp),
-          BigInt(params.availableCapacity) // Added new argument
+          BigInt(params.availableCapacity)
         ],
         chain: polygonZkEvmCardona,
         account: address, // The connected user's account, must be the vessel owner

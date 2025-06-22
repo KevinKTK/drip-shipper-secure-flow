@@ -19,7 +19,7 @@ First, deploy your smart contracts to the Ink Sepolia testnet. The contracts sho
 4. **JourneyManager** - For journey tracking
 5. **Brokerage** - For order matching and brokerage
 
-After deployment, update the contract addresses in `src/lib/contract-addresses.ts`:
+After deployment, update the contract addresses in `src/lib/walletSecrets.ts`:
 
 ```typescript
 export const contractAddresses = {
@@ -137,7 +137,7 @@ The database includes comprehensive RLS policies that:
 
 ### Common Issues
 
-1. **Contract addresses not found**: Ensure contracts are deployed and addresses are correctly updated in `contract-addresses.ts`
+1. **Contract addresses not found**: Ensure contracts are deployed and addresses are correctly updated in `walletSecrets.ts`
 
 2. **RLS policy errors**: Check that your Supabase JWT includes the necessary claims
 
@@ -170,4 +170,4 @@ After deployment and database setup:
 1. `supabase/migrations/create_tables_with_contracts.sql` - Complete database schema with contract addresses
 2. `supabase/migrations/drop_all_tables.sql` - Database reset script
 3. `src/lib/populateDatabase.ts` - TypeScript utility for database population
-4. `src/lib/contract-addresses.ts` - Contract address configuration (update with your deployed addresses)
+4. `src/lib/walletSecrets.ts` - Contract address configuration (update with your deployed addresses)
