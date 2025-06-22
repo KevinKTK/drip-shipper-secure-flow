@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -488,9 +489,9 @@ const LogJourney = () => {
                           <Package className="w-3 h-3 text-[#D4AF37]" />
                           <span>{Math.round((journey.available_capacity_kg || 0) / 1000)} tons available</span>
                         </div>
-                        {journey.price_eth && (
+                        {(journey as any).price_eth && (
                           <div className="flex items-center gap-2 text-[#D4AF37] font-serif text-xs">
-                            <span>💰 {journey.price_eth} ETH</span>
+                            <span>💰 {(journey as any).price_eth} ETH</span>
                           </div>
                         )}
                       </div>
