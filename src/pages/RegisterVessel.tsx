@@ -36,9 +36,10 @@ const RegisterVessel = () => {
   });
 
   const [detailsModal, setDetailsModal] = useState<{ open: boolean, tokenId?: string, contract?: string }>({ open: false });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // --- WAGMI HOOKS for Blockchain Interaction ---
-  const { data: mintTxHash, isPending: isMintingPending, writeContract, error: mintError } = useWriteContract();
+  const { data: mintTxHash, isPending: isMintingPending, writeContract, error: mintError, reset: resetMint } = useWriteContract();
 
   const { data: mintTxReceipt, isLoading: isMintingTxLoading, isSuccess: isMintingTxSuccess } = useWaitForTransactionReceipt({
     hash: mintTxHash,
@@ -48,6 +49,16 @@ const RegisterVessel = () => {
   const createVesselMutation = useMutation({
     mutationFn: async (vesselData: typeof formData & { tokenId: string }) => {
       console.log('Creating vessel with data:', vesselData);
+      
+      // Validate vessel type before submission
+      if (!vesselData.vesselType || vesselData.vesselType === '') {
+        throw new Error('Vessel type is required');
+      }
+      
+      const validVesselTypes = ['container_ship', 'bulk_carrier', 'tanker', 'ro_ro', 'general_cargo', 'lng_carrier', 'lpg_carrier'];
+      if (!validVesselTypes.includes(vesselData.vesselType)) {
+        throw new Error(`Invalid vessel type: ${vesselData.vesselType}`);
+      }
       
       const { data: result, error } = await supabase
         .from('orders')
@@ -92,7 +103,7 @@ const RegisterVessel = () => {
         });
       }
       
-      // Reset form
+      // Reset form and submission state
       setFormData({
         vesselName: '',
         imoNumber: '',
@@ -102,17 +113,26 @@ const RegisterVessel = () => {
         flagState: '',
         yearBuilt: '',
       });
+      setIsSubmitting(false);
+      resetMint();
     },
     onError: (error: any) => {
       console.error('Database save error:', error);
       toast.error('NFT was minted, but failed to save vessel to database. Please contact support.', {
         description: `Tx Hash: ${mintTxHash}`
       });
+      setIsSubmitting(false);
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isSubmitting || isMintingPending || isMintingTxLoading || createVesselMutation.isPending) {
+      console.log('Submission already in progress, ignoring...');
+      return;
+    }
     
     if (!isConnected || !wagmiAddress) {
       toast.error('Please connect your wallet to register a vessel');
@@ -124,6 +144,14 @@ const RegisterVessel = () => {
       return;
     }
 
+    // Validate vessel type specifically
+    const validVesselTypes = ['container_ship', 'bulk_carrier', 'tanker', 'ro_ro', 'general_cargo', 'lng_carrier', 'lpg_carrier'];
+    if (!validVesselTypes.includes(formData.vesselType)) {
+      toast.error('Please select a valid vessel type');
+      return;
+    }
+
+    setIsSubmitting(true);
     console.log('Starting vessel minting process...');
     toast.info('Minting Vessel NFT, please confirm in your wallet...');
     
@@ -145,7 +173,7 @@ const RegisterVessel = () => {
 
   // --- EFFECT to handle the workflow AFTER minting is successful ---
   useEffect(() => {
-    if (isMintingTxSuccess && mintTxReceipt) {
+    if (isMintingTxSuccess && mintTxReceipt && !createVesselMutation.isPending) {
       console.log('Minting transaction successful, extracting token ID...');
       console.log('Transaction receipt:', mintTxReceipt);
       
@@ -180,15 +208,17 @@ const RegisterVessel = () => {
         toast.error('Could not extract Token ID from minting transaction. Please contact support.', {
           description: `Tx Hash: ${mintTxHash}`
         });
+        setIsSubmitting(false);
       }
     }
-  }, [isMintingTxSuccess, mintTxReceipt, formData, createVesselMutation]);
+  }, [isMintingTxSuccess, mintTxReceipt, formData, createVesselMutation.isPending]);
 
   // Effect for handling minting errors
   useEffect(() => {
     if (mintError) {
       console.error('Minting error:', mintError);
       toast.error((mintError as any).message || "An error occurred during minting.");
+      setIsSubmitting(false);
     }
   }, [mintError]);
 
@@ -197,7 +227,7 @@ const RegisterVessel = () => {
   };
 
   // --- UNIFIED LOADING STATE ---
-  const isProcessing = isMintingPending || isMintingTxLoading || createVesselMutation.isPending;
+  const isProcessing = isSubmitting || isMintingPending || isMintingTxLoading || createVesselMutation.isPending;
 
   if (!isConnected) {
     return (
@@ -315,7 +345,11 @@ const RegisterVessel = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-[#CCD6F6] font-serif">Vessel Type *</Label>
-                    <Select value={formData.vesselType} onValueChange={(value) => handleInputChange('vesselType', value)} disabled={isProcessing}>
+                    <Select 
+                      value={formData.vesselType} 
+                      onValueChange={(value) => handleInputChange('vesselType', value)} 
+                      disabled={isProcessing}
+                    >
                       <SelectTrigger className="maritime-input">
                         <SelectValue placeholder="Select vessel type" />
                       </SelectTrigger>
