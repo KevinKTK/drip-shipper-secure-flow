@@ -1,6 +1,10 @@
+# Pitch Videe: https://youtu.be/bHavwJNRg3U
+
+
 # DripShippa: Decentralized Shipping Brokerage on Polygon zkEVM
 
 **DripShippa** is a next-generation shipping brokerage platform that leverages blockchain, AI, and modern web technologies to create a secure, transparent, and automated maritime logistics marketplace. The platform is deployed on the Polygon zkEVM Cardona testnet and is built using [Lovable](https://lovable.dev/), [Supabase](https://supabase.com/), and Google Gemini-powered AI agents (integrated via Supabase Edge Functions).
+
 
 ---
 
