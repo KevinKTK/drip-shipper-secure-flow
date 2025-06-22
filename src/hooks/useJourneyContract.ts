@@ -1,4 +1,3 @@
-
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '@/lib/walletSecrets.ts';
 import { polygonZkEvmCardona } from 'wagmi/chains';
@@ -13,26 +12,26 @@ export const useJourneyContract = () => {
   });
 
   const mintJourney = async (params: {
-    to: string;
     vesselTokenId: string;
     originPort: string;
     destinationPort: string;
     departureTimestamp: number;
     expectedArrivalTimestamp: number;
+    availableCapacity: number;
   }) => {
     try {
       console.log('Minting Journey NFT with params:', {
-        to: params.to,
         vesselTokenId: params.vesselTokenId,
         originPort: params.originPort,
         destinationPort: params.destinationPort,
         departureTimestamp: params.departureTimestamp,
         expectedArrivalTimestamp: params.expectedArrivalTimestamp,
+        availableCapacity: params.availableCapacity,
         contractAddress: CONTRACT_ADDRESSES.journeyNFT
       });
 
       // Validate parameters before sending
-      if (!params.to || !params.vesselTokenId || !params.originPort || !params.destinationPort) {
+      if (!params.vesselTokenId || !params.originPort || !params.destinationPort) {
         throw new Error('Missing required parameters for Journey NFT minting');
       }
 
@@ -44,18 +43,23 @@ export const useJourneyContract = () => {
         throw new Error('Expected arrival must be after departure');
       }
 
-      // Convert vesselTokenId to BigInt and ensure all parameters are in correct format
+      if (params.availableCapacity <= 0) {
+        throw new Error('Available capacity must be a positive number');
+      }
+
+      // Convert all numeric values to BigInt
       const vesselTokenIdBigInt = BigInt(params.vesselTokenId);
       const departureTimestampBigInt = BigInt(params.departureTimestamp);
       const expectedArrivalTimestampBigInt = BigInt(params.expectedArrivalTimestamp);
+      const availableCapacityBigInt = BigInt(params.availableCapacity);
 
       console.log('Converted parameters:', {
-        to: params.to,
         vesselTokenId: vesselTokenIdBigInt.toString(),
         originPort: params.originPort,
         destinationPort: params.destinationPort,
         departureTimestamp: departureTimestampBigInt.toString(),
-        expectedArrivalTimestamp: expectedArrivalTimestampBigInt.toString()
+        expectedArrivalTimestamp: expectedArrivalTimestampBigInt.toString(),
+        availableCapacity: availableCapacityBigInt.toString()
       });
 
       // The `writeContract` function will trigger a wallet confirmation
@@ -64,12 +68,12 @@ export const useJourneyContract = () => {
         abi: JourneyNFT.abi,
         functionName: 'mintJourney',
         args: [
-          params.to as `0x${string}`, // _to
-          vesselTokenIdBigInt, // _vesselTokenId
-          params.originPort, // _originPort
-          params.destinationPort, // _destinationPort
-          departureTimestampBigInt, // _departureTimestamp
-          expectedArrivalTimestampBigInt // _expectedArrivalTimestamp
+          vesselTokenIdBigInt,             // _vesselTokenId
+          params.originPort,               // _originPort
+          params.destinationPort,          // _destinationPort
+          departureTimestampBigInt,        // _departureTimestamp
+          expectedArrivalTimestampBigInt,  // _expectedArrivalTimestamp
+          availableCapacityBigInt          // _availableCapacity
         ],
         chain: polygonZkEvmCardona,
         account: address, // The connected user's account, must be the vessel owner

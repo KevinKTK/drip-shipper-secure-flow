@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -241,12 +240,12 @@ const LogJourney = () => {
 
       // Mint the Journey NFT with all required parameters
       await mintJourney({
-        to: address,
         vesselTokenId: vessel.nft_token_id,
         originPort: formData.originPort,
         destinationPort: formData.destinationPort,
         departureTimestamp: departureTimestamp,
         expectedArrivalTimestamp: expectedArrivalTimestamp,
+        availableCapacity: parseInt(formData.availableCapacity) * 1000, // Pass capacity in kg
       });
 
     } catch (error) {
