@@ -3,16 +3,16 @@ import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagm
 import { contractAddresses } from '@/lib/contract-addresses';
 import { polygonZkEvmCardona } from 'wagmi/chains';
 
-// Journey NFT ABI - corrected to match the actual contract
+// Journey NFT ABI - updated to match the actual contract signature
 const JOURNEY_NFT_ABI = [
   {
     inputs: [
-      { name: "to", type: "address" },
-      { name: "vesselTokenId", type: "uint256" },
-      { name: "originPort", type: "string" },
-      { name: "destinationPort", type: "string" },
-      { name: "departureTimestamp", type: "uint256" },
-      { name: "availableCapacityKg", type: "uint256" }
+      { name: "_to", type: "address" },
+      { name: "_vesselTokenId", type: "uint256" },
+      { name: "_originPort", type: "string" },
+      { name: "_destinationPort", type: "string" },
+      { name: "_departureTimestamp", type: "uint256" },
+      { name: "_expectedArrivalTimestamp", type: "uint256" }
     ],
     name: "mintJourney",
     outputs: [{ name: "", type: "uint256" }],
@@ -35,7 +35,7 @@ export const useJourneyContract = () => {
     originPort: string;
     destinationPort: string;
     departureTimestamp: number;
-    availableCapacityKg: number;
+    expectedArrivalTimestamp: number;
   }) => {
     try {
       await writeContract({
@@ -48,7 +48,7 @@ export const useJourneyContract = () => {
           params.originPort,
           params.destinationPort,
           BigInt(params.departureTimestamp),
-          BigInt(params.availableCapacityKg)
+          BigInt(params.expectedArrivalTimestamp)
         ],
         chain: polygonZkEvmCardona,
         account: address,

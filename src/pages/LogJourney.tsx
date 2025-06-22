@@ -214,15 +214,25 @@ const LogJourney = () => {
 
       // Convert departure date to Unix timestamp
       const departureTimestamp = Math.floor(new Date(formData.departureDate).getTime() / 1000);
+      
+      // Calculate expected arrival timestamp
+      let expectedArrivalTimestamp: number;
+      if (formData.arrivalDate) {
+        // Use provided arrival date
+        expectedArrivalTimestamp = Math.floor(new Date(formData.arrivalDate).getTime() / 1000);
+      } else {
+        // Estimate 14 days from departure if no arrival date provided
+        expectedArrivalTimestamp = departureTimestamp + (14 * 24 * 60 * 60);
+      }
 
-      // Mint the Journey NFT with corrected parameters
+      // Mint the Journey NFT with all required parameters
       await mintJourney({
         to: address,
         vesselTokenId: vessel.nft_token_id,
         originPort: formData.originPort,
         destinationPort: formData.destinationPort,
         departureTimestamp: departureTimestamp,
-        availableCapacityKg: capacity * 1000, // Convert tons to kg
+        expectedArrivalTimestamp: expectedArrivalTimestamp,
       });
       
     } catch (error) {
