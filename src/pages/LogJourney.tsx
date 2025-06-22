@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,13 +9,12 @@ import { ArrowLeft, Ship, Package, Calendar, MapPin } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const LogJourney = () => {
   const { vesselId } = useParams();
   const navigate = useNavigate();
   const { address, isConnected } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
@@ -66,6 +64,20 @@ const LogJourney = () => {
 
   const createJourneyMutation = useMutation({
     mutationFn: async (data: any) => {
+      if (!address) {
+        throw new Error('Wallet address is required');
+      }
+
+      console.log('Creating journey with data:', {
+        vessel_id: vesselId,
+        origin_port: data.originPort,
+        destination_port: data.destinationPort,
+        departure_date: data.departureDate,
+        arrival_date: data.arrivalDate,
+        available_capacity_kg: parseInt(data.availableCapacity) * 1000,
+        carrier_wallet_address: address,
+      });
+
       const { data: result, error } = await supabase
         .from('carrier_routes')
         .insert([{
@@ -80,13 +92,17 @@ const LogJourney = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Database insert error:', error);
+        throw error;
+      }
+      
+      console.log('Journey created successfully:', result);
       return result;
     },
     onSuccess: () => {
-      toast({
-        title: "Journey Logged Successfully!",
-        description: "Your journey has been added and is now available for cargo matching.",
+      toast.success('Journey logged successfully!', {
+        description: 'Your journey has been added and is now available for cargo matching.',
       });
       queryClient.invalidateQueries({ queryKey: ['vessel-journeys'] });
       setFormData({
@@ -98,10 +114,19 @@ const LogJourney = () => {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: "Failed to Log Journey",
-        description: error.message || "Failed to log journey",
-        variant: "destructive",
+      console.error('Journey creation error:', error);
+      
+      let errorMessage = 'Failed to log journey';
+      let errorDescription = error.message || 'An unexpected error occurred';
+      
+      // Handle specific RLS policy violations
+      if (error.message?.includes('row-level security policy')) {
+        errorMessage = 'Access denied';
+        errorDescription = 'You do not have permission to create journeys. Please ensure your wallet is connected.';
+      }
+      
+      toast.error(errorMessage, {
+        description: errorDescription,
       });
     },
   });
@@ -110,19 +135,24 @@ const LogJourney = () => {
     e.preventDefault();
     
     if (!isConnected || !address) {
-      toast({
-        title: "Wallet Required",
-        description: "Please connect your wallet to log a journey",
-        variant: "destructive",
+      toast.error('Wallet Required', {
+        description: 'Please connect your wallet to log a journey',
       });
       return;
     }
 
     if (!formData.originPort || !formData.destinationPort || !formData.departureDate || !formData.availableCapacity) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
+      toast.error('Missing Information', {
+        description: 'Please fill in all required fields',
+      });
+      return;
+    }
+
+    // Validate capacity is a positive number
+    const capacity = parseInt(formData.availableCapacity);
+    if (isNaN(capacity) || capacity <= 0) {
+      toast.error('Invalid Capacity', {
+        description: 'Please enter a valid capacity in tons',
       });
       return;
     }
@@ -278,6 +308,7 @@ const LogJourney = () => {
                     <Label className="text-[#CCD6F6] font-serif">Available Capacity (tons) *</Label>
                     <Input
                       type="number"
+                      min="1"
                       value={formData.availableCapacity}
                       onChange={(e) => handleInputChange('availableCapacity', e.target.value)}
                       placeholder="e.g., 15000"
